@@ -121,10 +121,10 @@ namespace Hyper.Services.HyperNodeServices
                 var liveEvents = Observable.FromEventPattern<TrackActivityEventHandler, TrackActivityEventArgs>(
                     h => activityTracker.TrackActivityHandler += h,
                     h => activityTracker.TrackActivityHandler -= h
-                    ).Select(
-                        a => a.EventArgs.ActivityItem as HyperNodeActivityEventItem
-                    // Cast all our activity items as HyperNodeActivityEventItem;
-                    );
+                ).Select(
+                    // Cast all our activity items as HyperNodeActivityEventItem
+                    a => a.EventArgs.ActivityItem as HyperNodeActivityEventItem
+                );
 
                 /*****************************************************************************************************************
                  * Subscribe our progress cache to our event stream only if the client requested it and the feature is actually enabled. There is currently no built-in

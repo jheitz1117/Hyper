@@ -19,13 +19,9 @@ namespace Hyper.Services.HyperNodeHosting
                 ActivityCacheSlidingExpiration = TimeSpan.FromMinutes(config.ActivityCacheSlidingExpirationMinutes)
             };
 
-            // TODO: Read the app.config and construct any applicable custom task ID provider
-            var taskIdProviderTypeString = "";
-            if (!string.IsNullOrWhiteSpace(taskIdProviderTypeString))
-            {
-                var taskIdProvider = Activator.CreateInstance(Type.GetType(taskIdProviderTypeString, true)) as ITaskIdProvider;
-                service.TaskIdProvider = taskIdProvider;
-            }
+            // Set our task id provider if applicable, but if we have any problems creating the instance or casting to ITaskIdProvider, we deliberately want to fail out and make them fix the app.config
+            if (!string.IsNullOrWhiteSpace(config.TaskIdProviderType))
+                service.TaskIdProvider = (ITaskIdProvider)Activator.CreateInstance(Type.GetType(config.TaskIdProviderType, true));
 
             foreach (var monitorConfig in config.ActivityMonitors)
             {
