@@ -25,6 +25,13 @@ namespace Hyper.Services.HyperNodeServices.Configuration
             set { this["activityCacheSlidingExpiration"] = value; }
         }
 
+        [ConfigurationProperty("taskIdProviderType", IsRequired = false)]
+        public string TaskIdProviderType
+        {
+            get { return (string)this["taskIdProviderType"]; }
+            set { this["taskIdProviderType"] = value; }
+        }
+
         [ConfigurationProperty("activityMonitors")]
         [ConfigurationCollection(typeof(ActivityMonitorElementCollection))]
         public ActivityMonitorElementCollection ActivityMonitors
