@@ -1,0 +1,346 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema
+    targetNamespace="http://www.hyperdb.com/HyperDbXmlSchema"
+    elementFormDefault="qualified"
+    xmlns="http://www.hyperdb.com/HyperDbXmlSchema"
+    xmlns:tns="http://www.hyperdb.com/HyperDbXmlSchema"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+  <xs:element name="databaseSchemaConfiguration" type="DatabaseSchemaConfiguration">
+
+    <!-- Primary keys defined here so they'll be in scope when we reference them elsewhere. The unique constraints are defined on the containing elements later in the XML schema -->
+    <xs:key name="PK_ScriptWriterName">
+      <xs:selector xpath="tns:scriptWriters/tns:add" />
+      <xs:field xpath="@name" />
+    </xs:key>
+    
+    <!-- Foreign keys for script writers -->
+    <xs:keyref refer="PK_ScriptWriterName" name="FK_DefaultTableScriptWriterName">
+      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:tables" />
+      <xs:field xpath="@scriptWriter" />
+    </xs:keyref>
+    <xs:keyref refer="PK_ScriptWriterName" name="FK_TableScriptWriterName">
+      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:tables/tns:table" />
+      <xs:field xpath="@scriptWriter" />
+    </xs:keyref>
+    <xs:keyref refer="PK_ScriptWriterName" name="FK_PrimaryKeyScriptWriterName">
+      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:tables/tns:table/tns:constraints/tns:primaryKey" />
+      <xs:field xpath="@scriptWriter" />
+    </xs:keyref>
+    <xs:keyref refer="PK_ScriptWriterName" name="FK_DefaultForeignKeyScriptWriterName">
+      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:tables/tns:table/tns:constraints/tns:foreignKeys" />
+      <xs:field xpath="@scriptWriter" />
+    </xs:keyref>
+    <xs:keyref refer="PK_ScriptWriterName" name="FK_ForeignKeyScriptWriterName">
+      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:tables/tns:table/tns:constraints/tns:foreignKeys/tns:foreignKey" />
+      <xs:field xpath="@scriptWriter" />
+    </xs:keyref>
+    <xs:keyref refer="PK_ScriptWriterName" name="FK_DefaultStoredProcedureScriptWriterName">
+      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:storedProcedures" />
+      <xs:field xpath="@scriptWriter" />
+    </xs:keyref>
+    <xs:keyref refer="PK_ScriptWriterName" name="FK_StoredProcedureScriptWriterName">
+      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:storedProcedures/tns:storedProcedure" />
+      <xs:field xpath="@scriptWriter" />
+    </xs:keyref>
+  </xs:element>
+
+  <xs:complexType name="DatabaseSchemaConfiguration">
+    <xs:sequence>
+      <xs:element name="scriptWriters" minOccurs="0" maxOccurs="1" type="ScriptWriterCollection">
+        <xs:unique name="UK_ScriptWriterName">
+          <xs:selector xpath="tns:add" />
+          <xs:field xpath="@name" />
+        </xs:unique>
+      </xs:element>
+      <xs:element name="databaseSchemas" minOccurs="0" maxOccurs="1" type="DatabaseSchemaCollection">
+        <xs:unique name="UK_DatabaseSchemaName">
+          <xs:selector xpath="tns:databaseSchema" />
+          <xs:field xpath="@name" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="ScriptWriterCollection">
+    <xs:sequence>
+      <xs:element name="add" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="name" type="xs:string" use="required" />
+          <xs:attribute name="type" type="xs:string" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DatabaseSchemaCollection">
+    <xs:sequence>
+      <xs:element name="databaseSchema" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="tables" minOccurs="0" maxOccurs="1" type="TableCollection">
+              <xs:unique name="UK_TableName">
+                <xs:selector xpath="tns:table" />
+                <xs:field xpath="@name" />
+              </xs:unique>
+              <xs:keyref refer="UK_TableName" name="FK_PrimaryKeyTableName">
+                <xs:selector xpath="tns:table/tns:constraints/tns:foreignKeys/tns:foreignKey" />
+                <xs:field xpath="@primaryKeyTable" />
+              </xs:keyref>
+            </xs:element>
+            <xs:element name="storedProcedures" minOccurs="0" maxOccurs="1" type="StoredProcedureCollection">
+              <xs:unique name="UK_StoredProcedureName">
+                <xs:selector xpath="tns:storedProcedure" />
+                <xs:field xpath="@name" />
+              </xs:unique>
+            </xs:element>
+            
+            <!-- TODO: Add additional supported database objects here -->
+            
+            <xs:element name="customConfiguration" minOccurs="0" maxOccurs="1" type="CustomConfiguration" />
+            
+            <xs:element name="scripts" minOccurs="0" maxOccurs="1" type="ScriptCollection">
+              <xs:unique name="UK_ScriptName">
+                <xs:selector xpath="tns:script" />
+                <xs:field xpath="@name" />
+              </xs:unique>
+            </xs:element>
+          </xs:all>
+          <xs:attribute name="name" type="xs:string" use="required" />
+          <xs:attribute name="version" type="VersionString" />
+        </xs:complexType>
+        
+        <!-- Enforce unique names for primary and foreign keys across the whole database -->
+        <xs:unique name="UK_PrimaryKeyName">
+          <xs:selector xpath="tns:tables/tns:table/tns:constraints/tns:primaryKey" />
+          <xs:field xpath="@name" />
+        </xs:unique>
+        <xs:unique name="UK_ForeignKeyName">
+          <xs:selector xpath="tns:tables/tns:table/tns:constraints/tns:foreignKeys/tns:foreignKey" />
+          <xs:field xpath="@name" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TableCollection">
+    <xs:sequence>
+      <xs:element name="table" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="columns" minOccurs="1" maxOccurs="1" type="ColumnCollection">
+              <xs:unique name="UK_ColumnName">
+                <xs:selector xpath="tns:column" />
+                <xs:field xpath="@name" />
+              </xs:unique>
+            </xs:element>
+            <xs:element name="constraints" minOccurs="0" maxOccurs="1" type="ConstraintCollection" />
+          </xs:sequence>
+          <xs:attribute name="name" type="DatabaseObjectName" use="required" />
+          <xs:attribute name="version" type="VersionString" />
+          <xs:attribute name="scriptWriter" type="xs:string" />
+        </xs:complexType>
+        
+        <!-- Foreign keys for primary and foreign key column names -->
+        <xs:key name="PK_ColumnName">
+          <xs:selector xpath="tns:columns/tns:column" />
+          <xs:field xpath="@name" />
+        </xs:key>
+        <xs:keyref refer="PK_ColumnName" name="FK_PrimaryKeyColumnName">
+          <xs:selector xpath="tns:constraints/tns:primaryKey/tns:keyColumn" />
+          <xs:field xpath="@name" />
+        </xs:keyref>
+        <xs:keyref refer="PK_ColumnName" name="FK_ForeignKeyColumnName">
+          <xs:selector xpath="tns:constraints/tns:foreignKeys/tns:foreignKey/tns:keyColumn" />
+          <xs:field xpath="@name" />
+        </xs:keyref>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="scriptWriter" type="xs:string" />
+  </xs:complexType>
+
+  <xs:complexType name="ColumnCollection">
+    <xs:sequence>
+      <xs:element name="column" minOccurs="1" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="name" type="DatabaseObjectName" use="required" />
+          <xs:attribute name="type" type="DatabaseDataType" use="required" />
+          <xs:attribute name="maxLength" type="xs:positiveInteger" />
+          <xs:attribute name="decimals" type="xs:nonNegativeInteger" />
+          <xs:attribute name="nullable" type="xs:boolean" />
+          <xs:attribute name="defaultValue" type="xs:string" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ConstraintCollection">
+    <xs:sequence>
+      <xs:element name="primaryKey" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="keyColumn" minOccurs="1" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:attribute name="name" type="DatabaseObjectName" use="required" />
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+          <xs:attribute name="name" type="DatabaseObjectName" />
+          <xs:attribute name="scriptWriter" type="xs:string" />
+        </xs:complexType>
+        <xs:unique name="UK_PrimaryKeyColumnName">
+          <xs:selector xpath="tns:keyColumn" />
+          <xs:field xpath="@name" />
+        </xs:unique>
+      </xs:element>
+      <xs:element name="foreignKeys" minOccurs="0" maxOccurs="1" type="ForeignKeyCollection" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="ForeignKeyCollection">
+    <xs:sequence>
+      <xs:element name="foreignKey" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="keyColumn" minOccurs="1" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:attribute name="name" type="DatabaseObjectName" use="required" />
+                
+                <!--
+                  We are currently unable to enforce a foreign key XML constraint on this because XML
+                  doesn't support primary keys consisting of a parent node with "locally unique"
+                  child nodes. We'll just have to live without it for now.
+                -->
+                <xs:attribute name="referencedColumn" type="DatabaseObjectName" use="required" />
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+          
+          <!--
+            We had to make the name attribute required for foreignKey elements because the database allows multiple foreign key
+            constraints to exist that have the exact same FK columns pointing to the same PK columns on the same PK table. There
+            is therefore no way to uniquely identify a foreign key except by its name.
+            
+            A couple of ideas to consider at some point in the future:
+                If we implement default naming patterns in the XML schema (such as "FK_%TableName%_%PrimaryTableName%"), then
+                we might could get away with allowing the name attribute to be optional. In that case, we would auto-generate
+                a name based on the pattern and then proceed with the script generation. One caveat to this method is that we
+                would have to require EITHER the name attribute OR a default foreign key name pattern, since if we had neither
+                one we would be in the same boat where we can't determine if the foreign key already exists in the database.
+          -->
+          <xs:attribute name="name" type="DatabaseObjectName" use="required" />
+          <xs:attribute name="referencedTable" type="DatabaseObjectName" use="required" />
+          <xs:attribute name="scriptWriter" type="xs:string" />
+        </xs:complexType>
+        <xs:unique name="UK_ForeignKeyColumnName">
+          <xs:selector xpath="tns:keyColumn" />
+          <xs:field xpath="@name" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="scriptWriter" type="xs:string" />
+  </xs:complexType>
+  
+  <xs:complexType name="StoredProcedureCollection">
+    <xs:sequence>
+      <xs:element name="storedProcedure" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="parameters" minOccurs="0" maxOccurs="1" type="ParameterCollection">
+              <xs:unique name="UK_ParameterName">
+                <xs:selector xpath="tns:parameter" />
+                <xs:field xpath="@name" />
+              </xs:unique>
+            </xs:element>
+            <xs:element name="body" type="SQLScript" minOccurs="1" maxOccurs="1" />
+          </xs:sequence>
+          <xs:attribute name="name" type="DatabaseObjectName" use="required" />
+          <xs:attribute name="version" type="VersionString" />
+          <xs:attribute name="scriptWriter" type="xs:string" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="scriptWriter" type="xs:string" />
+  </xs:complexType>
+  
+  <xs:complexType name="ParameterCollection">
+    <xs:sequence>
+      <xs:element name="parameter" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="name" type="DatabaseObjectName" use="required" />
+          <xs:attribute name="type" type="DatabaseDataType" use="required" />
+          <xs:attribute name="maxLength" type="xs:positiveInteger" />
+          <xs:attribute name="decimals" type="xs:nonNegativeInteger" />
+          <xs:attribute name="defaultValue" type="xs:string" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CustomConfiguration">
+    <xs:sequence>
+      <xs:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax" />
+    </xs:sequence>
+    <xs:attribute name="type" type="xs:string" use="required" />
+  </xs:complexType>
+  
+  <xs:complexType name="ScriptCollection">
+    <xs:sequence>
+      <xs:element name="script" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:simpleContent>
+            <xs:extension base="SQLScript">
+              <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+            </xs:extension>
+          </xs:simpleContent>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="DatabaseObjectName">
+    <xs:restriction base="xs:string">
+      <!--
+        For now, we are going to restrict object names to the following rules:
+          1) The name must consist of at least one character.
+          2) The total length of the name cannot exceed 128 characters.
+          3) The first character must be an underscore or a letter in upper or lower case.
+          4) Each character following the first may be an underscore, a number, or a letter in upper or lower case.
+      -->
+      <xs:pattern value="^[a-zA-Z_][a-zA-Z0-9_]+$" />
+      <xs:maxLength value="128" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="DatabaseDataType">
+    <xs:restriction base="xs:string">
+      <!--
+        For now, we are going to restrict data type names to the following rules:
+          1) The type name must consist of at least one character.
+          2) The total length of the type name cannot exceed 20 characters
+          3) Each character may be an underscore, a number, or a letter in upper or lower case.
+      -->
+      <xs:pattern value="^[a-zA-Z0-9_]+$" />
+      <xs:maxLength value="20" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="VersionString">
+    <xs:restriction base="xs:string">
+      <!--
+        We are going to allow empty versions for now. They won't break anything, and it doesn't
+        make a lot of sense to cause a validation error over an empty string. To allow empty
+        strings, we simply use the (pattern1|pattern2|pattern3) approach and let the first
+        pattern be empty. We are basically saying "the version can be totally empty, but if it
+        has one or more characters, it must conform to the version pattern.
+      -->
+      <xs:pattern value="^(|\d+(\.\d+){1,3})$" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="SQLScript">
+    <xs:restriction base="xs:string">
+      <xs:whiteSpace value="preserve" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

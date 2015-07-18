@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<awesomeObjects xmlns="http://www.test.com/TestCustomDbXmlSchema">
+  <awesomeObject name="object1" property1="Stanza" />
+  <awesomeObject name="object2" property1="Orb" />
+  <awesomeObject name="object3" property1="Warthog" />
+  <awesomeObject name="object4" property1="Peanut" />
+</awesomeObjects>

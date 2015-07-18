@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E3793B8E-55A4-4184-8409-753988185D78}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Hyper.Db.Xml</RootNamespace>
+    <AssemblyName>Hyper.Db.Xml</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EmptyScriptWriter.cs" />
+    <Compile Include="HyperDbSchema.cs" />
+    <Compile Include="HyperDbSchemaConfiguration.cs" />
+    <Compile Include="HyperDbSchemaConfigurationException.cs" />
+    <Compile Include="HyperDbXmlScriptProvider.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScriptSources\HyperDbColumn.cs" />
+    <Compile Include="ScriptSources\HyperDbForeignKey.cs" />
+    <Compile Include="ScriptSources\HyperDbIdentityColumn.cs" />
+    <Compile Include="ScriptSources\HyperDbParameter.cs" />
+    <Compile Include="ScriptSources\HyperDbPrimaryKey.cs" />
+    <Compile Include="ScriptSources\HyperDbScript.cs" />
+    <Compile Include="ScriptSources\HyperDbStoredProcedure.cs" />
+    <Compile Include="ScriptSources\HyperDbTable.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="HyperDbXmlSchema.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hyper.Db\Hyper.Db.csproj">
+      <Project>{73c60f01-b6f8-4210-9b1d-d9e7b7979f99}</Project>
+      <Name>Hyper.Db</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.Versioning\Hyper.Versioning.csproj">
+      <Project>{91ac28f2-373b-44af-b970-a0608a174c39}</Project>
+      <Name>Hyper.Versioning</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

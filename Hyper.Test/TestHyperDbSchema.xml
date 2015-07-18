@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<databaseSchemaConfiguration
+  xmlns="http://www.hyperdb.com/HyperDbXmlSchema"
+  xmlns:cs="http://www.test.com/TestCustomDbXmlSchema"
+>
+  <scriptWriters>
+    <add name="tableWriter" type="Hyper.Db.ScriptWriters.Sql.SqlTableScriptWriter, Hyper.Db.ScriptWriters" />
+    <add name="pkWriter"    type="Hyper.Db.ScriptWriters.Sql.SqlPrimaryKeyScriptWriter, Hyper.Db.ScriptWriters" />
+    <add name="fkWriter"    type="Hyper.Db.ScriptWriters.Sql.SqlForeignKeyScriptWriter, Hyper.Db.ScriptWriters" />
+  </scriptWriters>
+  
+  <databaseSchemas>
+    <databaseSchema name="TestSchema" version="1.0.0.0">
+      <tables scriptWriter="tableWriter">
+        <table name="Users" version="1.0.0.0">
+          <columns>
+            <column name="UserID"    type="bigint" nullable="false" />
+            <column name="Username"  type="varchar" maxLength="50" nullable="true" />
+            <column name="Password"  type="varchar" maxLength="50" defaultValue="" />
+            <column name="FirstName" type="varchar" maxLength="20" defaultValue="     "/>
+            <column name="LastName"  type="varchar" maxLength="20" defaultValue="033"/>
+          </columns>
+          <constraints>
+            <primaryKey name="PK_Users" scriptWriter="pkWriter">
+              <keyColumn name="UserID" />
+            </primaryKey>
+            <foreignKeys scriptWriter="fkWriter">
+              <foreignKey name="FK_Users_Users" referencedTable="Users">
+                <keyColumn name="UserID" referencedColumn="UserID" />
+              </foreignKey>
+            </foreignKeys>
+          </constraints>
+        </table>
+        <table name="UserDetails" version="1.0.0.0">
+          <columns>
+            <column name="UserID" type="bigint" nullable="false" />
+            <column name="Column2" type="decimal" maxLength="12" decimals="2" nullable="false" />
+            <column name="Column3" type="nvarchar" maxLength="20" nullable="true" />
+            <column name="Column4" type="nvarchar" maxLength="300" nullable="true" />
+          </columns>
+          <constraints>
+            <foreignKeys scriptWriter="fkWriter">
+              <foreignKey name="FK_Users_UserDetails" referencedTable="Users">
+                <keyColumn name="UserID" referencedColumn="UserID" />
+              </foreignKey>
+            </foreignKeys>
+          </constraints>
+        </table>
+        <table name="newTable">
+          <columns>
+            <column name="rampit" type="bigint" />
+          </columns>
+        </table>
+      </tables>
+      <storedProcedures>
+        <storedProcedure name="MyStoredProcedure" version="1.0.0.0">
+          <parameters>
+            <parameter name="Param1" type="bigint" />
+            <parameter name="Param2" type="nvarchar" maxLength="30" defaultValue="" />
+            <parameter name="Param3" type="decimal" decimals="3" />
+          </parameters>
+          <body>
+            <![CDATA[
+          ]]>
+          </body>
+        </storedProcedure>
+        <storedProcedure name="MyBadProcedure" version="1.0.0.0">
+          <body></body>
+        </storedProcedure>
+      </storedProcedures>
+      <customConfiguration type="Hyper.Test.AwesomeObjectDbConfig, Hyper.Test">
+        <!--
+          In order to use this feature without annoying messages appearing in the error list, you must specify a second namespace in the root node above using some prefix,
+          then use that prefix for every node inside of customDbObjects. So for example, we're already specifying xmlns="http://www.hyperdb.com/HyperDbXmlSchema", but we
+          could create a new XSD called http://www.test.com/TestCustomDbXmlSchema and then reference it as a second namespace in the root node above like this:
+          
+          xmlns:cs="http://www.test.com/TestCustomDbXmlSchema"
+          
+          Then everything inside of here is created with respect to that schema:
+          
+            <cs:databaseSchemas></cs:databaseSchemas>
+        -->
+        <cs:awesomeObjects>
+          <cs:awesomeObject name="FirstObject" property1="Testing" />
+          <cs:awesomeObject name="BarbarianObject" property1="Bafoon" />
+          <cs:awesomeObject name="Rempartigan" property1="ZoomZoom" />
+          <cs:awesomeObject name="FieldAgent" property1="Paperwork" />
+        </cs:awesomeObjects>
+      </customConfiguration>
+      <scripts>
+        <script name="InsertSomeData">
+          <![CDATA[]]>
+        </script>
+        <script name="Script Number 2">
+          <![CDATA[update TheTable set KillerBots = 2 where EpicFail <> 1]]>
+        </script>
+      </scripts>
+    </databaseSchema>
+    <databaseSchema name="TestSchema2" version="1.0.0.0">
+      
+    </databaseSchema>
+    <databaseSchema name="TestSchema3" version="">
+      <tables>
+        <table name="Table11" version="1.0.0.0">
+          <columns>
+            <column name="Column1" type="bigint" />
+            <column name="Column2" type="decimal" maxLength="12" decimals="2" nullable="false" />
+            <column name="Column3" type="nvarchar" maxLength="20" nullable="true" />
+            <column name="Column4" type="nvarchar" maxLength="300" nullable="true" />
+          </columns>
+          <constraints>
+            <primaryKey name="PK_Something">
+              <keyColumn name="Column2" />
+              <keyColumn name="Column3" />
+              <keyColumn name="Column4" />
+            </primaryKey>
+          </constraints>
+        </table>
+      </tables>
+    </databaseSchema>
+  </databaseSchemas>
+
+</databaseSchemaConfiguration>
