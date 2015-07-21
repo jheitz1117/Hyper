@@ -1,6 +1,7 @@
 ﻿using System;
+using Hyper.Services.HyperNodeActivityTracking;
 
-namespace Hyper.Services.HyperNodeServices
+namespace Hyper.Services.HyperNodeExtensibility
 {
     public abstract class HyperNodeServiceActivityMonitor : IObserver<HyperNodeActivityEventItem>
     {

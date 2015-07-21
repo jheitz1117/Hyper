@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.ServiceModel;
+using Hyper.Services.HyperNodeExtensibility;
 using Hyper.Services.HyperNodeServices;
 using Hyper.Services.HyperNodeServices.Configuration;
 using Hyper.WcfHosting;

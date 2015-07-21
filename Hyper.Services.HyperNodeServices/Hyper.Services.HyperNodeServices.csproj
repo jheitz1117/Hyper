@@ -62,18 +62,14 @@
     <Compile Include="ActivityTracking\Monitors\HyperNodeTaskTraceCollector.cs" />
     <Compile Include="ActivityTracking\Monitors\HyperNodeMessageResponseCollector.cs" />
     <Compile Include="ActivityTracking\Trackers\GuidTaskIdProvider.cs" />
-    <Compile Include="ActivityTracking\Trackers\ITaskIdProvider.cs" />
     <Compile Include="Configuration\ActivityMonitorElement.cs" />
     <Compile Include="Configuration\ActivityMonitorElementCollection.cs" />
     <Compile Include="Configuration\HyperNodeConfigurationSection.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HyperNodeService.cs" />
-    <Compile Include="ActivityTracking\Monitors\HyperNodeServiceActivityMonitor.cs" />
     <Compile Include="ActivityTracking\Trackers\HyperNodeServiceActivityTracker.cs" />
-    <Compile Include="ActivityTracking\Trackers\HyperNodeTaskActivityTracker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ActivityTracking\HyperNodeActivityEventItem.cs" />
     <Compile Include="ThreadingParameters\ForwardingTaskParameter.cs" />
     <Compile Include="ThreadingParameters\ProcessMessageInternalParameter.cs" />
     <Compile Include="ThreadingParameters\ChildThreadCleanupParameter.cs" />
@@ -83,9 +79,17 @@
       <Project>{40248060-66ff-4bbe-81e2-7e8544dc9984}</Project>
       <Name>Hyper.ActivityTracking</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Hyper.Services.HyperNodeActivityTracking\Hyper.Services.HyperNodeActivityTracking.csproj">
+      <Project>{32325F34-E789-4B2B-9066-3E73FF082FEB}</Project>
+      <Name>Hyper.Services.HyperNodeActivityTracking</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Hyper.Services.HyperNodeContracts\Hyper.Services.HyperNodeContracts.csproj">
       <Project>{60fba4dd-489b-4e68-b627-4f82bec80c61}</Project>
       <Name>Hyper.Services.HyperNodeContracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.Services.HyperNodeExtensibility\Hyper.Services.HyperNodeExtensibility.csproj">
+      <Project>{FAE8E477-FFE7-4318-A53A-C92DD3940FC2}</Project>
+      <Name>Hyper.Services.HyperNodeExtensibility</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyper.Services.HyperNodeProxies\Hyper.Services.HyperNodeProxies.csproj">
       <Project>{140cf975-943c-4a31-a6d9-3c501ea412b8}</Project>

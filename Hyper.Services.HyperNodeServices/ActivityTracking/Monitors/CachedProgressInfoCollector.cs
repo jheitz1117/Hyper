@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Caching;
+using Hyper.Services.HyperNodeActivityTracking;
 using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeExtensibility;
 
 namespace Hyper.Services.HyperNodeServices
 {

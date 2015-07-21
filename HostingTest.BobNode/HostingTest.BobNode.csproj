@@ -49,6 +49,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Hyper.Services.HyperNodeContracts\Hyper.Services.HyperNodeContracts.csproj">
+      <Project>{60fba4dd-489b-4e68-b627-4f82bec80c61}</Project>
+      <Name>Hyper.Services.HyperNodeContracts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Hyper.Services.HyperNodeHosting\Hyper.Services.HyperNodeHosting.csproj">
       <Project>{DFEC6D7D-2A9C-4711-A4A2-4DB47EB1C667}</Project>
       <Name>Hyper.Services.HyperNodeHosting</Name>

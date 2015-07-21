@@ -2,7 +2,7 @@
 using Hyper.ActivityTracking;
 using Hyper.Services.HyperNodeContracts;
 
-namespace Hyper.Services.HyperNodeServices
+namespace Hyper.Services.HyperNodeActivityTracking
 {
     public class HyperNodeTaskActivityTracker : HyperActivityTracker
     {

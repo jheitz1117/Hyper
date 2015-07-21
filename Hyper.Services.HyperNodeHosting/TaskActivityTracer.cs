@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using Hyper.Services.HyperNodeServices;
+using Hyper.Services.HyperNodeActivityTracking;
+using Hyper.Services.HyperNodeExtensibility;
 
 namespace Hyper.Services.HyperNodeHosting
 {
@@ -20,7 +21,7 @@ namespace Hyper.Services.HyperNodeHosting
         public override void OnNext(HyperNodeActivityEventItem activity)
         {
             Trace.WriteLine(
-                string.Format("{0}  {1:G} {2} - {3}\r\n{4}",
+                string.Format("{0}  {1:G} {2}\r\n{3}\r\n{4}",
                     activity.MessageGuid,
                     activity.EventDateTime,
                     activity.Agent,

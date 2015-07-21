@@ -1,4 +1,5 @@
 ﻿using System;
+using Hyper.Services.HyperNodeActivityTracking;
 using Hyper.Services.HyperNodeContracts;
 
 namespace Hyper.Services.HyperNodeServices
@@ -57,10 +58,7 @@ namespace Hyper.Services.HyperNodeServices
         }
 
         /// <summary>
-        /// This method should only ever be called once at the very end of a HyperNode's processing of a message. If running concurrently, this should be
-        /// called when the thread completes. Otherwise, this should be called before ProcessMessage() returns. Luckily, SubscriberCleanupSafe() is called
-        /// already in precisely those locations, so that is the only place this should be called.
-        /// SubscriberCleanupSafe(), 
+        /// This method should only ever be called once at the very end of a HyperNode's processing of a message after all of the child threads have completed.
         /// </summary>
         public void TrackFinished()
         {

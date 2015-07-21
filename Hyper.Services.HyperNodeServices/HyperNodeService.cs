@@ -11,7 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Hyper.ActivityTracking;
+using Hyper.Services.HyperNodeActivityTracking;
 using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeExtensibility;
 using Hyper.Services.HyperNodeProxies;
 using Hyper.Services.HyperNodeServices.ActivityTracking;
 

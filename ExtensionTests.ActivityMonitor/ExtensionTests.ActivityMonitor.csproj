@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{57F15A75-0383-4733-8415-D4EC4524C411}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{B219055F-A5A3-4401-9B24-D65EC13145DD}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HostingTest.AliceNode</RootNamespace>
-    <AssemblyName>HostingTest.AliceNode</AssemblyName>
+    <RootNamespace>ExtensionTests.ActivityMonitor</RootNamespace>
+    <AssemblyName>ExtensionTests.ActivityMonitor</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -34,7 +32,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -42,24 +39,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AliceNode.cs" />
+    <Compile Include="DatabaseActivityMonitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Hyper.Services.HyperNodeContracts\Hyper.Services.HyperNodeContracts.csproj">
-      <Project>{60fba4dd-489b-4e68-b627-4f82bec80c61}</Project>
-      <Name>Hyper.Services.HyperNodeContracts</Name>
+    <ProjectReference Include="..\Hyper.ActivityTracking\Hyper.ActivityTracking.csproj">
+      <Project>{40248060-66FF-4BBE-81E2-7E8544DC9984}</Project>
+      <Name>Hyper.ActivityTracking</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyper.Services.HyperNodeHosting\Hyper.Services.HyperNodeHosting.csproj">
-      <Project>{DFEC6D7D-2A9C-4711-A4A2-4DB47EB1C667}</Project>
-      <Name>Hyper.Services.HyperNodeHosting</Name>
+    <ProjectReference Include="..\Hyper.Services.HyperNodeActivityTracking\Hyper.Services.HyperNodeActivityTracking.csproj">
+      <Project>{32325F34-E789-4B2B-9066-3E73FF082FEB}</Project>
+      <Name>Hyper.Services.HyperNodeActivityTracking</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyper.WcfHosting\Hyper.WcfHosting.csproj">
-      <Project>{BAFB81F3-F856-416D-871E-6C13BA3D9A36}</Project>
-      <Name>Hyper.WcfHosting</Name>
+    <ProjectReference Include="..\Hyper.Services.HyperNodeExtensibility\Hyper.Services.HyperNodeExtensibility.csproj">
+      <Project>{fae8e477-ffe7-4318-a53a-c92dd3940fc2}</Project>
+      <Name>Hyper.Services.HyperNodeExtensibility</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

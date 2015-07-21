@@ -1,7 +1,7 @@
 ﻿using System;
 using Hyper.ActivityTracking;
 
-namespace Hyper.Services.HyperNodeServices
+namespace Hyper.Services.HyperNodeActivityTracking
 {
     public sealed class HyperNodeActivityEventItem : IActivityItem
     {
