@@ -49,7 +49,8 @@ namespace Hyper.Services.HyperNodeServices
         private readonly CachedProgressInfoCollector _activityCache = new CachedProgressInfoCollector();
         private readonly string _hyperNodeName;
         private readonly List<HyperNodeServiceActivityMonitor> _activityMonitors = new List<HyperNodeServiceActivityMonitor>();
-        
+        private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
+
         /// <summary>
         /// This member is meant to store a backup of all of the <see cref="IDisposable" /> subscribers to our activity feed.
         /// If the <see cref="HyperNodeService"/> object is forced to be disposed while it still has child threads processing,
@@ -86,6 +87,10 @@ namespace Hyper.Services.HyperNodeServices
 
         #endregion Properties
 
+        /// <summary>
+        /// Initializes an instance of the <see cref="HyperNodeService"/> class with the specified name.
+        /// </summary>
+        /// <param name="hyperNodeName">The name of the <see cref="HyperNodeService"/>.</param>
         public HyperNodeService(string hyperNodeName)
         {
             _hyperNodeName = hyperNodeName;
@@ -366,6 +371,43 @@ namespace Hyper.Services.HyperNodeServices
             _activityMonitors.Add(monitor);
         }
 
+        /// <summary>
+        /// Communicates a request for cancellation.
+        /// </summary>
+        public void Cancel()
+        {
+            _tokenSource.Cancel();
+        }
+
+        /// <summary>
+        /// This method provides one last chance to dispose of any subscribers that may still exist due to child threads not
+        /// terminating as expected. This is also where the memory cache is disposed.
+        /// </summary>
+        public void Dispose()
+        {
+            // Dispose of any leftover subscribers
+            if (_backupSubscriberReference != null && _backupSubscriberReference.Any())
+            {
+                lock (_lock)
+                {
+                    foreach (var subscriber in _backupSubscriberReference.Where(s => s != null))
+                    {
+                        subscriber.Dispose();
+                    }
+                }
+            }
+
+            // Dispose of our activity cache
+            if (_activityCache != null)
+                _activityCache.Dispose();
+
+            // Dispose of our cancellation source
+            if (_tokenSource != null)
+                _tokenSource.Dispose();
+        }
+
+        #region Private Methods
+
         private IEnumerable<Task> ForwardMessage(HyperNodeMessageRequest message, HyperNodeServiceActivityTracker activityTracker)
         {
             Task[] forwardingTasks = { };
@@ -584,27 +626,6 @@ namespace Hyper.Services.HyperNodeServices
                 args.ToDispose.Dispose();
         }
 
-        /// <summary>
-        /// This method provides one last chance to dispose of any subscribers that may still exist due to child threads not
-        /// terminating as expected. This is also where the memory cache is disposed.
-        /// </summary>
-        public void Dispose()
-        {
-            // Dispose of any leftover subscribers
-            if (_backupSubscriberReference != null && _backupSubscriberReference.Any())
-            {
-                lock (_lock)
-                {
-                    foreach (var subscriber in _backupSubscriberReference.Where(s => s != null))
-                    {
-                        subscriber.Dispose();
-                    }
-                }
-            }
-
-            // Dispose of our activity cache
-            if (_activityCache != null)
-                _activityCache.Dispose();
-        }
+        #endregion Private Methods
     }
 }

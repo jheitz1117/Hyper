@@ -35,8 +35,12 @@ namespace Hyper.Services.HyperNodeHosting
                     service.AddActivityMonitor(monitor);
                 }
             }
-            
-            return new CancellableServiceHost(service);
+
+            var host = new CancellableServiceHost(service);
+
+            host.RegisterCancellationDelegate(service.Cancel);
+
+            return host;
         }
     }
 }

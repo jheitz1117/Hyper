@@ -8,14 +8,6 @@ namespace Hyper.WcfHosting
     {
         private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
 
-        public CancellationToken Token
-        {
-            get
-            {
-                return _tokenSource.Token;
-            }
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="CancellableServiceHost"/> class with the type of service and its base addresses specified.
         /// </summary>
@@ -33,13 +25,43 @@ namespace Hyper.WcfHosting
             : base(singletonInstance, baseAddresses) { }
 
         /// <summary>
-        /// Invoked during the transition of a communication object into the closing state.
+        /// Registers a delegate that will be called when this <see cref="CancellationToken"/> is canceled.
         /// </summary>
-        protected override void OnClosing()
+        /// <param name="callback">The delegate to be executed when the <see cref="CancellationToken"/> is canceled.</param>
+        public void RegisterCancellationDelegate(Action callback)
         {
-            _tokenSource.Cancel();
+            _tokenSource.Token.Register(callback);
+        }
 
-            base.OnClosing();
+        /// <summary>
+        /// Registers a delegate that will be called when this <see cref="CancellationToken"/> is canceled.
+        /// </summary>
+        /// <param name="callback">The delegate to be executed when the <see cref="CancellationToken"/> is canceled.</param>
+        /// <param name="useSynchronizationContext">A Boolean value that indicates whether to capture the current <see cref="SynchronizationContext"/> and use it when invoking the <paramref name="callback"/>.</param>
+        public void RegisterCancellationDelegate(Action callback, bool useSynchronizationContext)
+        {
+            _tokenSource.Token.Register(callback, useSynchronizationContext);
+        }
+
+        /// <summary>
+        /// Registers a delegate that will be called when this <see cref="CancellationToken"/> is canceled.
+        /// </summary>
+        /// <param name="callback">The delegate to be executed when the <see cref="CancellationToken"/> is canceled.</param>
+        /// <param name="state">The state to pass to the <paramref name="callback"/> when the delegate is invoked. This may be null.</param>
+        public void RegisterCancellationDelegate(Action<object> callback, object state)
+        {
+            _tokenSource.Token.Register(callback, state);
+        }
+
+        /// <summary>
+        /// Registers a delegate that will be called when this CancellationToken is canceled.
+        /// </summary>
+        /// <param name="callback">The delegate to be executed when the <see cref="CancellationToken"/> is canceled.</param>
+        /// <param name="state">The state to pass to the <paramref name="callback"/> when the delegate is invoked. This may be null.</param>
+        /// <param name="useSynchronizationContext">A Boolean value that indicates whether to capture the current <see cref="SynchronizationContext"/> and use it when invoking the <paramref name="callback"/>.</param>
+        public void RegisterCancellationDelegate(Action<object> callback, object state, bool useSynchronizationContext)
+        {
+            _tokenSource.Token.Register(callback, state, useSynchronizationContext);
         }
 
         /// <summary>
@@ -50,6 +72,31 @@ namespace Hyper.WcfHosting
             _tokenSource.Cancel();
 
             base.OnAbort();
+        }
+
+        /// <summary>
+        /// Invoked during the transition of a communication object into the closing state.
+        /// </summary>
+        protected override void OnClosing()
+        {
+            _tokenSource.Cancel();
+
+            base.OnClosing();
+        }
+
+        /// <summary>
+        /// Disposes of disposable services that are being hosted when the service host is closed.
+        /// </summary>
+        protected override void OnClosed()
+        {
+            try
+            {
+                _tokenSource.Dispose();
+            }
+            finally
+            {
+                base.OnClosed();
+            }
         }
     }
 }
