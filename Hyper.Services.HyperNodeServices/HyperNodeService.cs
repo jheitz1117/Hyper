@@ -49,7 +49,7 @@ namespace Hyper.Services.HyperNodeServices
         private readonly CachedProgressInfoCollector _activityCache = new CachedProgressInfoCollector();
         private readonly string _hyperNodeName;
         private readonly List<HyperNodeServiceActivityMonitor> _activityMonitors = new List<HyperNodeServiceActivityMonitor>();
-
+        
         /// <summary>
         /// This member is meant to store a backup of all of the <see cref="IDisposable" /> subscribers to our activity feed.
         /// If the <see cref="HyperNodeService"/> object is forced to be disposed while it still has child threads processing,

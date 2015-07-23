@@ -36,7 +36,7 @@ namespace Hyper.Services.HyperNodeHosting
                 }
             }
             
-            return new ServiceHost(service);
+            return new CancellableServiceHost(service);
         }
     }
 }

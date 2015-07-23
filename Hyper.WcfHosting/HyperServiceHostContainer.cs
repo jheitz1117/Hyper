@@ -4,7 +4,7 @@ using System.ServiceModel.Description;
 
 namespace Hyper.WcfHosting
 {
-    public class HyperServiceHost
+    public sealed class HyperServiceHostContainer
     {
         private ServiceHost _host;
 
@@ -13,11 +13,11 @@ namespace Hyper.WcfHosting
         private readonly IServiceHostExceptionHandler _communicationExceptionHandler;
         private readonly IServiceHostExceptionHandler _genericExceptionHandler;
 
-        public HyperServiceHost(IServiceHostFactory hostFactory, IServiceHostExceptionHandler exceptionHandler)
+        public HyperServiceHostContainer(IServiceHostFactory hostFactory, IServiceHostExceptionHandler exceptionHandler)
             : this(hostFactory, exceptionHandler, exceptionHandler, exceptionHandler)
         { }
 
-        public HyperServiceHost(IServiceHostFactory hostFactory, 
+        public HyperServiceHostContainer(IServiceHostFactory hostFactory, 
                            IServiceHostExceptionHandler timeoutExceptionHandler,
                            IServiceHostExceptionHandler communicationExceptionHandler,
                            IServiceHostExceptionHandler genericExceptionHandler)

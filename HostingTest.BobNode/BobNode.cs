@@ -13,7 +13,7 @@ namespace HostingTest.BobNode
             Debug.Listeners.Clear();
             Debug.Listeners.Add(new ConsoleTraceListener());
 
-            var host = new HyperServiceHost(new HyperNodeServiceHostFactory(), new DefaultServiceHostExceptionHandler());
+            var host = new HyperServiceHostContainer(new HyperNodeServiceHostFactory(), new DefaultServiceHostExceptionHandler());
 
             Console.WriteLine("Starting service...");
             if (!host.Start())
