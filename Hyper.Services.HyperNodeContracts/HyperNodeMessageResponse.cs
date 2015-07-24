@@ -143,6 +143,12 @@ namespace Hyper.Services.HyperNodeContracts
         /// Indicates that some warnings occurred while processing the message.
         /// </summary>
         [EnumMember]
-        HadWarnings       = 1 << 4
+        HadWarnings       = 1 << 4,
+
+        /// <summary>
+        /// Indicates that the service was cancelled before it completed.
+        /// </summary>
+        [EnumMember]
+        Cancelled         = 1 << 5
     }
 }
