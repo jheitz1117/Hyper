@@ -21,7 +21,7 @@ namespace HostingTest.AliceNode
      * 1) The hosting application (console app, windows service, IIS, etc.) is in charge of:
      *     1) Creating an instance of IServiceHostFactory
      *     2) Creating an instance of IServiceHostExceptionHandler
-     *     3) Creating an instance of HyperServiceHost and passing in the IServiceHostFactory and
+     *     3) Creating an instance of HyperServiceHostContainer and passing in the IServiceHostFactory and
      *        IServiceHostExceptionHandler objects created in steps 1 and 2
      * 2) The IServiceHostFactory object is in charge of:
      *     1) Retrieving the hyperNet/hyperNode section from the app.config
@@ -44,10 +44,10 @@ namespace HostingTest.AliceNode
             Debug.Listeners.Clear();
             Debug.Listeners.Add(new ConsoleTraceListener());
 
-            var host = new HyperServiceHost(new HyperNodeServiceHostFactory(), new DefaultServiceHostExceptionHandler());
+            var container = new HyperServiceHostContainer(new HyperNodeServiceHostFactory(), new DefaultServiceHostExceptionHandler());
 
             Console.WriteLine("Starting service...");
-            if (!host.Start())
+            if (!container.Start())
             {
                 Console.WriteLine("Failed to start service. Press any key to continue...");
                 Console.ReadKey();
@@ -55,7 +55,7 @@ namespace HostingTest.AliceNode
             }
 
             Console.WriteLine("Service started and is listening on the following addresses:");
-            foreach (var endpoint in host.Endpoints)
+            foreach (var endpoint in container.Endpoints)
             {
                 Console.WriteLine("    " + endpoint.Address);
             }
@@ -63,7 +63,7 @@ namespace HostingTest.AliceNode
             Console.WriteLine("Press any key to stop service...");
             Console.ReadKey();
             Console.WriteLine("Stopping service...");
-            host.Stop();
+            container.Stop();
 
             Console.WriteLine("Done.");
             Thread.Sleep(1000);

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -24,9 +25,12 @@ namespace HyperNodeTestClient
 
         private static void aliceProgressWorker_DoWork(object sender, DoWorkEventArgs e)
         {
+            var progressTimer = new Stopwatch();
+            progressTimer.Start();
+
             var alice = new HyperNodeClient("Alice");
             var progressResponse = new HyperNodeProgressInfo();
-            while (!progressResponse.IsComplete)
+            while (!progressResponse.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
             {
                 var aliceProgress = alice.ProcessMessage((HyperNodeMessageRequest)e.Argument);
                 if (aliceProgress == null)
@@ -55,6 +59,8 @@ namespace HyperNodeTestClient
                 Task.Delay(500).Wait();
             }
 
+            progressTimer.Stop();
+
             e.Result = progressResponse;
         }
 
@@ -75,9 +81,12 @@ namespace HyperNodeTestClient
 
         private static void bobProgressWorker_DoWork(object sender, DoWorkEventArgs e)
         {
+            var progressTimer = new Stopwatch();
+            progressTimer.Start();
+
             var alice = new HyperNodeClient("Alice");
             var progressResponse = new HyperNodeProgressInfo();
-            while (!progressResponse.IsComplete)
+            while (!progressResponse.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
             {
                 var aliceProgress = alice.ProcessMessage((HyperNodeMessageRequest)e.Argument);
                 if (aliceProgress == null || !aliceProgress.ChildResponses.ContainsKey("Bob"))
@@ -104,6 +113,8 @@ namespace HyperNodeTestClient
 
                 Task.Delay(500).Wait();
             }
+
+            progressTimer.Stop();
 
             e.Result = progressResponse;
         }
@@ -136,7 +147,8 @@ namespace HyperNodeTestClient
 
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
-                    CommandName = "LongRunningTaskTest",
+                    CommandName = "SuperLongRunningTestTask",
+                    //CommandName = "LongRunningTaskTest",
                     //CommandName = "ValidCommand",
                     IntendedRecipientNodeNames = new List<string>
                     {
@@ -164,7 +176,7 @@ namespace HyperNodeTestClient
                 };
 
                 tvwTaskTrace.Nodes.AddRange(
-                    new []
+                    new[]
                     {
                         new TreeNode(
                             response.RespondingNodeName,
@@ -189,6 +201,9 @@ namespace HyperNodeTestClient
                 );
                 if (msg.CacheProgressInfo)
                 {
+                    lblAliceProgress.Text = string.Format("Alice Progress (Message GUID {0})", msg.MessageGuid);
+                    lblBobProgress.Text = string.Format("Bob Progress (Message GUID {0})", msg.MessageGuid);
+
                     StartAliceProgressTracking(msg.MessageGuid);
                     StartBobProgressTracking(msg.MessageGuid);
                 }

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.ServiceModel;
+using System.ServiceModel.Configuration;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,6 +54,7 @@ namespace Hyper.Services.HyperNodeServices
         private readonly CachedProgressInfoCollector _activityCache = new CachedProgressInfoCollector();
         private readonly string _hyperNodeName;
         private readonly List<HyperNodeServiceActivityMonitor> _activityMonitors = new List<HyperNodeServiceActivityMonitor>();
+        private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
 
         /// <summary>
         /// This member is meant to store a backup of all of the <see cref="IDisposable" /> subscribers to our activity feed.
@@ -88,6 +92,10 @@ namespace Hyper.Services.HyperNodeServices
 
         #endregion Properties
 
+        /// <summary>
+        /// Initializes an instance of the <see cref="HyperNodeService"/> class with the specified name.
+        /// </summary>
+        /// <param name="hyperNodeName">The name of the <see cref="HyperNodeService"/>.</param>
         public HyperNodeService(string hyperNodeName)
         {
             _hyperNodeName = hyperNodeName;
@@ -320,13 +328,14 @@ namespace Hyper.Services.HyperNodeServices
                             }
                         );
 
-                        var processMessageInternalArgs = new ProcessMessageInternalParameter(message, response, activityTracker);
+                        var processMessageInternalArgs = new ProcessMessageInternalParameter(message, response, activityTracker, _tokenSource.Token);
                         if (message.RunConcurrently)
                         {
                             childTasks.Add(
                                 Task.Factory.StartNew(
                                     args => processMessageInternalSafe(args as ProcessMessageInternalParameter),
-                                    processMessageInternalArgs
+                                    processMessageInternalArgs,
+                                    _tokenSource.Token
                                 )
                             );
                         }
@@ -340,7 +349,7 @@ namespace Hyper.Services.HyperNodeServices
                         ForwardMessage(message, activityTracker)
                     );
                 }
-                
+
                 // Now that we have all of our tasks doing stuff, we want to add a final continuation when everything is finished to dispose of our subscribers
                 Task.WhenAll(
                     childTasks.ToArray()
@@ -368,11 +377,51 @@ namespace Hyper.Services.HyperNodeServices
             _activityMonitors.Add(monitor);
         }
 
+        /// <summary>
+        /// Communicates a request for cancellation.
+        /// </summary>
+        public void Cancel()
+        {
+            _tokenSource.Cancel();
+        }
+
+        /// <summary>
+        /// This method provides one last chance to dispose of any subscribers that may still exist due to child threads not
+        /// terminating as expected. This is also where the memory cache is disposed.
+        /// </summary>
+        public void Dispose()
+        {
+            // Dispose of any leftover subscribers
+            if (_backupSubscriberReference != null && _backupSubscriberReference.Any())
+            {
+                lock (_lock)
+                {
+                    foreach (var subscriber in _backupSubscriberReference.Where(s => s != null))
+                    {
+                        subscriber.Dispose();
+                    }
+                }
+            }
+
+            // Dispose of our activity cache
+            if (_activityCache != null)
+                _activityCache.Dispose();
+
+            // Dispose of our cancellation source
+            if (_tokenSource != null)
+                _tokenSource.Dispose();
+        }
+
+        #region Private Methods
+
         private IEnumerable<Task> ForwardMessage(HyperNodeMessageRequest message, HyperNodeServiceActivityTracker activityTracker)
         {
             Task[] forwardingTasks = { };
 
-            var children = message.ForwardingPath.GetChildren(this.HyperNodeName);
+            var children = GetConnectedHyperNodeChildren(
+                message.ForwardingPath.GetChildren(this.HyperNodeName).ToList(),
+                activityTracker
+            );
             if (children != null)
             {
                 forwardingTasks = children.Select(
@@ -406,7 +455,8 @@ namespace Hyper.Services.HyperNodeServices
 
                             return response;
                         },
-                        childForwardingParam
+                        childForwardingParam,
+                        _tokenSource.Token
                     ).ContinueWith(
                         (forwardingTask, param) =>
                         {
@@ -437,7 +487,8 @@ namespace Hyper.Services.HyperNodeServices
                                     break;
                             }
                         },
-                        childForwardingParam
+                        childForwardingParam,
+                        _tokenSource.Token
                     )
                 ).ToArray();
 
@@ -447,8 +498,13 @@ namespace Hyper.Services.HyperNodeServices
                     try
                     {
                         // We'll only wait so long. We let the client tell us how long they are willing to wait for the child nodes, but if this timeout
-                        // is longer than the WCF timeout specified in the app.config, then the app.config will win by default.
-                        Task.WaitAll(forwardingTasks, message.ForwardingTimeout);
+                        // is longer than the WCF timeout specified in the app.config, then the app.config will win by default. We'll also quit if
+                        // cancellation is requested
+                        Task.WaitAll(
+                            forwardingTasks,
+                            (int)Math.Min(message.ForwardingTimeout.TotalMilliseconds, int.MaxValue), // Make sure we don't accidentally cast more milliseconds than can fit in an instance of System.Int32
+                            _tokenSource.Token
+                        );
                     }
                     catch (Exception ex)
                     {
@@ -479,6 +535,43 @@ namespace Hyper.Services.HyperNodeServices
             }
 
             return forwardingTasks;
+        }
+
+        private IEnumerable<HyperNodeVertex> GetConnectedHyperNodeChildren(List<HyperNodeVertex> vertices, HyperNodeServiceActivityTracker activityTracker)
+        {
+            // Check to see if the path specified any child nodes that don't have endpoints defined in the app.config
+            var configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var serviceModelGroup = ServiceModelSectionGroup.GetSectionGroup(configuration);
+            if (serviceModelGroup == null)
+            {
+                // No endpoints exist because no service model section exists
+                activityTracker.TrackFormat(
+                    "Configuration does not contain a serviceModel section. Message forwarding is disabled.",
+                    this.HyperNodeName
+                );
+
+                // Just clear the list so we don't try to forward to anyone
+                vertices.Clear();
+            }
+            else
+            {
+                // Remove all vertices that don't have endpoint configurations in the app.config
+                vertices.RemoveAll(
+                    v =>
+                    {
+                        var endpointExists = serviceModelGroup.Client.Endpoints
+                            .Cast<ChannelEndpointElement>()
+                            .Any(e => e.Name == v.Key && e.Contract == typeof(IHyperNodeService).FullName
+                        );
+
+                        if (!endpointExists)
+                            activityTracker.TrackFormat("Message could not be forwarded to HyperNode '{0}' because no client endpoint was found with that name.", v.Key);
+
+                        return !endpointExists;
+                    }
+                );
+            }
+            return vertices;
         }
 
         private void ProcessMessageInternal(ProcessMessageInternalParameter args)
@@ -539,6 +632,23 @@ namespace Hyper.Services.HyperNodeServices
                         args.ActivityTracker.Track("Progress update 8", progressTotal, progressTotal);
                         args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.Success;
                     } break;
+                case "SuperLongRunningTestTask":
+                    {
+                        var stopwatch = new Stopwatch();
+                        stopwatch.Start();
+
+                        while (stopwatch.Elapsed <= TimeSpan.FromMinutes(1) && !args.Token.IsCancellationRequested)
+                        {
+                            args.ActivityTracker.TrackFormat("Elapsed time: {0}", stopwatch.Elapsed);
+                            Thread.Sleep(TimeSpan.FromSeconds(5));
+                        }
+
+                        stopwatch.Stop();
+
+                        args.ActivityTracker.TrackFormat("Out of loop at {0}. Cancellation was{1} requested.", stopwatch.Elapsed, (args.Token.IsCancellationRequested ? "" : " not"));
+                        args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.Cancelled;
+                    }
+                    break;
                 case "GetCachedProgressInfo":
                     {
                         args.ActivityTracker.TrackFormat("Retrieving cached progress info for Message Guid '{0}'.", args.Message.MessageGuid);
@@ -571,7 +681,7 @@ namespace Hyper.Services.HyperNodeServices
             /* Signal completion before we dispose our subscribers. This is necessary because clients who are polling the service for progress
              * updates must know when the service is done sending updates. */
             args.ActivityTracker.TrackFinished();
-            
+
             // We're about to dispose of these subscribers, so we no longer need the backup reference
             if (_backupSubscriberReference != null)
             {
@@ -586,27 +696,6 @@ namespace Hyper.Services.HyperNodeServices
                 args.ToDispose.Dispose();
         }
 
-        /// <summary>
-        /// This method provides one last chance to dispose of any subscribers that may still exist due to child threads not
-        /// terminating as expected. This is also where the memory cache is disposed.
-        /// </summary>
-        public void Dispose()
-        {
-            // Dispose of any leftover subscribers
-            if (_backupSubscriberReference != null && _backupSubscriberReference.Any())
-            {
-                lock (_lock)
-                {
-                    foreach (var subscriber in _backupSubscriberReference.Where(s => s != null))
-                    {
-                        subscriber.Dispose();
-                    }
-                }
-            }
-
-            // Dispose of our activity cache
-            if (_activityCache != null)
-                _activityCache.Dispose();
-        }
+        #endregion Private Methods
     }
 }

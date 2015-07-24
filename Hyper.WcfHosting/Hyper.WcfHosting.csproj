@@ -40,11 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CancellableServiceHost.cs" />
     <Compile Include="DefaultServiceHostExceptionHandler.cs" />
     <Compile Include="IServiceHostExceptionHandler.cs" />
     <Compile Include="IServiceHostFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="HyperServiceHost.cs" />
+    <Compile Include="HyperServiceHostContainer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
