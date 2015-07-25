@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Hyper.Services.HyperNodeServices.ActivityTracking
 {
     [Serializable]
-    public class ActivityMonitorAttachmentException : ApplicationException
+    internal class ActivityMonitorAttachmentException : ApplicationException
     {
         public ActivityMonitorAttachmentException() { }
         public ActivityMonitorAttachmentException(string message) : base(message) { }

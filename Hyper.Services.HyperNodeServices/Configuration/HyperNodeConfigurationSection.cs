@@ -2,7 +2,7 @@
 
 namespace Hyper.Services.HyperNodeServices.Configuration
 {
-    public sealed class HyperNodeConfigurationSection : ConfigurationSection
+    internal sealed class HyperNodeConfigurationSection : ConfigurationSection
     {
         [ConfigurationProperty("name", DefaultValue = "HyperNode1", IsRequired = true)]
         public string HyperNodeName
@@ -37,6 +37,13 @@ namespace Hyper.Services.HyperNodeServices.Configuration
         public ActivityMonitorElementCollection ActivityMonitors
         {
             get { return this["activityMonitors"] as ActivityMonitorElementCollection; }
+        }
+
+        [ConfigurationProperty("commandModules")]
+        [ConfigurationCollection(typeof(CommandModuleElementCollection))]
+        public CommandModuleElementCollection CommandModules
+        {
+            get { return this["commandModules"] as CommandModuleElementCollection; }
         }
     }
 }

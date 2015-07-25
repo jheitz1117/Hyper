@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Hyper.Services.HyperNodeServices.Configuration
 {
-    public sealed class ActivityMonitorElementCollection : ConfigurationElementCollection, IEnumerable<ActivityMonitorElement>
+    internal sealed class ActivityMonitorElementCollection : ConfigurationElementCollection, IEnumerable<ActivityMonitorElement>
     {
         public ActivityMonitorElement this[int index]
         {

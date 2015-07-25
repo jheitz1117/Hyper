@@ -1,5 +1,4 @@
-﻿using Hyper.Services.HyperNodeActivityTracking;
-using Hyper.Services.HyperNodeContracts;
+﻿using Hyper.Services.HyperNodeContracts;
 using Hyper.Services.HyperNodeExtensibility;
 
 namespace Hyper.Services.HyperNodeServices
@@ -15,7 +14,7 @@ namespace Hyper.Services.HyperNodeServices
             _target = target;
         }
 
-        public override void OnNext(HyperNodeActivityEventItem activity)
+        public override void OnNext(IHyperNodeActivityEventItem activity)
         {
             lock (_lock)
             {

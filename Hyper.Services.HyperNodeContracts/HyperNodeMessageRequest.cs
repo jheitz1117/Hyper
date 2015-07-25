@@ -36,7 +36,7 @@ namespace Hyper.Services.HyperNodeContracts
         public string CommandName { get; set; }
 
         [DataMember]
-        public string CommandRequestXml { get; set; }
+        public string CommandRequestString { get; set; }
 
         [DataMember]
         public bool RunConcurrently { get; set; }

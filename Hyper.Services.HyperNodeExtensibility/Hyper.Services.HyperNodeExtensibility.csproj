@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -39,18 +40,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ICommandExecutionContext.cs" />
+    <Compile Include="CommandRequestString.cs" />
+    <Compile Include="CommandResponseString.cs" />
     <Compile Include="HyperNodeServiceActivityMonitor.cs" />
+    <Compile Include="ICommandModuleRequest.cs" />
+    <Compile Include="ICommandModuleResponseSerializer.cs" />
+    <Compile Include="ICommandModuleRequestSerializer.cs" />
+    <Compile Include="ICommandModuleResponse.cs" />
+    <Compile Include="ICommandModule.cs" />
+    <Compile Include="IHyperNodeActivityEventItem.cs" />
+    <Compile Include="ITaskActivityTracker.cs" />
     <Compile Include="ITaskIdProvider.cs" />
+    <Compile Include="PassThroughSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyper.ActivityTracking\Hyper.ActivityTracking.csproj">
       <Project>{40248060-66FF-4BBE-81E2-7E8544DC9984}</Project>
       <Name>Hyper.ActivityTracking</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Hyper.Services.HyperNodeActivityTracking\Hyper.Services.HyperNodeActivityTracking.csproj">
-      <Project>{32325F34-E789-4B2B-9066-3E73FF082FEB}</Project>
-      <Name>Hyper.Services.HyperNodeActivityTracking</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyper.Services.HyperNodeContracts\Hyper.Services.HyperNodeContracts.csproj">
       <Project>{60FBA4DD-489B-4E68-B627-4F82BEC80C61}</Project>

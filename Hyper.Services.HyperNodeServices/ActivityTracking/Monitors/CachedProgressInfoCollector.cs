@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Caching;
-using Hyper.Services.HyperNodeActivityTracking;
 using Hyper.Services.HyperNodeContracts;
 using Hyper.Services.HyperNodeExtensibility;
 
@@ -36,7 +35,7 @@ namespace Hyper.Services.HyperNodeServices
             this.CacheDuration = cacheDuration;
         }
 
-        public override void OnNext(HyperNodeActivityEventItem activity)
+        public override void OnNext(IHyperNodeActivityEventItem activity)
         {
             // First add a new list or get the existing list with the specified key
             var progressInfo = AddOrGetExisting(activity.MessageGuid.ToString(), () => new HyperNodeProgressInfo());

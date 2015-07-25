@@ -56,13 +56,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActivityTracking\ActivityTrackerSetupException.cs" />
-    <Compile Include="ActivityTracking\ActivityMonitorAttachmentException.cs" />
+    <Compile Include="ActivityTracking\Exceptions\ActivityTrackerSetupException.cs" />
+    <Compile Include="ActivityTracking\Exceptions\ActivityMonitorAttachmentException.cs" />
+    <Compile Include="ActivityTracking\HyperNodeActivityEventItem.cs" />
     <Compile Include="ActivityTracking\Monitors\CachedProgressInfoCollector.cs" />
     <Compile Include="ActivityTracking\Monitors\HyperNodeTaskTraceCollector.cs" />
     <Compile Include="ActivityTracking\Monitors\HyperNodeMessageResponseCollector.cs" />
-    <Compile Include="ActivityTracking\Trackers\GuidTaskIdProvider.cs" />
+    <Compile Include="ActivityTracking\Trackers\HyperNodeTaskActivityTracker.cs" />
+    <Compile Include="GuidTaskIdProvider.cs" />
+    <Compile Include="CommandModules\CommandExecutionContext.cs" />
+    <Compile Include="CommandModules\CommandModuleConfiguration.cs" />
+    <Compile Include="Configuration\CommandModuleElement.cs" />
     <Compile Include="Configuration\ActivityMonitorElement.cs" />
+    <Compile Include="Configuration\CommandModuleElementCollection.cs" />
     <Compile Include="Configuration\ActivityMonitorElementCollection.cs" />
     <Compile Include="Configuration\HyperNodeConfigurationSection.cs">
       <SubType>Code</SubType>
@@ -78,10 +84,6 @@
     <ProjectReference Include="..\Hyper.ActivityTracking\Hyper.ActivityTracking.csproj">
       <Project>{40248060-66ff-4bbe-81e2-7e8544dc9984}</Project>
       <Name>Hyper.ActivityTracking</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Hyper.Services.HyperNodeActivityTracking\Hyper.Services.HyperNodeActivityTracking.csproj">
-      <Project>{32325F34-E789-4B2B-9066-3E73FF082FEB}</Project>
-      <Name>Hyper.Services.HyperNodeActivityTracking</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyper.Services.HyperNodeContracts\Hyper.Services.HyperNodeContracts.csproj">
       <Project>{60fba4dd-489b-4e68-b627-4f82bec80c61}</Project>

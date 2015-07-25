@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
-using Hyper.Services.HyperNodeActivityTracking;
 using Hyper.Services.HyperNodeExtensibility;
 
-namespace ExtensionTests.ActivityMonitor
+namespace HyperNetExtensibilityTest.ActivityMonitors
 {
     public class DatabaseActivityMonitor : HyperNodeServiceActivityMonitor
     {
@@ -15,15 +14,15 @@ namespace ExtensionTests.ActivityMonitor
         /// </summary>
         /// <param name="activity"></param>
         /// <returns></returns>
-        public override bool ShouldTrack(HyperNodeActivityEventItem activity)
+        public override bool ShouldTrack(IHyperNodeActivityEventItem activity)
         {
             return (activity.EventDateTime.DayOfWeek == DayOfWeek.Monday);
         }
 
-        public override void OnNext(HyperNodeActivityEventItem activity)
+        public override void OnNext(IHyperNodeActivityEventItem activity)
         {
             OnNextCount++;
-
+            
             lock (_lock)
             {
                 using (var writer = new StreamWriter("DatabaseWriter.txt", true))

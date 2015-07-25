@@ -53,13 +53,13 @@
       <Project>{60fba4dd-489b-4e68-b627-4f82bec80c61}</Project>
       <Name>Hyper.Services.HyperNodeContracts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyper.Services.HyperNodeHosting\Hyper.Services.HyperNodeHosting.csproj">
-      <Project>{DFEC6D7D-2A9C-4711-A4A2-4DB47EB1C667}</Project>
-      <Name>Hyper.Services.HyperNodeHosting</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Hyper.WcfHosting\Hyper.WcfHosting.csproj">
       <Project>{BAFB81F3-F856-416D-871E-6C13BA3D9A36}</Project>
       <Name>Hyper.WcfHosting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HyperNetExtensibilityTest\HyperNetExtensibilityTest.csproj">
+      <Project>{01837910-e278-4f61-93e4-673f0f012aa0}</Project>
+      <Name>HyperNetExtensibilityTest</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

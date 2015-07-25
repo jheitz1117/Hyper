@@ -38,7 +38,7 @@ namespace HyperNodeTestClient
 
                 //var targetProgress = aliceProgress.ChildResponses["Bob"];
                 var targetProgress = aliceProgress;
-                if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseXml))
+                if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseString))
                     break;
 
                 progressResponse = (HyperNodeProgressInfo)new DataContractSerializer(
@@ -50,7 +50,7 @@ namespace HyperNodeTestClient
                         }
                 ).ReadObject(
                     new XmlTextReader(
-                        new StringReader(targetProgress.CommandResponseXml)
+                        new StringReader(targetProgress.CommandResponseString)
                         )
                 );
 
@@ -93,7 +93,7 @@ namespace HyperNodeTestClient
                     break;
 
                 var targetProgress = aliceProgress.ChildResponses["Bob"];
-                if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseXml))
+                if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseString))
                     break;
 
                 progressResponse = (HyperNodeProgressInfo)new DataContractSerializer(
@@ -105,7 +105,7 @@ namespace HyperNodeTestClient
                         }
                 ).ReadObject(
                     new XmlTextReader(
-                        new StringReader(targetProgress.CommandResponseXml)
+                        new StringReader(targetProgress.CommandResponseString)
                         )
                 );
 
@@ -147,7 +147,9 @@ namespace HyperNodeTestClient
 
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
-                    CommandName = "SuperLongRunningTestTask",
+                    CommandName = "Echo",
+                    CommandRequestString = "Hello!",
+                    //CommandName = "SuperLongRunningTestTask",
                     //CommandName = "LongRunningTaskTest",
                     //CommandName = "ValidCommand",
                     IntendedRecipientNodeNames = new List<string>
@@ -171,7 +173,7 @@ namespace HyperNodeTestClient
                     "Node Action Reason: " + response.NodeActionReason,
                     "Process Status Flags: " + response.ProcessStatusFlags,
                     "Child Response Count: " + response.ChildResponses.Count,
-                    "Response XML: " + response.CommandResponseXml,
+                    "Response XML: " + response.CommandResponseString,
                     "Task Trace Count: " + response.TaskTrace.Count
                 };
 
@@ -302,7 +304,7 @@ namespace HyperNodeTestClient
             var progressRequest = new HyperNodeMessageRequest("HyperNodeTestClient")
             {
                 CommandName = "GetCachedProgressInfo",
-                CommandRequestXml = messageGuid.ToString(),
+                CommandRequestString = messageGuid.ToString(),
                 IntendedRecipientNodeNames = new List<string>
                 {
                     "Alice"
@@ -329,7 +331,7 @@ namespace HyperNodeTestClient
             var progressRequest = new HyperNodeMessageRequest("HyperNodeTestClient")
             {
                 CommandName = "GetCachedProgressInfo",
-                CommandRequestXml = messageGuid.ToString(),
+                CommandRequestString = messageGuid.ToString(),
                 IntendedRecipientNodeNames = new List<string>
                 {
                     "Bob"

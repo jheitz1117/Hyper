@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using Hyper.Services.HyperNodeHosting;
 using Hyper.WcfHosting;
+using HyperNetExtensibilityTest.WcfHosting;
 
 namespace HostingTest.BobNode
 {

@@ -2,7 +2,7 @@
 
 namespace Hyper.Services.HyperNodeServices.Configuration
 {
-    internal sealed class ActivityMonitorElement : ConfigurationElement
+    internal sealed class CommandModuleElement : ConfigurationElement
     {
         [ConfigurationProperty("name", IsRequired = true, IsKey = true)]
         public string Name
@@ -23,6 +23,20 @@ namespace Hyper.Services.HyperNodeServices.Configuration
         {
             get { return (bool)this["enabled"]; }
             set { this["enabled"] = value; }
+        }
+
+        [ConfigurationProperty("requestSerializer", IsRequired = false)]
+        public string RequestSerializerType
+        {
+            get { return (string)this["requestSerializer"]; }
+            set { this["requestSerializer"] = value; }
+        }
+
+        [ConfigurationProperty("responseSerializer", IsRequired = false)]
+        public string ResponseSerializerType
+        {
+            get { return (string)this["responseSerializer"]; }
+            set { this["responseSerializer"] = value; }
         }
     }
 }
