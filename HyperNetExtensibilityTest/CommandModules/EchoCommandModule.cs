@@ -10,7 +10,7 @@ namespace HyperNetExtensibilityTest.CommandModules
             var request = (CommandRequestString) context.Request;
             context.Activity.Track(request.RequestString);
             
-            return new CommandResponseString(request.RequestString, MessageProcessStatusFlags.Success);
+            return new CommandResponseString(MessageProcessStatusFlags.Success, request.RequestString);
         }
     }
 }

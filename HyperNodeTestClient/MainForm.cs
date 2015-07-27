@@ -147,7 +147,7 @@ namespace HyperNodeTestClient
 
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
-                    CommandName = "Echo",
+                    CommandName = "DisposableCommand",
                     CommandRequestString = "Hello!",
                     //CommandName = "SuperLongRunningTestTask",
                     //CommandName = "LongRunningTaskTest",

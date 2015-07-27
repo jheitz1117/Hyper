@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivityMonitors\DatabaseActivityMonitor.cs" />
+    <Compile Include="CommandModules\DisposableCommandModule.cs" />
     <Compile Include="CommandModules\EchoCommandModule.cs" />
     <Compile Include="WcfHosting\HyperNodeServiceHostFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -86,7 +86,6 @@ namespace Hyper.Services.HyperNodeServices
 
         private TimeSpan ActivityCacheSlidingExpiration
         {
-            get { return _activityCache.CacheDuration; }
             set { _activityCache.CacheDuration = value; }
         }
 
@@ -622,12 +621,6 @@ namespace Hyper.Services.HyperNodeServices
                         args.ActivityTracker.Track("Another step in the process.");
                         //throw new Exception("Bad!");
 
-                        // TODO: Process the message
-                        // TODO: Make calls to activityTracker.Track() as needed
-                        // TODO: If non-fatal errors are encountered during processing, set the HadNonFatalErrors flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadNonFatalErrors;
-                        // TODO: If warnings are encountered during processing, set the HadWarnings flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
-
-                        // TODO: If we successfully process the message, set response.ProcessStatusFlags equal to Success
                         args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.Success | MessageProcessStatusFlags.HadNonFatalErrors | MessageProcessStatusFlags.HadWarnings;
                     } break;
                 case "LongRunningTaskTest":
@@ -673,11 +666,7 @@ namespace Hyper.Services.HyperNodeServices
                     {
                         args.ActivityTracker.TrackFormat("Retrieving cached progress info for Message Guid '{0}'.", args.Message.MessageGuid);
 
-                        // TODO: Fill out this custom request/response idea. So totally awesome!!
-                        // Step 1: Deserialize request parameter XML into request object
-                        // Step 2: Execute code based on request object to create a response object
-                        // Step 3: Serialize the response object and return it in our HyperNodeResponse
-                        // Should prolly use base class for this if possible, which can
+                        // TODO: Break this out into its own system command module (see notepad document at work)
                         var progressInfo = _activityCache.GetProgressInfo(args.Message.CommandRequestString);
                         var builder = new StringBuilder();
                         using (var writer = new XmlTextWriter(new StringWriter(builder)))
@@ -723,6 +712,12 @@ namespace Hyper.Services.HyperNodeServices
                                 commandRequest.SeenByNodeNames.AddRange(commandRequest.SeenByNodeNames);
 
                                 // Execute the command
+                                // TODO: Process the message
+                                // TODO: Make calls to activityTracker.Track() as needed
+                                // TODO: If non-fatal errors are encountered during processing, set the HadNonFatalErrors flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadNonFatalErrors;
+                                // TODO: If warnings are encountered during processing, set the HadWarnings flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
+
+                                // TODO: If we successfully process the message, set response.ProcessStatusFlags equal to Success
                                 var commandResponse = commandModule.Execute(
                                     new CommandExecutionContext
                                     {
@@ -743,7 +738,6 @@ namespace Hyper.Services.HyperNodeServices
                                 if (disposableCommandModule != null)
                                     disposableCommandModule.Dispose();
                             }
-                            
                         }
                         else
                         {

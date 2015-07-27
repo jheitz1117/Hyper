@@ -1,4 +1,6 @@
-﻿namespace Hyper.Services.HyperNodeExtensibility
+﻿using Hyper.Services.HyperNodeContracts;
+
+namespace Hyper.Services.HyperNodeExtensibility
 {
     public sealed class PassThroughSerializer : ICommandModuleRequestSerializer, ICommandModuleResponseSerializer
     {
@@ -14,7 +16,7 @@
 
         ICommandModuleResponse ICommandModuleResponseSerializer.Deserialize(string responseString)
         {
-            return new CommandResponseString(responseString);
+            return new CommandResponseString(MessageProcessStatusFlags.None, responseString);
         }
 
         ICommandModuleRequest ICommandModuleRequestSerializer.Deserialize(string requestString)

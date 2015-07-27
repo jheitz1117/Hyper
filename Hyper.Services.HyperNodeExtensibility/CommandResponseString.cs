@@ -2,20 +2,17 @@
 
 namespace Hyper.Services.HyperNodeExtensibility
 {
-    public sealed class CommandResponseString : ICommandModuleResponse
+    public sealed class CommandResponseString : CommandResponse
     {
         public string ResponseString { get; set; }
-        public MessageProcessStatusFlags ProcessStatusFlags { get; set; }
 
-        public CommandResponseString(string responseString)
+        public CommandResponseString(MessageProcessStatusFlags statusFlags)
+            : base(statusFlags) { }
+
+        public CommandResponseString(MessageProcessStatusFlags statusFlags, string responseString)
+            : this(statusFlags)
         {
             this.ResponseString = responseString;
-        }
-
-        public CommandResponseString(string responseString, MessageProcessStatusFlags statusFlags)
-            : this(responseString)
-        {
-            this.ProcessStatusFlags = statusFlags;
         }
 
         public override string ToString()
