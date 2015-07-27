@@ -702,37 +702,48 @@ namespace Hyper.Services.HyperNodeServices
                             // Create our command module instance
                             var commandModule = (ICommandModule)Activator.CreateInstance(commandModuleConfig.CommandModuleType);
 
-                            // Deserialize the request string
-                            var commandRequest = requestSerializer.Deserialize(args.Message.CommandRequestString);
+                            try
+                            {
+                                // Deserialize the request string
+                                var commandRequest = requestSerializer.Deserialize(args.Message.CommandRequestString);
 
-                            // Initialize our collections if the user didn't do it for us
-                            if (commandRequest.IntendedRecipientNodeNames == null)
-                                commandRequest.IntendedRecipientNodeNames = new List<string>();
-                            if (commandRequest.SeenByNodeNames == null)
-                                commandRequest.SeenByNodeNames = new List<string>();
+                                // Initialize our collections if the user didn't do it for us
+                                if (commandRequest.IntendedRecipientNodeNames == null)
+                                    commandRequest.IntendedRecipientNodeNames = new List<string>();
+                                if (commandRequest.SeenByNodeNames == null)
+                                    commandRequest.SeenByNodeNames = new List<string>();
 
-                            // Copy in the info from our top-level message. We're using AddRange() for collections instead
-                            // of just assignment so that if the user changes anything, it doesn't affect the top-level message
-                            commandRequest.CreatedByAgentName = args.Message.CreatedByAgentName;
-                            commandRequest.CreationDateTime = args.Message.CreationDateTime;
-                            commandRequest.TaskId = args.Response.TaskId;
-                            commandRequest.MessageGuid = args.Message.MessageGuid;
-                            commandRequest.IntendedRecipientNodeNames.AddRange(args.Message.IntendedRecipientNodeNames);
-                            commandRequest.SeenByNodeNames.AddRange(commandRequest.SeenByNodeNames);
+                                // Copy in the info from our top-level message. We're using AddRange() for collections instead
+                                // of just assignment so that if the user changes anything, it doesn't affect the top-level message
+                                commandRequest.CreatedByAgentName = args.Message.CreatedByAgentName;
+                                commandRequest.CreationDateTime = args.Message.CreationDateTime;
+                                commandRequest.TaskId = args.Response.TaskId;
+                                commandRequest.MessageGuid = args.Message.MessageGuid;
+                                commandRequest.IntendedRecipientNodeNames.AddRange(args.Message.IntendedRecipientNodeNames);
+                                commandRequest.SeenByNodeNames.AddRange(commandRequest.SeenByNodeNames);
 
-                            // Execute the command
-                            var commandResponse = commandModule.Execute(
-                                new CommandExecutionContext
-                                {
-                                    Request = commandRequest,
-                                    Activity = args.ActivityTracker,
-                                    Token = args.Token
-                                }
-                            );
+                                // Execute the command
+                                var commandResponse = commandModule.Execute(
+                                    new CommandExecutionContext
+                                    {
+                                        Request = commandRequest,
+                                        Activity = args.ActivityTracker,
+                                        Token = args.Token
+                                    }
+                                );
 
-                            // Set our status flags and serialize the response to send back
-                            args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
-                            args.Response.CommandResponseString = responseSerializer.Serialize(commandResponse);
+                                // Set our status flags and serialize the response to send back
+                                args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
+                                args.Response.CommandResponseString = responseSerializer.Serialize(commandResponse);
+                            }
+                            finally
+                            {
+                                // Check if our module is disposable and take care of it appropriately
+                                var disposableCommandModule = commandModule as IDisposable;
+                                if (disposableCommandModule != null)
+                                    disposableCommandModule.Dispose();
+                            }
+                            
                         }
                         else
                         {
