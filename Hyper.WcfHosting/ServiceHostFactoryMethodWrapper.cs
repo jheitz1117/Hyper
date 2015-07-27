@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ServiceModel;
+using Hyper.Extensibility.WcfHosting;
 
 namespace Hyper.WcfHosting
 {

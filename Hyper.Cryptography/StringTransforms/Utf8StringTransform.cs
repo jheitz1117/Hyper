@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Hyper.Extensibility.Cryptography;
 
 namespace Hyper.Cryptography
 {

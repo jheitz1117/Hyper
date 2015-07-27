@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Hyper.WcfHosting
+namespace Hyper.Extensibility.WcfHosting
 {
     public interface IServiceHostExceptionHandler
     {

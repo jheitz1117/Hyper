@@ -1,4 +1,5 @@
 ﻿using System;
+using Hyper.Extensibility.ActivityTracking;
 
 namespace Hyper.ActivityTracking
 {

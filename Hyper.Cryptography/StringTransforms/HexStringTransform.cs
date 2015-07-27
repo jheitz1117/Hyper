@@ -1,4 +1,6 @@
-﻿namespace Hyper.Cryptography
+﻿using Hyper.Extensibility.Cryptography;
+
+namespace Hyper.Cryptography
 {
     public class HexStringTransform : IStringTransform
     {
