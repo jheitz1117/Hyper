@@ -13,6 +13,10 @@ namespace Hyper.WcfHosting
         private readonly IServiceHostExceptionHandler _communicationExceptionHandler;
         private readonly IServiceHostExceptionHandler _genericExceptionHandler;
 
+        public HyperServiceHostContainer(Func<ServiceHost> factory, IServiceHostExceptionHandler exceptionHandler)
+            : this(new ServiceHostFactoryMethodWrapper(factory), exceptionHandler, exceptionHandler, exceptionHandler)
+        { }
+
         public HyperServiceHostContainer(IServiceHostFactory hostFactory, IServiceHostExceptionHandler exceptionHandler)
             : this(hostFactory, exceptionHandler, exceptionHandler, exceptionHandler)
         { }

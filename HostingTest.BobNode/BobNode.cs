@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using Hyper.Services.HyperNodeServices;
 using Hyper.WcfHosting;
-using HyperNetExtensibilityTest.WcfHosting;
 
 namespace HostingTest.BobNode
 {
@@ -13,7 +13,17 @@ namespace HostingTest.BobNode
             Debug.Listeners.Clear();
             Debug.Listeners.Add(new ConsoleTraceListener());
 
-            var container = new HyperServiceHostContainer(new HyperNodeServiceHostFactory(), new DefaultServiceHostExceptionHandler());
+            var container = new HyperServiceHostContainer(
+                () =>
+                {
+                    var service = HyperNodeService.Create();
+                    var host = new CancellableServiceHost(service);
+                    host.RegisterCancellationDelegate(service.Cancel);
+
+                    return host;
+                },
+                new DefaultServiceHostExceptionHandler()
+            );
 
             Console.WriteLine("Starting service...");
             if (!container.Start())
