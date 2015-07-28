@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Hyper.Services.HyperNodeExtensibility;
 
-namespace HyperNetExtensibilityTest.CommandModules
+namespace HyperNet.ExtensibilityTest.Shared.CommandModules
 {
     public class ComplexCommandRequest : ICommandModuleRequest
     {

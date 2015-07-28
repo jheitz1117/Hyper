@@ -66,6 +66,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HyperNetExtensibilityTest",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyper.Extensibility", "Hyper.Extensibility\Hyper.Extensibility.csproj", "{8BE9047A-C0C3-468D-ACFF-9BD332C975B4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HyperNet.ExtensibilityTest.Shared", "HyperNet.ExtensibilityTest.Shared\HyperNet.ExtensibilityTest.Shared.csproj", "{E7B8DD6F-C275-462E-B260-6CB7F96476B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -160,6 +162,10 @@ Global
 		{8BE9047A-C0C3-468D-ACFF-9BD332C975B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BE9047A-C0C3-468D-ACFF-9BD332C975B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BE9047A-C0C3-468D-ACFF-9BD332C975B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7B8DD6F-C275-462E-B260-6CB7F96476B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7B8DD6F-C275-462E-B260-6CB7F96476B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7B8DD6F-C275-462E-B260-6CB7F96476B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7B8DD6F-C275-462E-B260-6CB7F96476B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -187,5 +193,6 @@ Global
 		{FAE8E477-FFE7-4318-A53A-C92DD3940FC2} = {D958CF47-922B-49C2-8C34-473D4EF7A889}
 		{01837910-E278-4F61-93E4-673F0F012AA0} = {4CF1560F-0E34-4D9D-BE87-C91AFA9FA5B4}
 		{8BE9047A-C0C3-468D-ACFF-9BD332C975B4} = {4DE65D47-16FA-4FB3-9CE5-EFD974BF95AB}
+		{E7B8DD6F-C275-462E-B260-6CB7F96476B7} = {4CF1560F-0E34-4D9D-BE87-C91AFA9FA5B4}
 	EndGlobalSection
 EndGlobal

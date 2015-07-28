@@ -2,7 +2,7 @@
 using Hyper.Services.HyperNodeContracts;
 using Hyper.Services.HyperNodeExtensibility;
 
-namespace HyperNetExtensibilityTest.CommandModules
+namespace HyperNet.ExtensibilityTest.Shared.CommandModules
 {
     public class ComplexCommandResponse : ICommandModuleResponse
     {

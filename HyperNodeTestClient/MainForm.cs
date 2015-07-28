@@ -11,7 +11,7 @@ using System.Windows.Forms;
 using System.Xml;
 using Hyper.Services.HyperNodeContracts;
 using Hyper.Services.HyperNodeProxies;
-using HyperNetExtensibilityTest.CommandModules;
+using HyperNet.ExtensibilityTest.Shared.CommandModules;
 
 namespace HyperNodeTestClient
 {

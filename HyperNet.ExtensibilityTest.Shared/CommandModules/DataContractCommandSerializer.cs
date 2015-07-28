@@ -4,7 +4,7 @@ using System.Text;
 using System.Xml;
 using Hyper.Services.HyperNodeExtensibility;
 
-namespace HyperNetExtensibilityTest.CommandModules
+namespace HyperNet.ExtensibilityTest.Shared.CommandModules
 {
     public class DataContractCommandSerializer<TRequest, TResponse> : ICommandModuleRequestSerializer, ICommandModuleResponseSerializer
         where TRequest : ICommandModuleRequest
