@@ -146,19 +146,20 @@ namespace HyperNodeTestClient
 
                 var alice = new HyperNodeClient("Alice");
 
-                var complexRequest = new ComplexCommandRequest
-                {
-                    MyString = "The magic string",
-                    MyDateTime = DateTime.Now,
-                    MyInt32 = 100,
-                    MyTimeSpan = TimeSpan.FromHours(50)
-                };
-
                 var serializer = new DataContractCommandSerializer<ComplexCommandRequest, ComplexCommandResponse>();
+                
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
                     CommandName = "ComplexCommand",
-                    CommandRequestString = serializer.Serialize(complexRequest),
+                    CommandRequestString = serializer.Serialize(
+                        new ComplexCommandRequest
+                        {
+                            MyString = "The magic string",
+                            MyDateTime = DateTime.Now,
+                            MyInt32 = 100,
+                            MyTimeSpan = TimeSpan.FromHours(50)
+                        }
+                    ),
                     //CommandName = "SuperLongRunningTestTask",
                     //CommandName = "LongRunningTaskTest",
                     //CommandName = "ValidCommand",
