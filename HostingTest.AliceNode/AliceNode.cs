@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using Hyper.Services.HyperNodeHosting;
+using Hyper.Services.HyperNodeServices;
 using Hyper.WcfHosting;
 
 namespace HostingTest.AliceNode
@@ -44,7 +44,17 @@ namespace HostingTest.AliceNode
             Debug.Listeners.Clear();
             Debug.Listeners.Add(new ConsoleTraceListener());
 
-            var container = new HyperServiceHostContainer(new HyperNodeServiceHostFactory(), new DefaultServiceHostExceptionHandler());
+            var container = new HyperServiceHostContainer(
+                () =>
+                {
+                    var service = HyperNodeService.Create();
+                    var host = new CancellableServiceHost(service);
+                    host.RegisterCancellationDelegate(service.Cancel);
+
+                    return host;
+                },
+                new DefaultServiceHostExceptionHandler()
+            );
 
             Console.WriteLine("Starting service...");
             if (!container.Start())

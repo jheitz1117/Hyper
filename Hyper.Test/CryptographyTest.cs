@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using Hyper.Cryptography;
+using Hyper.Extensibility.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Hyper.Test

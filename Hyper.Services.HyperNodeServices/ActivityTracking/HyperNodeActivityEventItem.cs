@@ -1,9 +1,9 @@
 ﻿using System;
-using Hyper.ActivityTracking;
+using Hyper.Services.HyperNodeExtensibility;
 
 namespace Hyper.Services.HyperNodeServices
 {
-    public sealed class HyperNodeActivityEventItem : IActivityItem
+    internal sealed class HyperNodeActivityEventItem : IHyperNodeActivityEventItem
     {
         // These properties have an internal setter because they are hard-set by the activity tracker
         public Guid MessageGuid { get; internal set; }

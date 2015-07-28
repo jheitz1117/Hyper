@@ -1,6 +1,6 @@
 ﻿using System.ServiceModel;
 
-namespace Hyper.WcfHosting
+namespace Hyper.Extensibility.WcfHosting
 {
     public interface IServiceHostFactory
     {

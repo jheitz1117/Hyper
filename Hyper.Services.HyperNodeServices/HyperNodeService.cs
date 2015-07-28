@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
@@ -15,8 +16,11 @@ using System.Threading.Tasks;
 using System.Xml;
 using Hyper.ActivityTracking;
 using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeExtensibility;
 using Hyper.Services.HyperNodeProxies;
 using Hyper.Services.HyperNodeServices.ActivityTracking;
+using Hyper.Services.HyperNodeServices.CommandModules;
+using Hyper.Services.HyperNodeServices.Configuration;
 
 namespace Hyper.Services.HyperNodeServices
 {
@@ -46,13 +50,16 @@ namespace Hyper.Services.HyperNodeServices
     {
         #region Private Members
 
+        private readonly string _hyperNodeName;
         private readonly object _lock = new object();
-        private readonly ITaskIdProvider _defaultTaskIdProvider = new GuidTaskIdProvider();
+        private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
+        private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
+        private static readonly ICommandModuleRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
+        private static readonly ICommandModuleResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
         private readonly TimeSpan _defaultActivityCacheSlidingExpiration = TimeSpan.FromHours(1);
         private readonly CachedProgressInfoCollector _activityCache = new CachedProgressInfoCollector();
-        private readonly string _hyperNodeName;
         private readonly List<HyperNodeServiceActivityMonitor> _activityMonitors = new List<HyperNodeServiceActivityMonitor>();
-        private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
+        private readonly ConcurrentDictionary<string, CommandModuleConfiguration> _commandModuleConfigurations = new ConcurrentDictionary<string, CommandModuleConfiguration>();
 
         /// <summary>
         /// This member is meant to store a backup of all of the <see cref="IDisposable" /> subscribers to our activity feed.
@@ -73,32 +80,18 @@ namespace Hyper.Services.HyperNodeServices
             get { return _hyperNodeName; }
         }
 
-        private ITaskIdProvider _taskIdProvider;
-        public ITaskIdProvider TaskIdProvider
-        {
-            private get { return _taskIdProvider ?? _defaultTaskIdProvider; }
-            set { _taskIdProvider = value ?? _defaultTaskIdProvider; }
-        }
+        private ITaskIdProvider TaskIdProvider { get; set; }
 
-        public bool EnableActivityCache { get; set; }
+        private bool EnableActivityCache { get; set; }
 
-        public TimeSpan ActivityCacheSlidingExpiration
+        private TimeSpan ActivityCacheSlidingExpiration
         {
-            get { return _activityCache.CacheDuration; }
             set { _activityCache.CacheDuration = value; }
         }
 
         #endregion Properties
 
-        /// <summary>
-        /// Initializes an instance of the <see cref="HyperNodeService"/> class with the specified name.
-        /// </summary>
-        /// <param name="hyperNodeName">The name of the <see cref="HyperNodeService"/>.</param>
-        public HyperNodeService(string hyperNodeName)
-        {
-            _hyperNodeName = hyperNodeName;
-            this.ActivityCacheSlidingExpiration = _defaultActivityCacheSlidingExpiration;
-        }
+        #region Public Methods
 
         public HyperNodeMessageResponse ProcessMessage(HyperNodeMessageRequest message)
         {
@@ -369,12 +362,7 @@ namespace Hyper.Services.HyperNodeServices
 
             return response;
         }
-
-        public void AddActivityMonitor(HyperNodeServiceActivityMonitor monitor)
-        {
-            _activityMonitors.Add(monitor);
-        }
-
+        
         /// <summary>
         /// Communicates a request for cancellation.
         /// </summary>
@@ -410,7 +398,40 @@ namespace Hyper.Services.HyperNodeServices
                 _tokenSource.Dispose();
         }
 
+        #region Static
+
+        public static HyperNodeService Create()
+        {
+            var config = (HyperNodeConfigurationSection)ConfigurationManager.GetSection("hyperNet/hyperNode");
+
+            var service = new HyperNodeService(config.HyperNodeName)
+            {
+                EnableActivityCache = config.EnableActivityCache,
+                ActivityCacheSlidingExpiration = TimeSpan.FromMinutes(config.ActivityCacheSlidingExpirationMinutes)
+            };
+
+            ConfigureTaskProvider(service, config);
+            ConfigureActivityMonitors(service, config);
+            ConfigureCommandModules(service, config);
+
+            return service;
+        }
+        
+        #endregion Static
+
+        #endregion Public Methods
+
         #region Private Methods
+
+        /// <summary>
+        /// Initializes an instance of the <see cref="HyperNodeService"/> class with the specified name.
+        /// </summary>
+        /// <param name="hyperNodeName">The name of the <see cref="HyperNodeService"/>.</param>
+        private HyperNodeService(string hyperNodeName)
+        {
+            _hyperNodeName = hyperNodeName;
+            this.ActivityCacheSlidingExpiration = _defaultActivityCacheSlidingExpiration;
+        }
 
         private IEnumerable<Task> ForwardMessage(HyperNodeMessageRequest message, HyperNodeServiceActivityTracker activityTracker)
         {
@@ -600,12 +621,6 @@ namespace Hyper.Services.HyperNodeServices
                         args.ActivityTracker.Track("Another step in the process.");
                         //throw new Exception("Bad!");
 
-                        // TODO: Process the message
-                        // TODO: Make calls to activityTracker.Track() as needed
-                        // TODO: If non-fatal errors are encountered during processing, set the HadNonFatalErrors flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadNonFatalErrors;
-                        // TODO: If warnings are encountered during processing, set the HadWarnings flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
-
-                        // TODO: If we successfully process the message, set response.ProcessStatusFlags equal to Success
                         args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.Success | MessageProcessStatusFlags.HadNonFatalErrors | MessageProcessStatusFlags.HadWarnings;
                     } break;
                 case "LongRunningTaskTest":
@@ -651,25 +666,85 @@ namespace Hyper.Services.HyperNodeServices
                     {
                         args.ActivityTracker.TrackFormat("Retrieving cached progress info for Message Guid '{0}'.", args.Message.MessageGuid);
 
-                        // TODO: Fill out this custom request/response idea. So totally awesome!!
-                        // Step 1: Deserialize request parameter XML into request object
-                        // Step 2: Execute code based on request object to create a response object
-                        // Step 3: Serialize the response object and return it in our HyperNodeResponse
-                        // Should prolly use base class for this if possible, which can
-                        var progressInfo = _activityCache.GetProgressInfo(args.Message.CommandRequestXml);
+                        // TODO: Break this out into its own system command module (see notepad document at work)
+                        var progressInfo = _activityCache.GetProgressInfo(args.Message.CommandRequestString);
                         var builder = new StringBuilder();
                         using (var writer = new XmlTextWriter(new StringWriter(builder)))
                         {
                             progressInfo.WriteXml(writer);
                             writer.Flush();
                         }
-                        args.Response.CommandResponseXml = builder.ToString();
+                        args.Response.CommandResponseString = builder.ToString();
                         args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Success;
                     } break;
                 default:
                     {
-                        args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Failure | MessageProcessStatusFlags.InvalidCommand;
-                        args.ActivityTracker.TrackFormat("Fatal error: Invalid command '{0}'.", args.Message.CommandName);
+                        CommandModuleConfiguration commandModuleConfig;
+                        if (_commandModuleConfigurations.ContainsKey(args.Message.CommandName) &&
+                            _commandModuleConfigurations.TryGetValue(args.Message.CommandName, out commandModuleConfig) &&
+                            commandModuleConfig.Enabled)
+                        {
+                            // Ensure that we have a non-null serializer to handle the requests and responses
+                            var requestSerializer = commandModuleConfig.RequestSerializer ?? DefaultRequestSerializer;
+                            var responseSerializer = commandModuleConfig.ResponseSerializer ?? DefaultResponseSerializer;
+
+                            // Create our command module instance
+                            var commandModule = (ICommandModule)Activator.CreateInstance(commandModuleConfig.CommandModuleType);
+
+                            try
+                            {
+                                // Deserialize the request string
+                                var commandRequest = requestSerializer.Deserialize(args.Message.CommandRequestString);
+
+                                // Initialize our collections if the user didn't do it for us
+                                if (commandRequest.IntendedRecipientNodeNames == null)
+                                    commandRequest.IntendedRecipientNodeNames = new List<string>();
+                                if (commandRequest.SeenByNodeNames == null)
+                                    commandRequest.SeenByNodeNames = new List<string>();
+
+                                // Copy in the info from our top-level message. We're using AddRange() for collections instead
+                                // of just assignment so that if the user changes anything, it doesn't affect the top-level message
+                                commandRequest.CreatedByAgentName = args.Message.CreatedByAgentName;
+                                commandRequest.CreationDateTime = args.Message.CreationDateTime;
+                                commandRequest.TaskId = args.Response.TaskId;
+                                commandRequest.MessageGuid = args.Message.MessageGuid;
+                                commandRequest.IntendedRecipientNodeNames.AddRange(args.Message.IntendedRecipientNodeNames);
+                                commandRequest.SeenByNodeNames.AddRange(commandRequest.SeenByNodeNames);
+
+                                // Execute the command
+                                // TODO: Process the message
+                                // TODO: Make calls to activityTracker.Track() as needed
+                                // TODO: If non-fatal errors are encountered during processing, set the HadNonFatalErrors flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadNonFatalErrors;
+                                // TODO: If warnings are encountered during processing, set the HadWarnings flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
+
+                                // TODO: If we successfully process the message, set response.ProcessStatusFlags equal to Success
+                                var commandResponse = commandModule.Execute(
+                                    new CommandExecutionContext
+                                    {
+                                        Request = commandRequest,
+                                        Activity = args.ActivityTracker,
+                                        Token = args.Token
+                                    }
+                                );
+
+                                // Set our status flags and serialize the response to send back
+                                args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
+                                args.Response.CommandResponseString = responseSerializer.Serialize(commandResponse);
+                            }
+                            finally
+                            {
+                                // Check if our module is disposable and take care of it appropriately
+                                var disposableCommandModule = commandModule as IDisposable;
+                                if (disposableCommandModule != null)
+                                    disposableCommandModule.Dispose();
+                            }
+                        }
+                        else
+                        {
+                            // Unrecognized command
+                            args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Failure | MessageProcessStatusFlags.InvalidCommand;
+                            args.ActivityTracker.TrackFormat("Fatal error: Invalid command '{0}'.", args.Message.CommandName);
+                        }
                     } break;
             }
         }
@@ -693,6 +768,89 @@ namespace Hyper.Services.HyperNodeServices
             if (args.ToDispose != null)
                 args.ToDispose.Dispose();
         }
+
+        #region Static
+
+        private static void ConfigureTaskProvider(HyperNodeService service, HyperNodeConfigurationSection config)
+        {
+            // Set our task id provider if applicable, but if we have any problems creating the instance or casting to ITaskIdProvider, we deliberately want to fail out and make them fix the app.config
+            if (!string.IsNullOrWhiteSpace(config.TaskIdProviderType))
+                service.TaskIdProvider = (ITaskIdProvider)Activator.CreateInstance(Type.GetType(config.TaskIdProviderType, true));
+
+            if (service.TaskIdProvider == null)
+                service.TaskIdProvider = DefaultTaskIdProvider;
+        }
+
+        private static void ConfigureActivityMonitors(HyperNodeService service, HyperNodeConfigurationSection config)
+        {
+            // Instantiate our activity monitors
+            foreach (var monitorConfig in config.ActivityMonitors)
+            {
+                // If we have any problems creating the instance or casting to HyperNodeServiceActivityMonitor, we deliberately want to fail out and make them fix the app.config
+                var monitor = (HyperNodeServiceActivityMonitor)Activator.CreateInstance(Type.GetType(monitorConfig.Type, true));
+                if (monitor != null)
+                {
+                    monitor.Name = monitorConfig.Name;
+                    monitor.Enabled = monitorConfig.Enabled;
+
+                    service._activityMonitors.Add(monitor);
+                }
+            }
+        }
+
+        private static void ConfigureCommandModules(HyperNodeService service, HyperNodeConfigurationSection config)
+        {
+            Type defaultRequestSerializerType = null;
+            Type defaultResponseSerializerType = null;
+
+            // First, see if we have any user-defined default serializers
+            if (!string.IsNullOrWhiteSpace(config.CommandModules.RequestSerializerType))
+                defaultRequestSerializerType = Type.GetType(config.CommandModules.RequestSerializerType, true);
+            if (!string.IsNullOrWhiteSpace(config.CommandModules.ResponseSerializerType))
+                defaultResponseSerializerType = Type.GetType(config.CommandModules.ResponseSerializerType, true);
+
+            foreach (var commandModuleConfig in config.CommandModules)
+            {
+                var commandModuleType = Type.GetType(commandModuleConfig.Type, true);
+                if (commandModuleType.GetInterfaces().Contains(typeof(ICommandModule)))
+                {
+                    Type commandRequestSerializerType = null;
+                    Type commandResponseSerializerType = null;
+
+                    // Now check to see if we have any serializers defined specifically for this command
+                    if (!string.IsNullOrWhiteSpace(commandModuleConfig.RequestSerializerType))
+                        commandRequestSerializerType = Type.GetType(commandModuleConfig.RequestSerializerType, true);
+                    if (!string.IsNullOrWhiteSpace(commandModuleConfig.ResponseSerializerType))
+                        commandResponseSerializerType = Type.GetType(commandModuleConfig.ResponseSerializerType, true);
+
+                    // Set our actual serializers to be the command-level serializers if available. Otherwise, use the user-defined default serializers
+                    var actualRequestSerializerType = commandRequestSerializerType ?? defaultRequestSerializerType;
+                    var actualResponseSerializerType = commandResponseSerializerType ?? defaultResponseSerializerType;
+
+                    var commandConfig = new CommandModuleConfiguration
+                    {
+                        CommandName = commandModuleConfig.Name,
+                        Enabled = commandModuleConfig.Enabled,
+                        CommandModuleType = commandModuleType
+                    };
+
+                    if (actualRequestSerializerType != null)
+                        commandConfig.RequestSerializer = (ICommandModuleRequestSerializer)Activator.CreateInstance(actualRequestSerializerType);
+                    if (actualResponseSerializerType != null)
+                        commandConfig.ResponseSerializer = (ICommandModuleResponseSerializer)Activator.CreateInstance(actualResponseSerializerType);
+
+                    // If we get here and we still don't have serializers defined, user our default
+                    if (commandConfig.RequestSerializer == null)
+                        commandConfig.RequestSerializer = DefaultRequestSerializer;
+                    if (commandConfig.ResponseSerializer == null)
+                        commandConfig.ResponseSerializer = DefaultResponseSerializer;
+
+                    service._commandModuleConfigurations.TryAdd(commandModuleConfig.Name, commandConfig);
+                }
+            }
+        }
+
+        #endregion Static
 
         #endregion Private Methods
     }

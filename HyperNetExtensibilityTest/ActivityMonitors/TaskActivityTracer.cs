@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
-using Hyper.Services.HyperNodeServices;
+using Hyper.Services.HyperNodeExtensibility;
 
-namespace Hyper.Services.HyperNodeHosting
+namespace HyperNetExtensibilityTest.ActivityMonitors
 {
     /// <summary>
     /// Stock <see cref="HyperNodeServiceActivityMonitor"/> that calls <see cref="Trace"/>.WriteLine() for each activity event. This monitor
@@ -10,17 +10,22 @@ namespace Hyper.Services.HyperNodeHosting
     /// console application. Alternatively, you can write your own subclass of <see cref="HyperNodeServiceActivityMonitor"/> to better suit
     /// your needs.
     /// </summary>
-    public sealed class TaskActivityTracer : HyperNodeServiceActivityMonitor
+    public class TaskActivityTracer : HyperNodeServiceActivityMonitor
     {
         public TaskActivityTracer()
         {
             this.Name = GetType().Name;
         }
 
-        public override void OnNext(HyperNodeActivityEventItem activity)
+        public override bool ShouldTrack(IHyperNodeActivityEventItem activity)
+        {
+            return activity.CommandName == "Echo";
+        }
+
+        public override void OnNext(IHyperNodeActivityEventItem activity)
         {
             Trace.WriteLine(
-                string.Format("{0}  {1:G} {2} - {3}\r\n{4}",
+                string.Format("{0}  {1:G} {2}\r\n{3}\r\n{4}",
                     activity.MessageGuid,
                     activity.EventDateTime,
                     activity.Agent,

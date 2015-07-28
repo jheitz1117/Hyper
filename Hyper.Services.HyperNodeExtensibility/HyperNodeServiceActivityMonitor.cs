@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Hyper.Services.HyperNodeServices
+namespace Hyper.Services.HyperNodeExtensibility
 {
-    public abstract class HyperNodeServiceActivityMonitor : IObserver<HyperNodeActivityEventItem>
+    public abstract class HyperNodeServiceActivityMonitor : IObserver<IHyperNodeActivityEventItem>
     {
         /// <summary>
         /// Allows client code to obtain a reference this HyperNodeServiceMonitor instance
@@ -28,10 +28,10 @@ namespace Hyper.Services.HyperNodeServices
         }
 
         // Provides a way for the monitor to filter out activity items it doesn't care about
-        public virtual bool ShouldTrack(HyperNodeActivityEventItem activity) { return true; }
+        public virtual bool ShouldTrack(IHyperNodeActivityEventItem activity) { return true; }
 
         /* IObserver<T> implementations */
-        public abstract void OnNext(HyperNodeActivityEventItem activity);
+        public abstract void OnNext(IHyperNodeActivityEventItem activity);
         public virtual void OnError(Exception error) { throw error; }
         public virtual void OnCompleted() { }
     }

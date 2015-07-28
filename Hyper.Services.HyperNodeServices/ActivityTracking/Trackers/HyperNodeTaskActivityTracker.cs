@@ -1,10 +1,11 @@
 ﻿using System;
 using Hyper.ActivityTracking;
 using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeExtensibility;
 
 namespace Hyper.Services.HyperNodeServices
 {
-    public class HyperNodeTaskActivityTracker : HyperActivityTracker
+    internal class HyperNodeTaskActivityTracker : HyperActivityTracker, ITaskActivityTracker
     {
         private readonly string _hyperNodeName;
         private readonly Guid _messageGuid;

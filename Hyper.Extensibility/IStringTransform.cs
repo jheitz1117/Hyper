@@ -1,4 +1,4 @@
-﻿namespace Hyper.Cryptography
+﻿namespace Hyper.Extensibility.Cryptography
 {
     public interface IStringTransform
     {

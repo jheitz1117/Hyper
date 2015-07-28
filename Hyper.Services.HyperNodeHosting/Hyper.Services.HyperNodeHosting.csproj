@@ -41,9 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HyperNodeServiceHostFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TaskActivityTracer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyper.ActivityTracking\Hyper.ActivityTracking.csproj">
@@ -53,6 +51,10 @@
     <ProjectReference Include="..\Hyper.Services.HyperNodeContracts\Hyper.Services.HyperNodeContracts.csproj">
       <Project>{60FBA4DD-489B-4E68-B627-4F82BEC80C61}</Project>
       <Name>Hyper.Services.HyperNodeContracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.Services.HyperNodeExtensibility\Hyper.Services.HyperNodeExtensibility.csproj">
+      <Project>{FAE8E477-FFE7-4318-A53A-C92DD3940FC2}</Project>
+      <Name>Hyper.Services.HyperNodeExtensibility</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyper.Services.HyperNodeServices\Hyper.Services.HyperNodeServices.csproj">
       <Project>{18C6D400-7D80-4376-8610-20E0F5ECC18B}</Project>

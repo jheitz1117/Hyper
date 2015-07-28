@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Hyper.ActivityTracking
+namespace Hyper.Extensibility.ActivityTracking
 {
     public interface IActivityItem
     {

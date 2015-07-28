@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using Hyper.Extensibility.Cryptography;
 
 namespace Hyper.Cryptography
 {

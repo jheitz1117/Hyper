@@ -30,7 +30,7 @@ namespace Hyper.Services.HyperNodeContracts
         public ConcurrentDictionary<string, HyperNodeMessageResponse> ChildResponses { get; set; }
 
         [DataMember]
-        public string CommandResponseXml { get; set; }
+        public string CommandResponseString { get; set; }
 
         public HyperNodeMessageResponse()
         {

@@ -1,6 +1,6 @@
 ﻿using Hyper.Services.HyperNodeContracts;
 
-namespace Hyper.Services.HyperNodeServices
+namespace Hyper.Services.HyperNodeExtensibility
 {
     public interface ITaskIdProvider
     {

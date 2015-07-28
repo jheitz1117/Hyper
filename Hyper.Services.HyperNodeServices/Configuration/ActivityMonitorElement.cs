@@ -2,7 +2,7 @@
 
 namespace Hyper.Services.HyperNodeServices.Configuration
 {
-    public sealed class ActivityMonitorElement : ConfigurationElement
+    internal sealed class ActivityMonitorElement : ConfigurationElement
     {
         [ConfigurationProperty("name", IsRequired = true, IsKey = true)]
         public string Name

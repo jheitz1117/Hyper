@@ -28,18 +28,17 @@ namespace HyperNodeTestClient
             var progressTimer = new Stopwatch();
             progressTimer.Start();
 
-            var message = (HyperNodeMessageRequest)e.Argument;
             var alice = new HyperNodeClient("Alice");
             var progressResponse = new HyperNodeProgressInfo();
             while (!progressResponse.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
             {
-                var aliceProgress = alice.ProcessMessage(message);
+                var aliceProgress = alice.ProcessMessage((HyperNodeMessageRequest)e.Argument);
                 if (aliceProgress == null)
                     break;
 
                 //var targetProgress = aliceProgress.ChildResponses["Bob"];
                 var targetProgress = aliceProgress;
-                if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseXml))
+                if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseString))
                     break;
 
                 progressResponse = (HyperNodeProgressInfo)new DataContractSerializer(
@@ -51,7 +50,7 @@ namespace HyperNodeTestClient
                         }
                 ).ReadObject(
                     new XmlTextReader(
-                        new StringReader(targetProgress.CommandResponseXml)
+                        new StringReader(targetProgress.CommandResponseString)
                         )
                 );
 
@@ -94,7 +93,7 @@ namespace HyperNodeTestClient
                     break;
 
                 var targetProgress = aliceProgress.ChildResponses["Bob"];
-                if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseXml))
+                if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseString))
                     break;
 
                 progressResponse = (HyperNodeProgressInfo)new DataContractSerializer(
@@ -106,7 +105,7 @@ namespace HyperNodeTestClient
                         }
                 ).ReadObject(
                     new XmlTextReader(
-                        new StringReader(targetProgress.CommandResponseXml)
+                        new StringReader(targetProgress.CommandResponseString)
                         )
                 );
 
@@ -148,7 +147,9 @@ namespace HyperNodeTestClient
 
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
-                    CommandName = "SuperLongRunningTestTask",
+                    CommandName = "DisposableCommand",
+                    CommandRequestString = "Hello!",
+                    //CommandName = "SuperLongRunningTestTask",
                     //CommandName = "LongRunningTaskTest",
                     //CommandName = "ValidCommand",
                     IntendedRecipientNodeNames = new List<string>
@@ -172,7 +173,7 @@ namespace HyperNodeTestClient
                     "Node Action Reason: " + response.NodeActionReason,
                     "Process Status Flags: " + response.ProcessStatusFlags,
                     "Child Response Count: " + response.ChildResponses.Count,
-                    "Response XML: " + response.CommandResponseXml,
+                    "Response XML: " + response.CommandResponseString,
                     "Task Trace Count: " + response.TaskTrace.Count
                 };
 
@@ -303,7 +304,7 @@ namespace HyperNodeTestClient
             var progressRequest = new HyperNodeMessageRequest("HyperNodeTestClient")
             {
                 CommandName = "GetCachedProgressInfo",
-                CommandRequestXml = messageGuid.ToString(),
+                CommandRequestString = messageGuid.ToString(),
                 IntendedRecipientNodeNames = new List<string>
                 {
                     "Alice"
@@ -330,7 +331,7 @@ namespace HyperNodeTestClient
             var progressRequest = new HyperNodeMessageRequest("HyperNodeTestClient")
             {
                 CommandName = "GetCachedProgressInfo",
-                CommandRequestXml = messageGuid.ToString(),
+                CommandRequestString = messageGuid.ToString(),
                 IntendedRecipientNodeNames = new List<string>
                 {
                     "Bob"

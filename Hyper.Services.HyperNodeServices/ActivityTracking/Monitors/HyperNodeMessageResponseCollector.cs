@@ -1,4 +1,5 @@
 ﻿using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeExtensibility;
 
 namespace Hyper.Services.HyperNodeServices
 {
@@ -17,12 +18,12 @@ namespace Hyper.Services.HyperNodeServices
         /// </summary>
         /// <param name="activity"><see cref="HyperNodeActivityEventItem"/> object to use to filter.</param>
         /// <returns></returns>
-        public override bool ShouldTrack(HyperNodeActivityEventItem activity)
+        public override bool ShouldTrack(IHyperNodeActivityEventItem activity)
         {
             return activity.EventData is HyperNodeMessageResponse;
         }
 
-        public override void OnNext(HyperNodeActivityEventItem activity)
+        public override void OnNext(IHyperNodeActivityEventItem activity)
         {
             // Check if we've received a HyperNodeMessageResponse in the data property.
             var response = activity.EventData as HyperNodeMessageResponse;
