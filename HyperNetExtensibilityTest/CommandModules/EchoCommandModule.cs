@@ -3,9 +3,9 @@ using Hyper.Services.HyperNodeExtensibility;
 
 namespace HyperNetExtensibilityTest.CommandModules
 {
-    public class EchoCommandModule : ICommandModule
+    public class EchoCommandModule : SimpleCommandModule
     {
-        public ICommandModuleResponse Execute(ICommandExecutionContext context)
+        public override ICommandModuleResponse Execute(ICommandExecutionContext context)
         {
             var request = (CommandRequestString) context.Request;
             context.Activity.Track(request.RequestString);

@@ -684,12 +684,12 @@ namespace Hyper.Services.HyperNodeServices
                             _commandModuleConfigurations.TryGetValue(args.Message.CommandName, out commandModuleConfig) &&
                             commandModuleConfig.Enabled)
                         {
-                            // Ensure that we have a non-null serializer to handle the requests and responses
-                            var requestSerializer = commandModuleConfig.RequestSerializer ?? DefaultRequestSerializer;
-                            var responseSerializer = commandModuleConfig.ResponseSerializer ?? DefaultResponseSerializer;
-
                             // Create our command module instance
                             var commandModule = (ICommandModule)Activator.CreateInstance(commandModuleConfig.CommandModuleType);
+
+                            // Ensure that we have a non-null serializer to handle the requests and responses
+                            var requestSerializer = commandModule.CreateRequestSerializer() ?? DefaultRequestSerializer;
+                            var responseSerializer = commandModule.CreateResponseSerializer() ?? DefaultResponseSerializer;
 
                             try
                             {

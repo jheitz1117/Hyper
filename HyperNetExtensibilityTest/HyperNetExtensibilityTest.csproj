@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -41,8 +42,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivityMonitors\DatabaseActivityMonitor.cs" />
+    <Compile Include="CommandModules\ComplexCommandModule\ComplexCommandModule.cs" />
+    <Compile Include="CommandModules\ComplexCommandModule\ComplexCommandModuleBase.cs" />
+    <Compile Include="CommandModules\ComplexCommandModule\ComplexCommandRequest.cs" />
+    <Compile Include="CommandModules\ComplexCommandModule\ComplexCommandResponse.cs" />
+    <Compile Include="CommandModules\ComplexCommandModule\DataContractCommandSerializer.cs" />
     <Compile Include="CommandModules\DisposableCommandModule.cs" />
     <Compile Include="CommandModules\EchoCommandModule.cs" />
+    <Compile Include="CommandModules\SimpleCommandModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ActivityMonitors\TaskActivityTracer.cs" />
   </ItemGroup>

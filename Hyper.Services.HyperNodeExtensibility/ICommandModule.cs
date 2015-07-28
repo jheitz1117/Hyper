@@ -2,6 +2,8 @@
 {
     public interface ICommandModule
     {
+        ICommandModuleRequestSerializer CreateRequestSerializer();
+        ICommandModuleResponseSerializer CreateResponseSerializer();
         ICommandModuleResponse Execute(ICommandExecutionContext context);
     }
 }

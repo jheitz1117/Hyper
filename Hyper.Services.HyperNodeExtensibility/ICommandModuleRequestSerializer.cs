@@ -2,7 +2,7 @@
 {
     public interface ICommandModuleRequestSerializer
     {
-        string Serialize(ICommandModuleRequest requestObject);
+        string Serialize(ICommandModuleRequest request);
         ICommandModuleRequest Deserialize(string requestString);
     }
 }

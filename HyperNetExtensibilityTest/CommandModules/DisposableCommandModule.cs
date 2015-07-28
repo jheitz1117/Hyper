@@ -5,11 +5,11 @@ using Hyper.Services.HyperNodeExtensibility;
 
 namespace HyperNetExtensibilityTest.CommandModules
 {
-    public class DisposableCommandModule : ICommandModule, IDisposable
+    public class DisposableCommandModule : SimpleCommandModule, IDisposable
     {
         public bool IsDisposed { get; private set; }
 
-        public ICommandModuleResponse Execute(ICommandExecutionContext context)
+        public override ICommandModuleResponse Execute(ICommandExecutionContext context)
         {
             context.Activity.Track("Executing DisposableCommandModule.");
             

@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.Xml;
 using Hyper.Services.HyperNodeContracts;
 using Hyper.Services.HyperNodeProxies;
+using HyperNetExtensibilityTest.CommandModules;
 
 namespace HyperNodeTestClient
 {
@@ -145,10 +146,19 @@ namespace HyperNodeTestClient
 
                 var alice = new HyperNodeClient("Alice");
 
+                var complexRequest = new ComplexCommandRequest
+                {
+                    MyString = "The magic string",
+                    MyDateTime = DateTime.Now,
+                    MyInt32 = 100,
+                    MyTimeSpan = TimeSpan.FromHours(50)
+                };
+
+                var serializer = new DataContractCommandSerializer<ComplexCommandRequest, ComplexCommandResponse>();
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
-                    CommandName = "DisposableCommand",
-                    CommandRequestString = "Hello!",
+                    CommandName = "ComplexCommand",
+                    CommandRequestString = serializer.Serialize(complexRequest),
                     //CommandName = "SuperLongRunningTestTask",
                     //CommandName = "LongRunningTaskTest",
                     //CommandName = "ValidCommand",
@@ -176,7 +186,7 @@ namespace HyperNodeTestClient
                     "Response XML: " + response.CommandResponseString,
                     "Task Trace Count: " + response.TaskTrace.Count
                 };
-
+                
                 tvwTaskTrace.Nodes.AddRange(
                     new[]
                     {
