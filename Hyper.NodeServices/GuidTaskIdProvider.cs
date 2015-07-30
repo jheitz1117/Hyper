@@ -4,9 +4,9 @@ using Hyper.NodeServices.Extensibility;
 
 namespace Hyper.NodeServices
 {
-    internal sealed class GuidTaskIdProvider : ITaskIdProvider
+    internal sealed class GuidTaskIdProvider : TaskIdProviderBase
     {
-        public string CreateTaskId(HyperNodeMessageRequest message)
+        public override string CreateTaskId(HyperNodeMessageRequest message)
         {
             return Guid.NewGuid().ToString();
         }

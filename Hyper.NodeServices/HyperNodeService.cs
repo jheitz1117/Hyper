@@ -390,6 +390,17 @@ namespace Hyper.NodeServices
                 }
             }
 
+            // Dispose of any of our activity monitors that implement IDisposable
+            foreach (var disposableMonitor in _activityMonitors.OfType<IDisposable>())
+            {
+                disposableMonitor.Dispose();
+            }
+
+            // Check if our ITaskIdProvider needs to be disposed
+            var disposableTaskIdProvider = this.TaskIdProvider as IDisposable;
+            if (disposableTaskIdProvider != null)
+                disposableTaskIdProvider.Dispose();
+
             // Dispose of our activity cache
             if (_activityCache != null)
                 _activityCache.Dispose();
@@ -781,12 +792,16 @@ namespace Hyper.NodeServices
 
         private static void ConfigureTaskProvider(HyperNodeService service, HyperNodeConfigurationSection config)
         {
+            ITaskIdProvider taskIdProvider = null;
+
             // Set our task id provider if applicable, but if we have any problems creating the instance or casting to ITaskIdProvider, we deliberately want to fail out and make them fix the app.config
             if (!string.IsNullOrWhiteSpace(config.TaskIdProviderType))
-                service.TaskIdProvider = (ITaskIdProvider)Activator.CreateInstance(Type.GetType(config.TaskIdProviderType, true));
+            {
+                taskIdProvider = (ITaskIdProvider)Activator.CreateInstance(Type.GetType(config.TaskIdProviderType, true));
+                taskIdProvider.Initialize();
+            }
 
-            if (service.TaskIdProvider == null)
-                service.TaskIdProvider = DefaultTaskIdProvider;
+            service.TaskIdProvider = taskIdProvider ?? DefaultTaskIdProvider;
         }
 
         private static void ConfigureActivityMonitors(HyperNodeService service, HyperNodeConfigurationSection config)
@@ -800,6 +815,8 @@ namespace Hyper.NodeServices
                 {
                     monitor.Name = monitorConfig.Name;
                     monitor.Enabled = monitorConfig.Enabled;
+
+                    monitor.Initialize();
 
                     service._activityMonitors.Add(monitor);
                 }

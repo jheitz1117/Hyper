@@ -39,13 +39,31 @@ namespace Hyper.NodeServices.Contracts
         public string CommandRequestString { get; set; }
 
         [DataMember]
-        public bool RunConcurrently { get; set; }
+        public MessageProcessOptionFlags ProcessOptionFlags { get; set; }
 
-        [DataMember]
-        public bool ReturnTaskTrace { get; set; }
+        public bool ReturnTaskTrace
+        {
+            get
+            {
+                return IsProcessOptionSet(MessageProcessOptionFlags.ReturnTaskTrace);
+            }
+        }
 
-        [DataMember]
-        public bool CacheProgressInfo { get; set; }
+        public bool RunConcurrently
+        {
+            get
+            {
+                return IsProcessOptionSet(MessageProcessOptionFlags.RunConcurrently);
+            }
+        }
+
+        public bool CacheProgressInfo
+        {
+            get
+            {
+                return IsProcessOptionSet(MessageProcessOptionFlags.CacheProgressInfo);
+            }
+        }
 
         [DataMember]
         public HyperNodePath ForwardingPath { get; set; }
@@ -67,6 +85,11 @@ namespace Hyper.NodeServices.Contracts
             : this()
         {
             this.CreatedByAgentName = createdByAgentName;
+        }
+
+        private bool IsProcessOptionSet(MessageProcessOptionFlags optionFlag)
+        {
+            return ((this.ProcessOptionFlags & optionFlag) == optionFlag);
         }
     }
 }

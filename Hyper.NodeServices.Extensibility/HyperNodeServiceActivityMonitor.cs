@@ -27,6 +27,9 @@ namespace Hyper.NodeServices.Extensibility
             set { _enabled = value; }
         }
 
+        // Provides a way for an activity monitor to perform any internal setup necessary before use
+        public virtual void Initialize() { }
+
         // Provides a way for the monitor to filter out activity items it doesn't care about
         public virtual bool ShouldTrack(IHyperNodeActivityEventItem activity) { return true; }
 

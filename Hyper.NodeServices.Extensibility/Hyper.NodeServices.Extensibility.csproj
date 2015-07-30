@@ -49,6 +49,7 @@
     <Compile Include="ICommandResponseSerializerFactory.cs" />
     <Compile Include="IHyperNodeActivityEventItem.cs" />
     <Compile Include="ITaskActivityTracker.cs" />
+    <Compile Include="TaskIdProviderBase.cs" />
     <Compile Include="ITaskIdProvider.cs" />
     <Compile Include="PassThroughSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

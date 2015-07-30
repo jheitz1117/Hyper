@@ -171,9 +171,9 @@ namespace HyperNodeTestClient
                     ForwardingPath = GetForwardingPath("Alice", "Bob"),
                     ForwardingTimeout = new TimeSpan(0, 0, 5),
                     MessageLifeSpan = new TimeSpan(1, 0, 0), // long running command needs a lifespan of longer than the default
-                    ReturnTaskTrace = chkReturnTaskTrace.Checked,
-                    RunConcurrently = chkRunConcurrently.Checked,
-                    CacheProgressInfo = chkCacheProgressInfo.Checked
+                    ProcessOptionFlags = (chkReturnTaskTrace.Checked ? MessageProcessOptionFlags.ReturnTaskTrace : MessageProcessOptionFlags.None) |
+                                         (chkRunConcurrently.Checked ? MessageProcessOptionFlags.RunConcurrently : MessageProcessOptionFlags.None) |
+                                         (chkCacheProgressInfo.Checked ? MessageProcessOptionFlags.CacheProgressInfo : MessageProcessOptionFlags.None)
                 };
 
                 var response = alice.ProcessMessage(msg);
