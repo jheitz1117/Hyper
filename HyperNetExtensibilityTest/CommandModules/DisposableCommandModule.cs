@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
 using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeContracts.Extensibility;
 using Hyper.Services.HyperNodeExtensibility;
 
 namespace HyperNetExtensibilityTest.CommandModules
 {
-    public class DisposableCommandModule : SimpleCommandModule, IDisposable
+    public class DisposableCommandModule : ICommandModule, IDisposable
     {
         public bool IsDisposed { get; private set; }
 
-        public override ICommandModuleResponse Execute(ICommandExecutionContext context)
+        public ICommandResponse Execute(ICommandExecutionContext context)
         {
             context.Activity.Track("Executing DisposableCommandModule.");
             

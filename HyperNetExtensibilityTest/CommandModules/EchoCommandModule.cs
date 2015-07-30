@@ -1,11 +1,12 @@
 ﻿using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeContracts.Extensibility;
 using Hyper.Services.HyperNodeExtensibility;
 
 namespace HyperNetExtensibilityTest.CommandModules
 {
-    public class EchoCommandModule : SimpleCommandModule
+    public class EchoCommandModule : ICommandModule
     {
-        public override ICommandModuleResponse Execute(ICommandExecutionContext context)
+        public ICommandResponse Execute(ICommandExecutionContext context)
         {
             var request = (CommandRequestString) context.Request;
             context.Activity.Track(request.RequestString);

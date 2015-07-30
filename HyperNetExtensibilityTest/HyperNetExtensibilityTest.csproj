@@ -43,10 +43,9 @@
   <ItemGroup>
     <Compile Include="ActivityMonitors\DatabaseActivityMonitor.cs" />
     <Compile Include="CommandModules\ComplexCommandModule\ComplexCommandModule.cs" />
-    <Compile Include="CommandModules\ComplexCommandModule\ComplexCommandModuleBase.cs" />
+    <Compile Include="CommandModules\ComplexCommandModule\DataContractCommandSerializerFactory{TRequest,TResponse}.cs" />
     <Compile Include="CommandModules\DisposableCommandModule.cs" />
     <Compile Include="CommandModules\EchoCommandModule.cs" />
-    <Compile Include="CommandModules\SimpleCommandModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ActivityMonitors\TaskActivityTracer.cs" />
   </ItemGroup>

@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Hyper.ActivityTracking;
 using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeContracts.Extensibility;
 using Hyper.Services.HyperNodeExtensibility;
 using Hyper.Services.HyperNodeProxies;
 using Hyper.Services.HyperNodeServices.ActivityTracking;
@@ -54,8 +55,8 @@ namespace Hyper.Services.HyperNodeServices
         private readonly object _lock = new object();
         private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
         private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
-        private static readonly ICommandModuleRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
-        private static readonly ICommandModuleResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
+        private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
+        private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
         private readonly TimeSpan _defaultActivityCacheSlidingExpiration = TimeSpan.FromHours(1);
         private readonly CachedProgressInfoCollector _activityCache = new CachedProgressInfoCollector();
         private readonly List<HyperNodeServiceActivityMonitor> _activityMonitors = new List<HyperNodeServiceActivityMonitor>();
@@ -687,45 +688,52 @@ namespace Hyper.Services.HyperNodeServices
                             // Create our command module instance
                             var commandModule = (ICommandModule)Activator.CreateInstance(commandModuleConfig.CommandModuleType);
 
-                            // Ensure that we have a non-null serializer to handle the requests and responses
-                            var requestSerializer = commandModule.CreateRequestSerializer() ?? DefaultRequestSerializer;
-                            var responseSerializer = commandModule.CreateResponseSerializer() ?? DefaultResponseSerializer;
+                            ICommandRequestSerializer requestSerializer = null;
+                            ICommandResponseSerializer responseSerializer = null;
+
+                            // Check if our command module is able to create request and/or response serializers
+                            var requestSerializerFactory = commandModule as ICommandRequestSerializerFactory;
+                            var responseSerializerFactory = commandModule as ICommandResponseSerializerFactory;
+
+                            // Use the factories to create serializers, if applicable
+                            if (requestSerializerFactory != null)
+                                requestSerializer = requestSerializerFactory.Create();
+                            if (responseSerializerFactory != null)
+                                responseSerializer = responseSerializerFactory.Create();
+
+                            // Allow the command module factory-created serializers to take precedence over the configured serializers
+                            requestSerializer = requestSerializer ?? commandModuleConfig.RequestSerializer;
+                            responseSerializer = responseSerializer ?? commandModuleConfig.ResponseSerializer;
 
                             try
                             {
                                 // Deserialize the request string
                                 var commandRequest = requestSerializer.Deserialize(args.Message.CommandRequestString);
 
-                                // Initialize our collections if the user didn't do it for us
-                                if (commandRequest.IntendedRecipientNodeNames == null)
-                                    commandRequest.IntendedRecipientNodeNames = new List<string>();
-                                if (commandRequest.SeenByNodeNames == null)
-                                    commandRequest.SeenByNodeNames = new List<string>();
+                                // Create the execution context to pass into our module
+                                var context = new CommandExecutionContext
+                                {
+                                    TaskId = args.Response.TaskId,
+                                    MessageGuid = args.Message.MessageGuid,
+                                    CreatedByAgentName = args.Message.CreatedByAgentName,
+                                    CreationDateTime = args.Message.CreationDateTime,
+                                    Request = commandRequest,
+                                    Activity = args.ActivityTracker,
+                                    Token = args.Token
+                                };
 
-                                // Copy in the info from our top-level message. We're using AddRange() for collections instead
+                                // Copy in the info from our top-level message and response. We're using AddRange() for collections instead
                                 // of just assignment so that if the user changes anything, it doesn't affect the top-level message
-                                commandRequest.CreatedByAgentName = args.Message.CreatedByAgentName;
-                                commandRequest.CreationDateTime = args.Message.CreationDateTime;
-                                commandRequest.TaskId = args.Response.TaskId;
-                                commandRequest.MessageGuid = args.Message.MessageGuid;
-                                commandRequest.IntendedRecipientNodeNames.AddRange(args.Message.IntendedRecipientNodeNames);
-                                commandRequest.SeenByNodeNames.AddRange(commandRequest.SeenByNodeNames);
+                                context.IntendedRecipientNodeNames.AddRange(args.Message.IntendedRecipientNodeNames);
+                                context.SeenByNodeNames.AddRange(args.Message.SeenByNodeNames);
 
                                 // Execute the command
                                 // TODO: Process the message
                                 // TODO: Make calls to activityTracker.Track() as needed
                                 // TODO: If non-fatal errors are encountered during processing, set the HadNonFatalErrors flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadNonFatalErrors;
                                 // TODO: If warnings are encountered during processing, set the HadWarnings flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
-
                                 // TODO: If we successfully process the message, set response.ProcessStatusFlags equal to Success
-                                var commandResponse = commandModule.Execute(
-                                    new CommandExecutionContext
-                                    {
-                                        Request = commandRequest,
-                                        Activity = args.ActivityTracker,
-                                        Token = args.Token
-                                    }
-                                );
+                                var commandResponse = commandModule.Execute(context);
 
                                 // Set our status flags and serialize the response to send back
                                 args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
@@ -803,7 +811,7 @@ namespace Hyper.Services.HyperNodeServices
             Type defaultRequestSerializerType = null;
             Type defaultResponseSerializerType = null;
 
-            // First, see if we have any user-defined default serializers
+            // First, see if we have any serializer types defined at the collection level
             if (!string.IsNullOrWhiteSpace(config.CommandModules.RequestSerializerType))
                 defaultRequestSerializerType = Type.GetType(config.CommandModules.RequestSerializerType, true);
             if (!string.IsNullOrWhiteSpace(config.CommandModules.ResponseSerializerType))
@@ -817,34 +825,35 @@ namespace Hyper.Services.HyperNodeServices
                     Type commandRequestSerializerType = null;
                     Type commandResponseSerializerType = null;
 
-                    // Now check to see if we have any serializers defined specifically for this command
+                    // Now check to see if we have any serializer types defined at the command level
                     if (!string.IsNullOrWhiteSpace(commandModuleConfig.RequestSerializerType))
                         commandRequestSerializerType = Type.GetType(commandModuleConfig.RequestSerializerType, true);
                     if (!string.IsNullOrWhiteSpace(commandModuleConfig.ResponseSerializerType))
                         commandResponseSerializerType = Type.GetType(commandModuleConfig.ResponseSerializerType, true);
 
-                    // Set our actual serializers to be the command-level serializers if available. Otherwise, use the user-defined default serializers
-                    var actualRequestSerializerType = commandRequestSerializerType ?? defaultRequestSerializerType;
-                    var actualResponseSerializerType = commandResponseSerializerType ?? defaultResponseSerializerType;
+                    // Our final configuration allows command-level serializer types to take precedence, if available. Otherwise, the collection-level types are used.
+                    var configRequestSerializerType = commandRequestSerializerType ?? defaultRequestSerializerType;
+                    var configResponseSerializerType = commandResponseSerializerType ?? defaultResponseSerializerType;
 
+                    ICommandRequestSerializer configRequestSerializer = null;
+                    ICommandResponseSerializer configResponseSerializer = null;
+
+                    // Attempt construction of config-level serializer types
+                    if (configRequestSerializerType != null)
+                        configRequestSerializer = (ICommandRequestSerializer)Activator.CreateInstance(configRequestSerializerType);
+                    if (configResponseSerializerType != null)
+                        configResponseSerializer = (ICommandResponseSerializer)Activator.CreateInstance(configResponseSerializerType);
+
+                    // Finally, construct our command module configuration
                     var commandConfig = new CommandModuleConfiguration
                     {
                         CommandName = commandModuleConfig.Name,
                         Enabled = commandModuleConfig.Enabled,
-                        CommandModuleType = commandModuleType
+                        CommandModuleType = commandModuleType,
+                        RequestSerializer = configRequestSerializer ?? DefaultRequestSerializer,
+                        ResponseSerializer = configResponseSerializer ?? DefaultResponseSerializer
                     };
-
-                    if (actualRequestSerializerType != null)
-                        commandConfig.RequestSerializer = (ICommandModuleRequestSerializer)Activator.CreateInstance(actualRequestSerializerType);
-                    if (actualResponseSerializerType != null)
-                        commandConfig.ResponseSerializer = (ICommandModuleResponseSerializer)Activator.CreateInstance(actualResponseSerializerType);
-
-                    // If we get here and we still don't have serializers defined, user our default
-                    if (commandConfig.RequestSerializer == null)
-                        commandConfig.RequestSerializer = DefaultRequestSerializer;
-                    if (commandConfig.ResponseSerializer == null)
-                        commandConfig.ResponseSerializer = DefaultResponseSerializer;
-
+                    
                     service._commandModuleConfigurations.TryAdd(commandModuleConfig.Name, commandConfig);
                 }
             }

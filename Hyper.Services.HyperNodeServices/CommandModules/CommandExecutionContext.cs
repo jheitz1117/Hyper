@@ -1,12 +1,27 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using Hyper.Services.HyperNodeContracts.Extensibility;
 using Hyper.Services.HyperNodeExtensibility;
 
 namespace Hyper.Services.HyperNodeServices.CommandModules
 {
     internal class CommandExecutionContext : ICommandExecutionContext
     {
-        public ICommandModuleRequest Request { get; set; }
+        public string TaskId { get; set; }
+        public Guid MessageGuid { get; set; }
+        public string CreatedByAgentName { get; set; }
+        public DateTime CreationDateTime { get; set; }
+        public List<string> IntendedRecipientNodeNames { get; set; }
+        public List<string> SeenByNodeNames { get; set; }
+        public ICommandRequest Request { get; set; }
         public ITaskActivityTracker Activity { get; set; }
         public CancellationToken Token { get; set; }
+
+        public CommandExecutionContext()
+        {
+            this.IntendedRecipientNodeNames = new List<string>();
+            this.SeenByNodeNames = new List<string>();
+        }
     }
 }

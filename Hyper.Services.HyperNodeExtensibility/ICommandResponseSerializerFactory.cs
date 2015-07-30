@@ -2,8 +2,8 @@
 
 namespace Hyper.Services.HyperNodeExtensibility
 {
-    public interface ICommandModule
+    public interface ICommandResponseSerializerFactory
     {
-        ICommandResponse Execute(ICommandExecutionContext context);
+        ICommandResponseSerializer Create();
     }
 }

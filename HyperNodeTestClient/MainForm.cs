@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeContracts.Serializers;
 using Hyper.Services.HyperNodeProxies;
 using HyperNet.ExtensibilityTest.Shared.CommandModules;
 

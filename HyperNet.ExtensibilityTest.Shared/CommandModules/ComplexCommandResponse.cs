@@ -1,10 +1,10 @@
 ﻿using System;
 using Hyper.Services.HyperNodeContracts;
-using Hyper.Services.HyperNodeExtensibility;
+using Hyper.Services.HyperNodeContracts.Extensibility;
 
 namespace HyperNet.ExtensibilityTest.Shared.CommandModules
 {
-    public class ComplexCommandResponse : ICommandModuleResponse
+    public class ComplexCommandResponse : ICommandResponse
     {
         public MessageProcessStatusFlags ProcessStatusFlags { get; set; }
         public DateTime EightDaysLaterThanRequest { get; set; }

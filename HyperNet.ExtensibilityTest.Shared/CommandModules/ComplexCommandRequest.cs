@@ -1,26 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using Hyper.Services.HyperNodeExtensibility;
+using System.Runtime.Serialization;
+using Hyper.Services.HyperNodeContracts.Extensibility;
 
 namespace HyperNet.ExtensibilityTest.Shared.CommandModules
 {
-    public class ComplexCommandRequest : ICommandModuleRequest
+    [DataContract]
+    public class ComplexCommandRequest : ICommandRequest
     {
-        public string TaskId { get; set; }
-
-        public Guid MessageGuid { get; set; }
-
-        public string CreatedByAgentName { get; set; }
-
-        public DateTime CreationDateTime { get; set; }
-
-        public List<string> IntendedRecipientNodeNames { get; set; }
-
-        public List<string> SeenByNodeNames { get; set; }
-
+        [DataMember]
         public string MyString { get; set; }
+        
+        [DataMember]
         public DateTime MyDateTime { get; set; }
+
         public int MyInt32 { get; set; }
+        
+        [DataMember]
         public TimeSpan MyTimeSpan { get; set; }
     }
 }
