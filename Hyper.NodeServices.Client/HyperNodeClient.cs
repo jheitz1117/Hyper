@@ -1,7 +1,7 @@
 ﻿using System.ServiceModel;
 using Hyper.NodeServices.Contracts;
 
-namespace Hyper.Services.HyperNodeProxies
+namespace Hyper.NodeServices.Client
 {
     public class HyperNodeClient : IHyperNodeService
     {

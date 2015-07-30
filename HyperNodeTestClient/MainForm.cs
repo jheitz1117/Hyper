@@ -9,9 +9,9 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using Hyper.NodeServices.Client;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Serializers;
-using Hyper.Services.HyperNodeProxies;
 using HyperNet.ExtensibilityTest.Shared.CommandModules;
 
 namespace HyperNodeTestClient

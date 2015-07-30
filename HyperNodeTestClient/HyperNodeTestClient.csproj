@@ -85,6 +85,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Hyper.NodeServices.Client\Hyper.NodeServices.Client.csproj">
+      <Project>{93FCAC7D-AFDF-4347-AB73-C8E0EB4A5951}</Project>
+      <Name>Hyper.NodeServices.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Hyper.NodeServices.Contracts\Hyper.NodeServices.Contracts.csproj">
       <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
       <Name>Hyper.NodeServices.Contracts</Name>
@@ -92,10 +96,6 @@
     <ProjectReference Include="..\Hyper.Services.HyperNodeExtensibility\Hyper.Services.HyperNodeExtensibility.csproj">
       <Project>{fae8e477-ffe7-4318-a53a-c92dd3940fc2}</Project>
       <Name>Hyper.Services.HyperNodeExtensibility</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Hyper.Services.HyperNodeProxies\Hyper.Services.HyperNodeProxies.csproj">
-      <Project>{140CF975-943C-4A31-A6D9-3C501EA412B8}</Project>
-      <Name>Hyper.Services.HyperNodeProxies</Name>
     </ProjectReference>
     <ProjectReference Include="..\HyperNet.ExtensibilityTest.Shared\HyperNet.ExtensibilityTest.Shared.csproj">
       <Project>{E7B8DD6F-C275-462E-B260-6CB7F96476B7}</Project>

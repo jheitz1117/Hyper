@@ -18,7 +18,7 @@ using Hyper.ActivityTracking;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.Services.HyperNodeExtensibility;
-using Hyper.Services.HyperNodeProxies;
+using Hyper.NodeServices.Client;
 using Hyper.Services.HyperNodeServices.ActivityTracking;
 using Hyper.Services.HyperNodeServices.CommandModules;
 using Hyper.Services.HyperNodeServices.Configuration;
