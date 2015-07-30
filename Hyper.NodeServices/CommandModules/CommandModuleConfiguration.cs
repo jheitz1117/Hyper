@@ -1,7 +1,7 @@
 ﻿using System;
 using Hyper.NodeServices.Contracts.Extensibility;
 
-namespace Hyper.Services.HyperNodeServices.CommandModules
+namespace Hyper.NodeServices.CommandModules
 {
     internal class CommandModuleConfiguration
     {

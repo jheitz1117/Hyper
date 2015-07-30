@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using Hyper.Services.HyperNodeServices;
+using Hyper.NodeServices;
 using Hyper.WcfHosting;
 
 namespace HostingTest.AliceNode
@@ -39,7 +39,7 @@ namespace HostingTest.AliceNode
      */
     class AliceNode
     {
-        static void Main(string[] args)
+        static void Main()
         {
             Debug.Listeners.Clear();
             Debug.Listeners.Add(new ConsoleTraceListener());

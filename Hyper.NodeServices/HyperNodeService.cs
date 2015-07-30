@@ -15,15 +15,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Hyper.ActivityTracking;
+using Hyper.NodeServices.ActivityTracking;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Client;
+using Hyper.NodeServices.CommandModules;
+using Hyper.NodeServices.Configuration;
 using Hyper.NodeServices.Extensibility;
-using Hyper.Services.HyperNodeServices.ActivityTracking;
-using Hyper.Services.HyperNodeServices.CommandModules;
-using Hyper.Services.HyperNodeServices.Configuration;
 
-namespace Hyper.Services.HyperNodeServices
+namespace Hyper.NodeServices
 {
     /// <summary>
     /// This class is the heart of the concept of a "HyperNode," which is able to process <see cref="HyperNodeMessageRequest"/> objects and return <see cref="HyperNodeMessageResponse"/> objects.
@@ -72,7 +72,7 @@ namespace Hyper.Services.HyperNodeServices
         /// </summary>
         private readonly List<IDisposable> _backupSubscriberReference = new List<IDisposable>();
 
-        #endregion
+        #endregion Private Members
 
         #region Properties
 

@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace Hyper.Services.HyperNodeServices.Configuration
+namespace Hyper.NodeServices.Configuration
 {
     internal sealed class HyperNodeConfigurationSection : ConfigurationSection
     {

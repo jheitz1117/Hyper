@@ -1,6 +1,7 @@
-﻿using Hyper.NodeServices.Contracts;
+﻿using Hyper.NodeServices.ActivityTracking;
+using Hyper.NodeServices.Contracts;
 
-namespace Hyper.Services.HyperNodeServices
+namespace Hyper.NodeServices
 {
     internal class ForwardingTaskParameter
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Hyper.Services.HyperNodeServices.ActivityTracking
+namespace Hyper.NodeServices.ActivityTracking
 {
     [Serializable]
     internal class ActivityTrackerSetupException : ApplicationException

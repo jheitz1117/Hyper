@@ -1,6 +1,7 @@
 ﻿using System;
+using Hyper.NodeServices.ActivityTracking;
 
-namespace Hyper.Services.HyperNodeServices
+namespace Hyper.NodeServices
 {
     internal class ChildThreadCleanupParameter
     {

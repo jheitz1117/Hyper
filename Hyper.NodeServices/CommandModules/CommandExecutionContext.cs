@@ -4,7 +4,7 @@ using System.Threading;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Extensibility;
 
-namespace Hyper.Services.HyperNodeServices.CommandModules
+namespace Hyper.NodeServices.CommandModules
 {
     internal class CommandExecutionContext : ICommandExecutionContext
     {

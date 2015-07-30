@@ -4,7 +4,7 @@ using System.Runtime.Caching;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility;
 
-namespace Hyper.Services.HyperNodeServices
+namespace Hyper.NodeServices.ActivityTracking
 {
     /// <summary>
     /// This class is responsible for collecting <see cref="HyperNodeActivityItem"/> objects and grouping them by Message GUID.

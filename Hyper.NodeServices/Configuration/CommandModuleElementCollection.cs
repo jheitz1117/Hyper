@@ -2,7 +2,7 @@
 using System.Configuration;
 using System.Linq;
 
-namespace Hyper.Services.HyperNodeServices.Configuration
+namespace Hyper.NodeServices.Configuration
 {
     internal sealed class CommandModuleElementCollection : ConfigurationElementCollection, IEnumerable<CommandModuleElement>
     {

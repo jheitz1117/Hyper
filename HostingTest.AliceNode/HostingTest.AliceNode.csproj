@@ -57,9 +57,9 @@
       <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
       <Name>Hyper.NodeServices.Contracts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyper.Services.HyperNodeServices\Hyper.Services.HyperNodeServices.csproj">
-      <Project>{18C6D400-7D80-4376-8610-20E0F5ECC18B}</Project>
-      <Name>Hyper.Services.HyperNodeServices</Name>
+    <ProjectReference Include="..\Hyper.NodeServices\Hyper.NodeServices.csproj">
+      <Project>{0D7D8078-E918-4579-BFD5-105742557575}</Project>
+      <Name>Hyper.NodeServices</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyper.WcfHosting\Hyper.WcfHosting.csproj">
       <Project>{BAFB81F3-F856-416D-871E-6C13BA3D9A36}</Project>
