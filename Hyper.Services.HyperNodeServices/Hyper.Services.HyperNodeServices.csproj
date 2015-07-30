@@ -89,9 +89,9 @@
       <Project>{8BE9047A-C0C3-468D-ACFF-9BD332C975B4}</Project>
       <Name>Hyper.Extensibility</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyper.Services.HyperNodeContracts\Hyper.Services.HyperNodeContracts.csproj">
-      <Project>{60fba4dd-489b-4e68-b627-4f82bec80c61}</Project>
-      <Name>Hyper.Services.HyperNodeContracts</Name>
+    <ProjectReference Include="..\Hyper.NodeServices.Contracts\Hyper.NodeServices.Contracts.csproj">
+      <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
+      <Name>Hyper.NodeServices.Contracts</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyper.Services.HyperNodeExtensibility\Hyper.Services.HyperNodeExtensibility.csproj">
       <Project>{FAE8E477-FFE7-4318-A53A-C92DD3940FC2}</Project>

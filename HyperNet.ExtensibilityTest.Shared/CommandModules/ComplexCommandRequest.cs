@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using Hyper.Services.HyperNodeContracts.Extensibility;
+using Hyper.NodeServices.Contracts.Extensibility;
 
 namespace HyperNet.ExtensibilityTest.Shared.CommandModules
 {

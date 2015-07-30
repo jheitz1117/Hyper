@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using Hyper.Services.HyperNodeContracts;
-using Hyper.Services.HyperNodeContracts.Extensibility;
+using Hyper.NodeServices.Contracts;
+using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.Services.HyperNodeExtensibility;
 
 namespace HyperNetExtensibilityTest.CommandModules

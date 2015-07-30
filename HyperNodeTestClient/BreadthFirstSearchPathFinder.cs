@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Hyper.Services.HyperNodeContracts;
+using Hyper.NodeServices.Contracts;
 
 namespace Hyper.Applications.Client
 {

@@ -1,10 +1,10 @@
 ﻿using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
-using Hyper.Services.HyperNodeContracts.Extensibility;
+using Hyper.NodeServices.Contracts.Extensibility;
 
-namespace Hyper.Services.HyperNodeContracts.Serializers
+namespace Hyper.NodeServices.Contracts.Serializers
 {
-    public sealed class DataContractRequestJsonSerializer<T> : XmlObjectRequestSerializer<T> where T : ICommandRequest
+    public sealed class DataContractResponseJsonSerializer<T> : XmlObjectResponseSerializer<T> where T : ICommandResponse
     {
         public override XmlObjectSerializer CreateSerializer()
         {

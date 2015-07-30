@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Hyper.Services.HyperNodeContracts
+namespace Hyper.NodeServices.Contracts
 {
     public interface IPath<out TVertex> where TVertex : IVertex
     {

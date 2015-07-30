@@ -1,4 +1,4 @@
-﻿namespace Hyper.Services.HyperNodeContracts
+﻿namespace Hyper.NodeServices.Contracts
 {
     public interface IVertex
     {

@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
-using Hyper.Services.HyperNodeContracts.Extensibility;
+using Hyper.NodeServices.Contracts.Extensibility;
 
-namespace Hyper.Services.HyperNodeContracts.Serializers
+namespace Hyper.NodeServices.Contracts.Serializers
 {
     public sealed class NetDataContractRequestSerializer<T> : XmlObjectRequestSerializer<T> where T : ICommandRequest
     {

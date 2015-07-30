@@ -1,4 +1,4 @@
-﻿namespace Hyper.Services.HyperNodeContracts.Extensibility
+﻿namespace Hyper.NodeServices.Contracts.Extensibility
 {
     public interface ICommandResponse
     {

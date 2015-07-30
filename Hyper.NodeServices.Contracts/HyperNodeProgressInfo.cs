@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using System.Xml;
 
-namespace Hyper.Services.HyperNodeContracts
+namespace Hyper.NodeServices.Contracts
 {
     // TODO: May need to move this out of the Contracts DLL and into somewhere else. Possibly a whole separate DLL for "stock" request/response objects?
     [DataContract]

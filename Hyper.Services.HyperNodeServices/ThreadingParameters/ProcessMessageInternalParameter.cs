@@ -1,5 +1,5 @@
 ﻿using System.Threading;
-using Hyper.Services.HyperNodeContracts;
+using Hyper.NodeServices.Contracts;
 using Hyper.Services.HyperNodeExtensibility;
 
 namespace Hyper.Services.HyperNodeServices

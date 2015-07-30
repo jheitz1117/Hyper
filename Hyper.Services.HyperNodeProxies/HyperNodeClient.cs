@@ -1,5 +1,5 @@
 ﻿using System.ServiceModel;
-using Hyper.Services.HyperNodeContracts;
+using Hyper.NodeServices.Contracts;
 
 namespace Hyper.Services.HyperNodeProxies
 {

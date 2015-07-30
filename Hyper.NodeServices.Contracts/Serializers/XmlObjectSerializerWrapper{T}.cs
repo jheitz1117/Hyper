@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Hyper.Services.HyperNodeContracts.Serializers
+namespace Hyper.NodeServices.Contracts.Serializers
 {
     public abstract class XmlObjectSerializerWrapper<T>
     {

@@ -1,4 +1,4 @@
-﻿using Hyper.Services.HyperNodeContracts;
+﻿using Hyper.NodeServices.Contracts;
 
 namespace Hyper.Services.HyperNodeServices
 {

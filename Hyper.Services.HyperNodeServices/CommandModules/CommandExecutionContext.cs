@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using Hyper.Services.HyperNodeContracts.Extensibility;
+using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.Services.HyperNodeExtensibility;
 
 namespace Hyper.Services.HyperNodeServices.CommandModules

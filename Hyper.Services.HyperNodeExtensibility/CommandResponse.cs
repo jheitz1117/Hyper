@@ -1,5 +1,5 @@
-﻿using Hyper.Services.HyperNodeContracts;
-using Hyper.Services.HyperNodeContracts.Extensibility;
+﻿using Hyper.NodeServices.Contracts;
+using Hyper.NodeServices.Contracts.Extensibility;
 
 namespace Hyper.Services.HyperNodeExtensibility
 {
@@ -17,5 +17,4 @@ namespace Hyper.Services.HyperNodeExtensibility
             return this.ProcessStatusFlags.ToString();
         }
     }
-
 }

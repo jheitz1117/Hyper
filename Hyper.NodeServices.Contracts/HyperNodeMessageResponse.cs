@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace Hyper.Services.HyperNodeContracts
+namespace Hyper.NodeServices.Contracts
 {
     [DataContract]
     public class HyperNodeMessageResponse

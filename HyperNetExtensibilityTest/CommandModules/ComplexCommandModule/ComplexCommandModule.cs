@@ -1,7 +1,7 @@
 ﻿using System;
-using Hyper.Services.HyperNodeContracts;
-using Hyper.Services.HyperNodeContracts.Extensibility;
-using Hyper.Services.HyperNodeContracts.Serializers;
+using Hyper.NodeServices.Contracts;
+using Hyper.NodeServices.Contracts.Extensibility;
+using Hyper.NodeServices.Contracts.Serializers;
 using Hyper.Services.HyperNodeExtensibility;
 using HyperNet.ExtensibilityTest.Shared.CommandModules;
 

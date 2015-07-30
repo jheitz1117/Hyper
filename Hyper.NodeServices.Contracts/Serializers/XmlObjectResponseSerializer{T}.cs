@@ -1,6 +1,6 @@
-﻿using Hyper.Services.HyperNodeContracts.Extensibility;
+﻿using Hyper.NodeServices.Contracts.Extensibility;
 
-namespace Hyper.Services.HyperNodeContracts.Serializers
+namespace Hyper.NodeServices.Contracts.Serializers
 {
     public abstract class XmlObjectResponseSerializer<T> : XmlObjectSerializerWrapper<T>, ICommandResponseSerializer
         where T : ICommandResponse

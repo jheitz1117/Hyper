@@ -1,6 +1,6 @@
 ﻿using System;
-using Hyper.Services.HyperNodeContracts;
-using Hyper.Services.HyperNodeContracts.Extensibility;
+using Hyper.NodeServices.Contracts;
+using Hyper.NodeServices.Contracts.Extensibility;
 
 namespace HyperNet.ExtensibilityTest.Shared.CommandModules
 {

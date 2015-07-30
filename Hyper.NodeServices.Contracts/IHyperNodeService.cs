@@ -1,6 +1,6 @@
 ﻿using System.ServiceModel;
 
-namespace Hyper.Services.HyperNodeContracts
+namespace Hyper.NodeServices.Contracts
 {
     [ServiceContract]
     public interface IHyperNodeService

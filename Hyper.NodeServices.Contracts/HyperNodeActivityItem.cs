@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Hyper.Services.HyperNodeContracts
+namespace Hyper.NodeServices.Contracts
 {
     [DataContract]
     public class HyperNodeActivityItem
