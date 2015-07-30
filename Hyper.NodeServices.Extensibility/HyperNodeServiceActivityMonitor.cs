@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Hyper.Services.HyperNodeExtensibility
+namespace Hyper.NodeServices.Extensibility
 {
     public abstract class HyperNodeServiceActivityMonitor : IObserver<IHyperNodeActivityEventItem>
     {

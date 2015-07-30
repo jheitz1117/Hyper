@@ -1,7 +1,7 @@
 ﻿using System;
 using Hyper.Extensibility.ActivityTracking;
 
-namespace Hyper.Services.HyperNodeExtensibility
+namespace Hyper.NodeServices.Extensibility
 {
     public interface IHyperNodeActivityEventItem : IActivityItem
     {

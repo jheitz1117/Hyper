@@ -1,7 +1,7 @@
 ﻿using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 
-namespace Hyper.Services.HyperNodeExtensibility
+namespace Hyper.NodeServices.Extensibility
 {
     public sealed class PassThroughSerializer : ICommandRequestSerializer, ICommandResponseSerializer
     {

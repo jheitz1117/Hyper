@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Hyper.NodeServices.Contracts.Extensibility;
 
-namespace Hyper.Services.HyperNodeExtensibility
+namespace Hyper.NodeServices.Extensibility
 {
     public interface ICommandExecutionContext
     {

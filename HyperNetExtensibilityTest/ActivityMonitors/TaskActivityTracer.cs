@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using Hyper.Services.HyperNodeExtensibility;
+using Hyper.NodeServices.Extensibility;
 
 namespace HyperNetExtensibilityTest.ActivityMonitors
 {

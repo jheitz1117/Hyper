@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using Hyper.NodeServices.Contracts;
-using Hyper.Services.HyperNodeExtensibility;
+using Hyper.NodeServices.Extensibility;
 
 namespace Hyper.Services.HyperNodeServices
 {

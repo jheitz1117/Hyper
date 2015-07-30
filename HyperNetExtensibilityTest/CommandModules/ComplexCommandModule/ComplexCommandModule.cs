@@ -2,7 +2,7 @@
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Contracts.Serializers;
-using Hyper.Services.HyperNodeExtensibility;
+using Hyper.NodeServices.Extensibility;
 using HyperNet.ExtensibilityTest.Shared.CommandModules;
 
 namespace HyperNetExtensibilityTest.CommandModules
