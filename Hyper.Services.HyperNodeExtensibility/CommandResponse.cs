@@ -1,8 +1,9 @@
 ﻿using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeContracts.Extensibility;
 
 namespace Hyper.Services.HyperNodeExtensibility
 {
-    public class CommandResponse : ICommandModuleResponse
+    public class CommandResponse : ICommandResponse
     {
         public MessageProcessStatusFlags ProcessStatusFlags { get; set; }
 

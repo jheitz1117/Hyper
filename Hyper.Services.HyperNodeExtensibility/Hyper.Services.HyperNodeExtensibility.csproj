@@ -45,11 +45,13 @@
     <Compile Include="CommandRequestString.cs" />
     <Compile Include="CommandResponseString.cs" />
     <Compile Include="HyperNodeServiceActivityMonitor.cs" />
-    <Compile Include="ICommandModuleRequest.cs" />
-    <Compile Include="ICommandModuleResponseSerializer.cs" />
-    <Compile Include="ICommandModuleRequestSerializer.cs" />
-    <Compile Include="ICommandModuleResponse.cs" />
     <Compile Include="ICommandModule.cs" />
+    <Compile Include="ICommandRequestSerializerFactory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ICommandResponseSerializerFactory.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="IHyperNodeActivityEventItem.cs" />
     <Compile Include="ITaskActivityTracker.cs" />
     <Compile Include="ITaskIdProvider.cs" />

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeContracts.Extensibility;
 using Hyper.Services.HyperNodeExtensibility;
 
 namespace HyperNetExtensibilityTest.CommandModules
@@ -9,7 +10,7 @@ namespace HyperNetExtensibilityTest.CommandModules
     {
         public bool IsDisposed { get; private set; }
 
-        public ICommandModuleResponse Execute(ICommandExecutionContext context)
+        public ICommandResponse Execute(ICommandExecutionContext context)
         {
             context.Activity.Track("Executing DisposableCommandModule.");
             

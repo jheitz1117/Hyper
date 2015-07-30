@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -41,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivityMonitors\DatabaseActivityMonitor.cs" />
+    <Compile Include="CommandModules\ComplexCommandModule\ComplexCommandModule.cs" />
     <Compile Include="CommandModules\DisposableCommandModule.cs" />
     <Compile Include="CommandModules\EchoCommandModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -58,6 +60,10 @@
     <ProjectReference Include="..\Hyper.Services.HyperNodeExtensibility\Hyper.Services.HyperNodeExtensibility.csproj">
       <Project>{FAE8E477-FFE7-4318-A53A-C92DD3940FC2}</Project>
       <Name>Hyper.Services.HyperNodeExtensibility</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HyperNet.ExtensibilityTest.Shared\HyperNet.ExtensibilityTest.Shared.csproj">
+      <Project>{E7B8DD6F-C275-462E-B260-6CB7F96476B7}</Project>
+      <Name>HyperNet.ExtensibilityTest.Shared</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

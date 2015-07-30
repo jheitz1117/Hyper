@@ -1,25 +1,26 @@
 ﻿using Hyper.Services.HyperNodeContracts;
+using Hyper.Services.HyperNodeContracts.Extensibility;
 
 namespace Hyper.Services.HyperNodeExtensibility
 {
-    public sealed class PassThroughSerializer : ICommandModuleRequestSerializer, ICommandModuleResponseSerializer
+    public sealed class PassThroughSerializer : ICommandRequestSerializer, ICommandResponseSerializer
     {
-        public string Serialize(ICommandModuleRequest requestObject)
+        public string Serialize(ICommandRequest request)
         {
-            return requestObject.ToString();
+            return request.ToString();
         }
 
-        public string Serialize(ICommandModuleResponse responseObject)
+        public string Serialize(ICommandResponse response)
         {
-            return responseObject.ToString();
+            return response.ToString();
         }
 
-        ICommandModuleResponse ICommandModuleResponseSerializer.Deserialize(string responseString)
+        ICommandResponse ICommandResponseSerializer.Deserialize(string responseString)
         {
             return new CommandResponseString(MessageProcessStatusFlags.None, responseString);
         }
 
-        ICommandModuleRequest ICommandModuleRequestSerializer.Deserialize(string requestString)
+        ICommandRequest ICommandRequestSerializer.Deserialize(string requestString)
         {
             return new CommandRequestString(requestString);
         }

@@ -1,5 +1,5 @@
 ﻿using System;
-using Hyper.Services.HyperNodeExtensibility;
+using Hyper.Services.HyperNodeContracts.Extensibility;
 
 namespace Hyper.Services.HyperNodeServices.CommandModules
 {
@@ -8,7 +8,7 @@ namespace Hyper.Services.HyperNodeServices.CommandModules
         public string CommandName { get; set; }
         public bool Enabled { get; set; }
         public Type CommandModuleType { get; set; }
-        public ICommandModuleRequestSerializer RequestSerializer { get; set; }
-        public ICommandModuleResponseSerializer ResponseSerializer { get; set; }
+        public ICommandRequestSerializer RequestSerializer { get; set; }
+        public ICommandResponseSerializer ResponseSerializer { get; set; }
     }
 }

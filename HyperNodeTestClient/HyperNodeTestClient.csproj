@@ -89,9 +89,17 @@
       <Project>{60FBA4DD-489B-4E68-B627-4F82BEC80C61}</Project>
       <Name>Hyper.Services.HyperNodeContracts</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Hyper.Services.HyperNodeExtensibility\Hyper.Services.HyperNodeExtensibility.csproj">
+      <Project>{fae8e477-ffe7-4318-a53a-c92dd3940fc2}</Project>
+      <Name>Hyper.Services.HyperNodeExtensibility</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Hyper.Services.HyperNodeProxies\Hyper.Services.HyperNodeProxies.csproj">
       <Project>{140CF975-943C-4A31-A6D9-3C501EA412B8}</Project>
       <Name>Hyper.Services.HyperNodeProxies</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HyperNet.ExtensibilityTest.Shared\HyperNet.ExtensibilityTest.Shared.csproj">
+      <Project>{E7B8DD6F-C275-462E-B260-6CB7F96476B7}</Project>
+      <Name>HyperNet.ExtensibilityTest.Shared</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
