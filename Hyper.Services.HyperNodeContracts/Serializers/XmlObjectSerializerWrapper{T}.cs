@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Xml;
 
 namespace Hyper.Services.HyperNodeContracts.Serializers
 {
@@ -13,29 +12,34 @@ namespace Hyper.Services.HyperNodeContracts.Serializers
             get { return (_serializer ?? (_serializer = CreateSerializer())); }
         }
 
+        public Encoding SerializeToEncoding { get; set; }
+        public Encoding DeserializeFromEncoding { get; set; }
+
+        protected XmlObjectSerializerWrapper()
+            : this(Encoding.Default, Encoding.Default) { }
+
+        protected XmlObjectSerializerWrapper(Encoding serializeToEncoding, Encoding deserializeFromEncoding)
+        {
+            this.SerializeToEncoding = serializeToEncoding;
+            this.DeserializeFromEncoding = deserializeFromEncoding;
+        }
+
         protected string Serialize(T target)
         {
-            var builder = new StringBuilder();
-            using (var stringWriter = new StringWriter(builder))
+            using (var memory = new MemoryStream())
             {
-                using (var writer = new XmlTextWriter(stringWriter))
-                {
-                    this.Serializer.WriteObject(writer, target);
-                    writer.Flush();
-                }
-            }
+                this.Serializer.WriteObject(memory, target);
+                memory.Flush();
 
-            return builder.ToString();
+                return this.SerializeToEncoding.GetString(memory.ToArray());
+            }
         }
 
         protected T Deserialize(string inputString)
         {
-            using (var stringReader = new StringReader(inputString))
+            using (var memory = new MemoryStream(this.DeserializeFromEncoding.GetBytes(inputString)))
             {
-                using (var xmlReader = XmlReader.Create(stringReader))
-                {
-                    return (T)this.Serializer.ReadObject(xmlReader);
-                }
+                return (T)this.Serializer.ReadObject(memory);
             }
         }
 
