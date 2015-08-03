@@ -3,14 +3,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
 using Hyper.NodeServices.Client;
 using Hyper.NodeServices.Contracts;
+using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Contracts.Serializers;
 using HyperNet.ExtensibilityTest.Shared.CommandModules;
 
@@ -32,6 +30,7 @@ namespace HyperNodeTestClient
 
             var alice = new HyperNodeClient("Alice");
             var progressResponse = new HyperNodeProgressInfo();
+            ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<HyperNodeProgressInfo>();
             while (!progressResponse.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
             {
                 var aliceProgress = alice.ProcessMessage((HyperNodeMessageRequest)e.Argument);
@@ -43,18 +42,7 @@ namespace HyperNodeTestClient
                 if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseString))
                     break;
 
-                progressResponse = (HyperNodeProgressInfo)new DataContractSerializer(
-                    typeof(HyperNodeProgressInfo),
-                    new[]
-                        {
-                            typeof (List<HyperNodeActivityItem>),
-                            typeof (HyperNodeActivityItem)
-                        }
-                ).ReadObject(
-                    new XmlTextReader(
-                        new StringReader(targetProgress.CommandResponseString)
-                        )
-                );
+                progressResponse = (HyperNodeProgressInfo)serializer.Deserialize(targetProgress.CommandResponseString);
 
                 ((BackgroundWorker)sender).ReportProgress(Convert.ToInt32(progressResponse.ProgressPercentage), progressResponse);
 
@@ -88,6 +76,7 @@ namespace HyperNodeTestClient
 
             var alice = new HyperNodeClient("Alice");
             var progressResponse = new HyperNodeProgressInfo();
+            ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<HyperNodeProgressInfo>();
             while (!progressResponse.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
             {
                 var aliceProgress = alice.ProcessMessage((HyperNodeMessageRequest)e.Argument);
@@ -98,18 +87,7 @@ namespace HyperNodeTestClient
                 if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseString))
                     break;
 
-                progressResponse = (HyperNodeProgressInfo)new DataContractSerializer(
-                    typeof(HyperNodeProgressInfo),
-                    new[]
-                        {
-                            typeof (List<HyperNodeActivityItem>),
-                            typeof (HyperNodeActivityItem)
-                        }
-                ).ReadObject(
-                    new XmlTextReader(
-                        new StringReader(targetProgress.CommandResponseString)
-                        )
-                );
+                progressResponse = (HyperNodeProgressInfo)serializer.Deserialize(targetProgress.CommandResponseString);
 
                 ((BackgroundWorker)sender).ReportProgress(Convert.ToInt32(progressResponse.ProgressPercentage), progressResponse);
 
@@ -148,10 +126,10 @@ namespace HyperNodeTestClient
                 var alice = new HyperNodeClient("Alice");
 
                 var serializer = new DataContractCommandSerializer<ComplexCommandRequest, ComplexCommandResponse>();
-                
+
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
-                    CommandName = "ComplexCommand",
+                    CommandName = "LongRunningTaskTest",
                     CommandRequestString = serializer.Serialize(
                         new ComplexCommandRequest
                         {
@@ -188,7 +166,7 @@ namespace HyperNodeTestClient
                     "Response XML: " + response.CommandResponseString,
                     "Task Trace Count: " + response.TaskTrace.Count
                 };
-                
+
                 tvwTaskTrace.Nodes.AddRange(
                     new[]
                     {

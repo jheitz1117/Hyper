@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Xml;
+using Hyper.NodeServices.Contracts.Extensibility;
 
 namespace Hyper.NodeServices.Contracts
 {
     // TODO: May need to move this out of the Contracts DLL and into somewhere else. Possibly a whole separate DLL for "stock" request/response objects?
     [DataContract]
-    public class HyperNodeProgressInfo
+    public class HyperNodeProgressInfo : ICommandResponse
     {
         [DataMember]
         public List<HyperNodeActivityItem> Activity { get; set; }
@@ -38,9 +38,6 @@ namespace Hyper.NodeServices.Contracts
             this.Activity = new List<HyperNodeActivityItem>();
         }
 
-        public void WriteXml(XmlTextWriter writer)
-        {
-            new DataContractSerializer(GetType()).WriteObject(writer, this);
-        }
+        public MessageProcessStatusFlags ProcessStatusFlags { get; set; }
     }
 }

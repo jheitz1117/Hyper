@@ -16,9 +16,8 @@ namespace HostingTest.BobNode
             var container = new HyperServiceHostContainer(
                 () =>
                 {
-                    var service = HyperNodeService.Create();
-                    var host = new CancellableServiceHost(service);
-                    host.RegisterCancellationDelegate(service.Cancel);
+                    var host = new CancellableServiceHost(HyperNodeService.Instance);
+                    host.RegisterCancellationDelegate(HyperNodeService.Instance.Cancel);
 
                     return host;
                 },

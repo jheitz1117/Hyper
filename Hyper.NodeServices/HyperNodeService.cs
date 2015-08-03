@@ -3,25 +3,24 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Configuration;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using Hyper.ActivityTracking;
 using Hyper.NodeServices.ActivityTracking;
-using Hyper.NodeServices.Contracts;
-using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Client;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.Configuration;
+using Hyper.NodeServices.Contracts;
+using Hyper.NodeServices.Contracts.Extensibility;
+using Hyper.NodeServices.Contracts.Serializers;
 using Hyper.NodeServices.Extensibility;
+using Hyper.NodeServices.SystemCommands;
 
 namespace Hyper.NodeServices
 {
@@ -88,6 +87,12 @@ namespace Hyper.NodeServices
         private TimeSpan ActivityCacheSlidingExpiration
         {
             set { _activityCache.CacheDuration = value; }
+        }
+
+        private static HyperNodeService _instance;
+        public static HyperNodeService Instance
+        {
+            get { return _instance ?? (_instance = Create()); }
         }
 
         #endregion Properties
@@ -363,7 +368,7 @@ namespace Hyper.NodeServices
 
             return response;
         }
-        
+
         /// <summary>
         /// Communicates a request for cancellation.
         /// </summary>
@@ -409,27 +414,6 @@ namespace Hyper.NodeServices
             if (_tokenSource != null)
                 _tokenSource.Dispose();
         }
-
-        #region Static
-
-        public static HyperNodeService Create()
-        {
-            var config = (HyperNodeConfigurationSection)ConfigurationManager.GetSection("hyperNet/hyperNode");
-
-            var service = new HyperNodeService(config.HyperNodeName)
-            {
-                EnableActivityCache = config.EnableActivityCache,
-                ActivityCacheSlidingExpiration = TimeSpan.FromMinutes(config.ActivityCacheSlidingExpirationMinutes)
-            };
-
-            ConfigureTaskProvider(service, config);
-            ConfigureActivityMonitors(service, config);
-            ConfigureCommandModules(service, config);
-
-            return service;
-        }
-        
-        #endregion Static
 
         #endregion Public Methods
 
@@ -607,20 +591,6 @@ namespace Hyper.NodeServices
 
         private void ProcessMessageInternal(ProcessMessageInternalParameter args)
         {
-            /*
-             * The way I would like for this to work is to have various custom tasks defined in the app.config. Then when we switch on the message.CommandName,
-             * the command name would be assigned to one of the tasks, which would then be initialized via reflection and setup properly with any parameters
-             * passed in. Then we can just run the tasks's Execute() method (or whatever we want to call it).
-             * 
-             * One other idea is that we might could avoid having to switch on message.CommandName if we could simply dynamically find the matching task in the
-             * config based on the CommandName passed in. This would save us from having to switch at all, and the best part is that the command names would not
-             * be hard-coded! This is obviously the best way I've come up with so far!
-             */
-
-            /*
-             * Crazy idea: should we delegate this message processing out to another custom behavior that can be specified in the app.config and written by
-             * the users?
-             */
             switch (args.Message.CommandName)
             {
                 case "ValidCommand":
@@ -674,21 +644,6 @@ namespace Hyper.NodeServices
                         args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.Cancelled;
                     }
                     break;
-                case "GetCachedProgressInfo":
-                    {
-                        args.ActivityTracker.TrackFormat("Retrieving cached progress info for Message Guid '{0}'.", args.Message.MessageGuid);
-
-                        // TODO: Break this out into its own system command module (see notepad document at work)
-                        var progressInfo = _activityCache.GetProgressInfo(args.Message.CommandRequestString);
-                        var builder = new StringBuilder();
-                        using (var writer = new XmlTextWriter(new StringWriter(builder)))
-                        {
-                            progressInfo.WriteXml(writer);
-                            writer.Flush();
-                        }
-                        args.Response.CommandResponseString = builder.ToString();
-                        args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Success;
-                    } break;
                 default:
                     {
                         CommandModuleConfiguration commandModuleConfig;
@@ -790,6 +745,40 @@ namespace Hyper.NodeServices
 
         #region Static
 
+        private static HyperNodeService Create()
+        {
+            var config = (HyperNodeConfigurationSection)ConfigurationManager.GetSection("hyperNet/hyperNode");
+
+            var service = new HyperNodeService(config.HyperNodeName)
+            {
+                EnableActivityCache = config.EnableActivityCache,
+                ActivityCacheSlidingExpiration = TimeSpan.FromMinutes(config.ActivityCacheSlidingExpirationMinutes)
+            };
+
+            ConfigureSystemCommands(service, config);
+            ConfigureTaskProvider(service, config);
+            ConfigureActivityMonitors(service, config);
+            ConfigureCommandModules(service, config);
+
+            return service;
+        }
+
+        private static void ConfigureSystemCommands(HyperNodeService service, HyperNodeConfigurationSection config)
+        {
+            // TODO: Bring the config into this somehow. If nothing else, need to be able to enable/disable system commands via config.
+            service._commandModuleConfigurations.TryAdd(
+                "GetCachedProgressInfo",
+                new CommandModuleConfiguration
+                {
+                    CommandName = "GetCachedProgressInfo",
+                    Enabled = true, // TODO: Should be set from config
+                    CommandModuleType = typeof(GetCachedProgressInfoCommand),
+                    RequestSerializer = new PassThroughSerializer(),
+                    ResponseSerializer = new NetDataContractResponseSerializer<HyperNodeProgressInfo>()
+                }
+            );
+        }
+
         private static void ConfigureTaskProvider(HyperNodeService service, HyperNodeConfigurationSection config)
         {
             ITaskIdProvider taskIdProvider = null;
@@ -870,7 +859,7 @@ namespace Hyper.NodeServices
                         RequestSerializer = configRequestSerializer ?? DefaultRequestSerializer,
                         ResponseSerializer = configResponseSerializer ?? DefaultResponseSerializer
                     };
-                    
+
                     service._commandModuleConfigurations.TryAdd(commandModuleConfig.Name, commandConfig);
                 }
             }
@@ -879,5 +868,42 @@ namespace Hyper.NodeServices
         #endregion Static
 
         #endregion Private Methods
+
+        #region Internal Helper Methods
+
+        internal HyperNodeProgressInfo GetCachedProgressInfo(string key)
+        {
+            return _activityCache.GetProgressInfo(key);
+        }
+
+        // TODO: Write helper for "Discover" command (no params, searches config and forwards command to all children.)
+        // TODO: Write helper for "GetSettings" command (which settings, in particular?)
+        // TODO: Write helper for "EnableCommand" command (input name of command to enable)
+        // TODO: Write helper for "DisableCommand" command (input name of command to disable)
+        // TODO: Write helper for "EnableActivityMonitor" command (input name of monitor to enable)
+        // TODO: Write helper for "DisableActivityMonitor" command (input name of monitor to disable)
+        // TODO: Write helper for "RenameActivityMonitor" command (input old name and new name of monitor to rename)
+
+        /*************************************************************************************************************************************
+         * Cancellation Notes
+         * 
+         * I'm considering creating new cancellation token sources as requests come in. There will be the top-level cancellation triggered
+         * by a call to the HyperNode's Cancel() method, but there could also be task-level and message-level cancellation token sources.
+         * 
+         * A task-level cancellation token source should trigger the cancellation of a single task, but any other tasks currently being
+         * processed should be left alone. Other HyperNodes processing the same message that spawned the cancelled task for one HyperNode
+         * should not be affected. In other words, if I ask Alice and Bob to process the same message, but then I send a task-level
+         * cancellation to Alice, Alice should cancel her task, but Bob should continue processing the message.
+         * 
+         * A message-level cancellation token source should trigger cancellation of all tasks spawned for that message GUID across all
+         * HyperNodes in the network. In this case, if I ask Alice and Bob to process the same message, and then I send a message-level
+         * cancellation to Alice, Alice should cancel her task and forward the cancellation request to all of her children, including Bob, who
+         * will do likewise. Bob will also cancel his task, and so will every other HyperNode in the network.
+         *************************************************************************************************************************************/
+
+        // TODO: Write helper for "CancelMessage" command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
+        // TODO: Write helper for "CancelTask" command (input task id of task to cancel, DOES NOT forward command to children. Intended to target cancellation for a single task for a single node.)
+
+        #endregion Internal Helper Methods
     }
 }
