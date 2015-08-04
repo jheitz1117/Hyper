@@ -60,8 +60,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActivityTracking\Exceptions\ActivityMonitorAttachmentException.cs" />
-    <Compile Include="ActivityTracking\Exceptions\ActivityTrackerSetupException.cs" />
+    <Compile Include="Exceptions\ActivityMonitorSubscriptionException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Exceptions\ActivityTrackerInitializationException.cs" />
     <Compile Include="ActivityTracking\HyperNodeActivityEventItem.cs" />
     <Compile Include="ActivityTracking\Monitors\CachedProgressInfoCollector.cs" />
     <Compile Include="ActivityTracking\Monitors\HyperNodeMessageResponseCollector.cs" />
@@ -75,6 +77,10 @@
     <Compile Include="Configuration\CommandModuleElement.cs" />
     <Compile Include="Configuration\CommandModuleElementCollection.cs" />
     <Compile Include="Configuration\HyperNodeConfigurationSection.cs" />
+    <Compile Include="Exceptions\DuplicateActivityMonitorException.cs" />
+    <Compile Include="Exceptions\DuplicateCommandException.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GuidTaskIdProvider.cs" />
     <Compile Include="HyperNodeService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

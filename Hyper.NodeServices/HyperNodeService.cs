@@ -215,9 +215,9 @@ namespace Hyper.NodeServices
                                     {
                                         // This is legal at this point because we already setup our cache and task trace monitors earlier
                                         activityTracker.TrackException(
-                                            new ActivityMonitorAttachmentException(
+                                            new ActivityMonitorSubscriptionException(
                                                 string.Format(
-                                                    "Unable to attach monitor '{0}' because its ShouldTrack() method threw an exception.",
+                                                    "Unable to subscribe monitor '{0}' because its ShouldTrack() method threw an exception.",
                                                     monitor.Name
                                                 ),
                                                 ex
@@ -237,8 +237,8 @@ namespace Hyper.NodeServices
             {
                 // This is a safe thing to do, it may just result in nothing being reported if Reactive Extensions wasn't setup properly
                 activityTracker.TrackException(
-                    new ActivityTrackerSetupException(
-                        "An exception was thrown while setting up the activity tracker. See inner exception for details.",
+                    new ActivityTrackerInitializationException(
+                        "An exception was thrown while initializing the activity tracker. See inner exception for details.",
                         ex
                     )
                 );
@@ -766,17 +766,20 @@ namespace Hyper.NodeServices
         private static void ConfigureSystemCommands(HyperNodeService service, HyperNodeConfigurationSection config)
         {
             // TODO: Bring the config into this somehow. If nothing else, need to be able to enable/disable system commands via config.
-            service._commandModuleConfigurations.TryAdd(
+            if (!service._commandModuleConfigurations.TryAdd(
                 "GetCachedProgressInfo",
                 new CommandModuleConfiguration
                 {
                     CommandName = "GetCachedProgressInfo",
                     Enabled = true, // TODO: Should be set from config
-                    CommandModuleType = typeof(GetCachedProgressInfoCommand),
+                    CommandModuleType = typeof (GetCachedProgressInfoCommand),
                     RequestSerializer = new PassThroughSerializer(),
                     ResponseSerializer = new NetDataContractResponseSerializer<HyperNodeProgressInfo>()
                 }
-            );
+                ))
+            {
+                throw new DuplicateCommandException("A command already exists with the name 'GetCachedProgressInfo'.");
+            }
         }
 
         private static void ConfigureTaskProvider(HyperNodeService service, HyperNodeConfigurationSection config)
@@ -807,7 +810,17 @@ namespace Hyper.NodeServices
 
                     monitor.Initialize();
 
-                    service._activityMonitors.Add(monitor);
+                    lock (service._lock)
+                    {
+                        if (service._activityMonitors.Any(m => m.Name == monitorConfig.Name))
+                        {
+                            throw new DuplicateActivityMonitorException(
+                                string.Format("An activity monitor already exists with the name '{0}'.", monitorConfig.Name)
+                            );
+                        }
+
+                        service._activityMonitors.Add(monitor);
+                    }
                 }
             }
         }
@@ -860,7 +873,13 @@ namespace Hyper.NodeServices
                         ResponseSerializer = configResponseSerializer ?? DefaultResponseSerializer
                     };
 
-                    service._commandModuleConfigurations.TryAdd(commandModuleConfig.Name, commandConfig);
+                    // If this fails, a command with the specified name already exists
+                    if (!service._commandModuleConfigurations.TryAdd(commandModuleConfig.Name, commandConfig))
+                    {
+                        throw new DuplicateCommandException(
+                            string.Format("A command already exists with the name '{0}'.", commandModuleConfig.Name)
+                        );
+                    }
                 }
             }
         }
