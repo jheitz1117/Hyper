@@ -57,6 +57,11 @@ namespace Hyper.NodeServices.ActivityTracking
                 // Once we get a completion event, we'll stay completed from then on out, even if we get another event later with IsCompletionEvent = false
                 progressInfo.IsComplete |= activity.IsCompletionEvent;
 
+                // Set our response object, if we have one that isn't a "previously seen" message
+                var response = activity.EventData as HyperNodeMessageResponse;
+                if (response != null && response.NodeActionReason != HyperNodeActionReasonType.PreviouslySeen)
+                    progressInfo.Response = response;
+
                 // Make sure our progress properties are updated. If no values were supplied, then we presume there are no updates, but we'll keep any original values we had before
                 progressInfo.ProgressPart = activity.ProgressPart ?? progressInfo.ProgressPart;
                 progressInfo.ProgressTotal = activity.ProgressTotal ?? progressInfo.ProgressTotal;

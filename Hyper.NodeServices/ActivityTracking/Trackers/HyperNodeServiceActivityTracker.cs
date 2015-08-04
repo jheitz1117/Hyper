@@ -59,9 +59,10 @@ namespace Hyper.NodeServices.ActivityTracking
         /// <summary>
         /// This method should only ever be called once at the very end of a HyperNode's processing of a message after all of the child threads have completed.
         /// </summary>
-        public void TrackFinished()
+        /// <param name="response">The complete <see cref="HyperNodeMessageResponse"/> object to report.</param>
+        public void TrackFinished(HyperNodeMessageResponse response)
         {
-            TrackFinished("Processing completed.", null, null);
+            TrackFinished("Processing completed.", null, response);
         }
     }
 }

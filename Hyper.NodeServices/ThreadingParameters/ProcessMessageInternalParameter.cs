@@ -1,6 +1,6 @@
 ﻿using System.Threading;
+using Hyper.NodeServices.ActivityTracking;
 using Hyper.NodeServices.Contracts;
-using Hyper.NodeServices.Extensibility;
 
 namespace Hyper.NodeServices
 {
@@ -8,10 +8,10 @@ namespace Hyper.NodeServices
     {
         public HyperNodeMessageRequest Message { get; private set; }
         public HyperNodeMessageResponse Response { get; private set; }
-        public ITaskActivityTracker ActivityTracker { get; private set; }
+        public HyperNodeServiceActivityTracker ActivityTracker { get; private set; }
         public CancellationToken Token { get; private set; }
 
-        public ProcessMessageInternalParameter(HyperNodeMessageRequest message, HyperNodeMessageResponse response, ITaskActivityTracker activityTracker, CancellationToken token)
+        public ProcessMessageInternalParameter(HyperNodeMessageRequest message, HyperNodeMessageResponse response, HyperNodeServiceActivityTracker activityTracker, CancellationToken token)
         {
             this.Message = message;
             this.Response = response;

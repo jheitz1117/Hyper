@@ -5,7 +5,7 @@ namespace Hyper.NodeServices.ActivityTracking
 {
     internal sealed class HyperNodeTaskTraceCollector : HyperNodeServiceActivityMonitor
     {
-        private readonly object _lock = new object();
+        private static readonly object Lock = new object();
         private readonly HyperNodeMessageResponse _target;
 
         public HyperNodeTaskTraceCollector(HyperNodeMessageResponse target)
@@ -16,7 +16,7 @@ namespace Hyper.NodeServices.ActivityTracking
 
         public override void OnNext(IHyperNodeActivityEventItem activity)
         {
-            lock (_lock)
+            lock (Lock)
             {
                 _target.TaskTrace.Add(
                     new HyperNodeActivityItem(activity.Agent)

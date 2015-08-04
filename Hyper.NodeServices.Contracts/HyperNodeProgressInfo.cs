@@ -12,6 +12,9 @@ namespace Hyper.NodeServices.Contracts
         public List<HyperNodeActivityItem> Activity { get; set; }
 
         [DataMember]
+        public HyperNodeMessageResponse Response { get; set; }
+
+        [DataMember]
         public bool IsComplete { get; set; }
 
         [DataMember]
@@ -38,6 +41,7 @@ namespace Hyper.NodeServices.Contracts
             this.Activity = new List<HyperNodeActivityItem>();
         }
 
+        [DataMember]
         public MessageProcessStatusFlags ProcessStatusFlags { get; set; }
     }
 }

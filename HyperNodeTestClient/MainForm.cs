@@ -37,7 +37,6 @@ namespace HyperNodeTestClient
                 if (aliceProgress == null)
                     break;
 
-                //var targetProgress = aliceProgress.ChildResponses["Bob"];
                 var targetProgress = aliceProgress;
                 if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseString))
                     break;
@@ -65,7 +64,10 @@ namespace HyperNodeTestClient
                 MessageBox.Show(e.Error.ToString(), "Error Getting Progress", MessageBoxButtons.OK, MessageBoxIcon.Error);
             else
             {
-                lstAliceProgress.DataSource = GetActivityStrings(((HyperNodeProgressInfo)e.Result).Activity);
+                var progressInfo = (HyperNodeProgressInfo)e.Result;
+
+                lstAliceProgress.DataSource = GetActivityStrings(progressInfo.Activity);
+                PopulateResponse(lstFinalAliceResponse, progressInfo.Response);
             }
         }
 
@@ -110,7 +112,10 @@ namespace HyperNodeTestClient
                 MessageBox.Show(e.Error.ToString(), "Error Getting Progress", MessageBoxButtons.OK, MessageBoxIcon.Error);
             else
             {
-                lstBobProgress.DataSource = GetActivityStrings(((HyperNodeProgressInfo)e.Result).Activity);
+                var progressInfo = (HyperNodeProgressInfo)e.Result;
+
+                lstBobProgress.DataSource = GetActivityStrings(progressInfo.Activity);
+                PopulateResponse(lstFinalBobResponse, progressInfo.Response);
             }
         }
 
@@ -119,10 +124,8 @@ namespace HyperNodeTestClient
             try
             {
                 // Clear out our datasource first
-                tvwTaskTrace.Nodes.Clear();
-                lstAliceProgress.DataSource = null;
-                lstResponse.DataSource = null;
-
+                ClearResponseData();
+                
                 var alice = new HyperNodeClient("Alice");
 
                 var serializer = new DataContractCommandSerializer<ComplexCommandRequest, ComplexCommandResponse>();
@@ -155,17 +158,7 @@ namespace HyperNodeTestClient
                 };
 
                 var response = alice.ProcessMessage(msg);
-                lstResponse.DataSource = new[]
-                {
-                    "Task ID: " + response.TaskId,
-                    "Responding Node Name:" + response.RespondingNodeName,
-                    "Node Action: " + response.NodeAction,
-                    "Node Action Reason: " + response.NodeActionReason,
-                    "Process Status Flags: " + response.ProcessStatusFlags,
-                    "Child Response Count: " + response.ChildResponses.Count,
-                    "Response XML: " + response.CommandResponseString,
-                    "Task Trace Count: " + response.TaskTrace.Count
-                };
+                PopulateResponse(lstRealTimeResponse, response);
 
                 tvwTaskTrace.Nodes.AddRange(
                     new[]
@@ -341,6 +334,41 @@ namespace HyperNodeTestClient
             progressWorker.RunWorkerCompleted += bobProgressWorker_RunWorkerCompleted;
 
             progressWorker.RunWorkerAsync(progressRequest);
+        }
+
+        private static void PopulateResponse(ListControl lstTarget, HyperNodeMessageResponse response)
+        {
+            if (lstTarget == null)
+            {
+                return;
+            }
+            if (response == null)
+            {
+                lstTarget.DataSource = null;
+                return;
+            }
+
+            lstTarget.DataSource = new[]
+            {
+                "Task ID: " + response.TaskId,
+                "Responding Node Name:" + response.RespondingNodeName,
+                "Node Action: " + response.NodeAction,
+                "Node Action Reason: " + response.NodeActionReason,
+                "Process Status Flags: " + response.ProcessStatusFlags,
+                "Child Response Count: " + response.ChildResponses.Count,
+                "Response XML: " + response.CommandResponseString,
+                "Task Trace Count: " + response.TaskTrace.Count
+            };
+        }
+
+        private void ClearResponseData()
+        {
+            tvwTaskTrace.Nodes.Clear();
+            lstAliceProgress.DataSource = null;
+            lstRealTimeResponse.DataSource = null;
+            lstBobProgress.DataSource = null;
+            lstFinalAliceResponse.DataSource = null;
+            lstFinalBobResponse.DataSource = null;
         }
 
         #endregion Private Methods

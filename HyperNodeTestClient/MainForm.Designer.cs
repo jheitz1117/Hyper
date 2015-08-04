@@ -34,15 +34,19 @@ namespace HyperNodeTestClient
             this.btnToBobViaAlice = new System.Windows.Forms.Button();
             this.lstAliceProgress = new System.Windows.Forms.ListBox();
             this.lblAliceProgress = new System.Windows.Forms.Label();
-            this.lblResponse = new System.Windows.Forms.Label();
-            this.lstResponse = new System.Windows.Forms.ListBox();
+            this.lblRealTimeResponse = new System.Windows.Forms.Label();
+            this.lstRealTimeResponse = new System.Windows.Forms.ListBox();
             this.chkReturnTaskTrace = new System.Windows.Forms.CheckBox();
             this.chkRunConcurrently = new System.Windows.Forms.CheckBox();
             this.chkCacheProgressInfo = new System.Windows.Forms.CheckBox();
-            this.lblTaskTrace = new System.Windows.Forms.Label();
+            this.lblRealTimeTaskTrace = new System.Windows.Forms.Label();
             this.lblBobProgress = new System.Windows.Forms.Label();
             this.lstBobProgress = new System.Windows.Forms.ListBox();
             this.tvwTaskTrace = new System.Windows.Forms.TreeView();
+            this.lblFinalAliceResponse = new System.Windows.Forms.Label();
+            this.lstFinalAliceResponse = new System.Windows.Forms.ListBox();
+            this.lblFinalBobResponse = new System.Windows.Forms.Label();
+            this.lstFinalBobResponse = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
             // btnToBobViaAlice
@@ -61,7 +65,7 @@ namespace HyperNodeTestClient
             this.lstAliceProgress.FormattingEnabled = true;
             this.lstAliceProgress.Location = new System.Drawing.Point(335, 37);
             this.lstAliceProgress.Name = "lstAliceProgress";
-            this.lstAliceProgress.Size = new System.Drawing.Size(399, 472);
+            this.lstAliceProgress.Size = new System.Drawing.Size(399, 277);
             this.lstAliceProgress.TabIndex = 3;
             // 
             // lblAliceProgress
@@ -73,22 +77,22 @@ namespace HyperNodeTestClient
             this.lblAliceProgress.TabIndex = 4;
             this.lblAliceProgress.Text = "Alice Progress";
             // 
-            // lblResponse
+            // lblRealTimeResponse
             // 
-            this.lblResponse.AutoSize = true;
-            this.lblResponse.Location = new System.Drawing.Point(12, 125);
-            this.lblResponse.Name = "lblResponse";
-            this.lblResponse.Size = new System.Drawing.Size(55, 13);
-            this.lblResponse.TabIndex = 6;
-            this.lblResponse.Text = "Response";
+            this.lblRealTimeResponse.AutoSize = true;
+            this.lblRealTimeResponse.Location = new System.Drawing.Point(12, 125);
+            this.lblRealTimeResponse.Name = "lblRealTimeResponse";
+            this.lblRealTimeResponse.Size = new System.Drawing.Size(106, 13);
+            this.lblRealTimeResponse.TabIndex = 6;
+            this.lblRealTimeResponse.Text = "Real Time Response";
             // 
-            // lstResponse
+            // lstRealTimeResponse
             // 
-            this.lstResponse.FormattingEnabled = true;
-            this.lstResponse.Location = new System.Drawing.Point(12, 141);
-            this.lstResponse.Name = "lstResponse";
-            this.lstResponse.Size = new System.Drawing.Size(317, 173);
-            this.lstResponse.TabIndex = 5;
+            this.lstRealTimeResponse.FormattingEnabled = true;
+            this.lstRealTimeResponse.Location = new System.Drawing.Point(12, 141);
+            this.lstRealTimeResponse.Name = "lstRealTimeResponse";
+            this.lstRealTimeResponse.Size = new System.Drawing.Size(317, 173);
+            this.lstRealTimeResponse.TabIndex = 5;
             // 
             // chkReturnTaskTrace
             // 
@@ -124,14 +128,14 @@ namespace HyperNodeTestClient
             this.chkCacheProgressInfo.Text = "Cache Progress Info";
             this.chkCacheProgressInfo.UseVisualStyleBackColor = true;
             // 
-            // lblTaskTrace
+            // lblRealTimeTaskTrace
             // 
-            this.lblTaskTrace.AutoSize = true;
-            this.lblTaskTrace.Location = new System.Drawing.Point(12, 320);
-            this.lblTaskTrace.Name = "lblTaskTrace";
-            this.lblTaskTrace.Size = new System.Drawing.Size(62, 13);
-            this.lblTaskTrace.TabIndex = 11;
-            this.lblTaskTrace.Text = "Task Trace";
+            this.lblRealTimeTaskTrace.AutoSize = true;
+            this.lblRealTimeTaskTrace.Location = new System.Drawing.Point(12, 320);
+            this.lblRealTimeTaskTrace.Name = "lblRealTimeTaskTrace";
+            this.lblRealTimeTaskTrace.Size = new System.Drawing.Size(113, 13);
+            this.lblRealTimeTaskTrace.TabIndex = 11;
+            this.lblRealTimeTaskTrace.Text = "Real Time Task Trace";
             // 
             // lblBobProgress
             // 
@@ -148,7 +152,7 @@ namespace HyperNodeTestClient
             this.lstBobProgress.FormattingEnabled = true;
             this.lstBobProgress.Location = new System.Drawing.Point(740, 37);
             this.lstBobProgress.Name = "lstBobProgress";
-            this.lstBobProgress.Size = new System.Drawing.Size(399, 472);
+            this.lstBobProgress.Size = new System.Drawing.Size(399, 277);
             this.lstBobProgress.TabIndex = 12;
             // 
             // tvwTaskTrace
@@ -159,20 +163,58 @@ namespace HyperNodeTestClient
             this.tvwTaskTrace.TabIndex = 14;
             this.tvwTaskTrace.BeforeExpand += tvwTaskTrace_OnBeforeExpand;
             // 
+            // lblFinalAliceResponse
+            // 
+            this.lblFinalAliceResponse.AutoSize = true;
+            this.lblFinalAliceResponse.Location = new System.Drawing.Point(332, 320);
+            this.lblFinalAliceResponse.Name = "lblFinalAliceResponse";
+            this.lblFinalAliceResponse.Size = new System.Drawing.Size(106, 13);
+            this.lblFinalAliceResponse.TabIndex = 16;
+            this.lblFinalAliceResponse.Text = "Final Alice Response";
+            // 
+            // lstFinalAliceResponse
+            // 
+            this.lstFinalAliceResponse.FormattingEnabled = true;
+            this.lstFinalAliceResponse.Location = new System.Drawing.Point(335, 336);
+            this.lstFinalAliceResponse.Name = "lstFinalAliceResponse";
+            this.lstFinalAliceResponse.Size = new System.Drawing.Size(399, 173);
+            this.lstFinalAliceResponse.TabIndex = 15;
+            // 
+            // lblFinalBobResponse
+            // 
+            this.lblFinalBobResponse.AutoSize = true;
+            this.lblFinalBobResponse.Location = new System.Drawing.Point(737, 320);
+            this.lblFinalBobResponse.Name = "lblFinalBobResponse";
+            this.lblFinalBobResponse.Size = new System.Drawing.Size(102, 13);
+            this.lblFinalBobResponse.TabIndex = 18;
+            this.lblFinalBobResponse.Text = "Final Bob Response";
+            // 
+            // lstFinalBobResponse
+            // 
+            this.lstFinalBobResponse.FormattingEnabled = true;
+            this.lstFinalBobResponse.Location = new System.Drawing.Point(740, 336);
+            this.lstFinalBobResponse.Name = "lstFinalBobResponse";
+            this.lstFinalBobResponse.Size = new System.Drawing.Size(399, 173);
+            this.lstFinalBobResponse.TabIndex = 17;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1225, 521);
+            this.Controls.Add(this.lblFinalBobResponse);
+            this.Controls.Add(this.lstFinalBobResponse);
+            this.Controls.Add(this.lblFinalAliceResponse);
+            this.Controls.Add(this.lstFinalAliceResponse);
             this.Controls.Add(this.tvwTaskTrace);
             this.Controls.Add(this.lblBobProgress);
             this.Controls.Add(this.lstBobProgress);
-            this.Controls.Add(this.lblTaskTrace);
+            this.Controls.Add(this.lblRealTimeTaskTrace);
             this.Controls.Add(this.chkCacheProgressInfo);
             this.Controls.Add(this.chkRunConcurrently);
             this.Controls.Add(this.chkReturnTaskTrace);
-            this.Controls.Add(this.lblResponse);
-            this.Controls.Add(this.lstResponse);
+            this.Controls.Add(this.lblRealTimeResponse);
+            this.Controls.Add(this.lstRealTimeResponse);
             this.Controls.Add(this.lblAliceProgress);
             this.Controls.Add(this.lstAliceProgress);
             this.Controls.Add(this.btnToBobViaAlice);
@@ -188,15 +230,19 @@ namespace HyperNodeTestClient
         private System.Windows.Forms.Button btnToBobViaAlice;
         private System.Windows.Forms.ListBox lstAliceProgress;
         private System.Windows.Forms.Label lblAliceProgress;
-        private System.Windows.Forms.Label lblResponse;
-        private System.Windows.Forms.ListBox lstResponse;
+        private System.Windows.Forms.Label lblRealTimeResponse;
+        private System.Windows.Forms.ListBox lstRealTimeResponse;
         private System.Windows.Forms.CheckBox chkReturnTaskTrace;
         private System.Windows.Forms.CheckBox chkRunConcurrently;
         private System.Windows.Forms.CheckBox chkCacheProgressInfo;
-        private System.Windows.Forms.Label lblTaskTrace;
+        private System.Windows.Forms.Label lblRealTimeTaskTrace;
         private System.Windows.Forms.Label lblBobProgress;
         private System.Windows.Forms.ListBox lstBobProgress;
         private System.Windows.Forms.TreeView tvwTaskTrace;
+        private Label lblFinalAliceResponse;
+        private ListBox lstFinalAliceResponse;
+        private Label lblFinalBobResponse;
+        private ListBox lstFinalBobResponse;
     }
 }
 

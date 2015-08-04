@@ -144,23 +144,19 @@ namespace Hyper.NodeServices
                     longLivedSubscribers.Add(liveEvents.Subscribe(_activityCache));
 
                 /*****************************************************************************************************************
-                 * If we want a task trace returned, that's fine, but the task trace should only ever contain events recorded during the current call to ProcessMessage()
-                 * as opposed to the entire lifetime of a task in general. This is because a task can be spawned in a child thread and can outlive the original call to
-                 * ProcessMessage(). In this case, even if we did record events of the task, they would never be returned to the caller. This is the whole reason why we
-                 * have a CachedProgressInfoCollector that is in charge of collecting trace information for tasks that run concurrently. It should be noted that if the
-                 * client elects to use caching AND return a task trace, then the events recorded in the task trace and those recorded in the cache will likely overlap
-                 * for events which fired before ProcessMessage() returned. However, any events that fired after ProcessMessage() returned would only be recorded in the
-                 * cache. This may result in a task trace that looks incomplete since the "processing complete" message would not have occured before the method returned.
-                 * 
-                 * All that being said, we never want to add our task trace collector to the global list of subscribers. Instead, we will limit the scope of the task
-                 * trace collector to ONLY the current call, and we will allow the cache and custom monitors to record any events that occur in child threads after the
-                 * call to ProcessMessage() returns.
+                 * If we want a task trace returned, that's fine, but the task trace in the real-time response would only ever contain events recorded during the current
+                 * call to ProcessMessage() as opposed to the entire lifetime of a task in general. This is because a task can be spawned in a child thread and can outlive
+                 * the original call to ProcessMessage(). This is the whole reason why we have a CachedProgressInfoCollector that is in charge of collecting trace information
+                 * for tasks that run concurrently. It should be noted that if the client elects to use caching AND return a task trace, then the events recorded in the
+                 * real-time task trace and those recorded in the cache will likely overlap for events which fired before ProcessMessage() returned. However, any events that
+                 * fired after ProcessMessage() returned would only be recorded in the cache. This may result in a task trace that looks incomplete since the "processing
+                 * complete" message would not have occured before the method returned.
                  *****************************************************************************************************************/
                 if (message.ReturnTaskTrace)
                 {
                     // See description above for why this is a short-lived subscriber instead of a long-lived one
                     var taskTraceCollector = new HyperNodeTaskTraceCollector(response);
-                    shortLivedSubscribers.Add(
+                    longLivedSubscribers.Add(
                         liveEvents
                             .Where(a => taskTraceCollector.ShouldTrack(a))
                             .Subscribe(taskTraceCollector)
@@ -168,11 +164,11 @@ namespace Hyper.NodeServices
                 }
 
                 /*****************************************************************************************************************
-                 * Concurrent tasks cannot return any meaningful responses because the main thread gets to the return statement long before the child threads complete
-                 * their processing. Any response that is returned by the main thread contains minimal information: perhaps a cursory task trace and some enum values,
-                 * but that's it. Therefore, by design, clients who elect to run tasks concurrently inherently decide to disregard the response objects in favor of
-                 * a progress cache which can be queried after the initial call. This cache can either be the in-memory cache of the hypernode, or it can be some other
-                 * repository that the user sets up themselves via a custom monitor.
+                 * Concurrent tasks cannot return anything meaningful in the real-time response because the main thread gets to the return statement long before the
+                 * child threads complete their processing. Any response that is returned by the main thread contains minimal information: perhaps a cursory task
+                 * trace and some enum values, but that's it. Therefore, by design, clients who elect to run tasks concurrently inherently decide to disregard the
+                 * real-time response object in favor of a progress cache which can be queried after the initial call. This cache can either be the in-memory cache
+                 * of the hypernode, or it can be some other repository that the user sets up themselves via a custom monitor.
                  * 
                  * On the other hand, if the client elects to run non-concurrently (aka synchronously), then it expects to and should receive a well-formed response
                  * object. For this, we have a response collector whose sole job it is to collect response objects for child nodes to which the message is forwarded
@@ -315,12 +311,12 @@ namespace Hyper.NodeServices
                                 }
                                 catch (Exception ex)
                                 {
-                                    response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
-                                    activityTracker.TrackException(ex);
+                                    args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
+                                    args.ActivityTracker.TrackException(ex);
                                 }
                                 finally
                                 {
-                                    activityTracker.TrackProcessed();
+                                    args.ActivityTracker.TrackProcessed();
                                 }
                             }
                         );
@@ -352,7 +348,7 @@ namespace Hyper.NodeServices
                     childTasks.ToArray()
                 ).ContinueWith(
                     (t, param) => ChildThreadCleanup(param as ChildThreadCleanupParameter),
-                    new ChildThreadCleanupParameter(longLivedSubscribers, activityTracker)
+                    new ChildThreadCleanupParameter(longLivedSubscribers, activityTracker, response)
                 );
             }
             catch (Exception ex)
@@ -591,6 +587,8 @@ namespace Hyper.NodeServices
 
         private void ProcessMessageInternal(ProcessMessageInternalParameter args)
         {
+            ICommandResponse commandResponse;
+
             switch (args.Message.CommandName)
             {
                 case "ValidCommand":
@@ -603,7 +601,7 @@ namespace Hyper.NodeServices
                         args.ActivityTracker.Track("Another step in the process.");
                         //throw new Exception("Bad!");
 
-                        args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.Success | MessageProcessStatusFlags.HadNonFatalErrors | MessageProcessStatusFlags.HadWarnings;
+                        commandResponse = new CommandResponse(MessageProcessStatusFlags.Success | MessageProcessStatusFlags.HadNonFatalErrors | MessageProcessStatusFlags.HadWarnings);
                     } break;
                 case "LongRunningTaskTest":
                     {
@@ -625,7 +623,8 @@ namespace Hyper.NodeServices
                         args.ActivityTracker.Track("Progress update 7", 95, progressTotal);
 
                         args.ActivityTracker.Track("Progress update 8", progressTotal, progressTotal);
-                        args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.Success;
+                        
+                        commandResponse = new CommandResponse(MessageProcessStatusFlags.Success);
                     } break;
                 case "SuperLongRunningTestTask":
                     {
@@ -641,7 +640,8 @@ namespace Hyper.NodeServices
                         stopwatch.Stop();
 
                         args.ActivityTracker.TrackFormat("Out of loop at {0}. Cancellation was{1} requested.", stopwatch.Elapsed, (args.Token.IsCancellationRequested ? "" : " not"));
-                        args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.Cancelled;
+                        
+                        commandResponse = new CommandResponse((args.Token.IsCancellationRequested ? MessageProcessStatusFlags.Cancelled : MessageProcessStatusFlags.Success));
                     }
                     break;
                 default:
@@ -699,10 +699,9 @@ namespace Hyper.NodeServices
                                 // TODO: If non-fatal errors are encountered during processing, set the HadNonFatalErrors flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadNonFatalErrors;
                                 // TODO: If warnings are encountered during processing, set the HadWarnings flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
                                 // TODO: If we successfully process the message, set response.ProcessStatusFlags equal to Success
-                                var commandResponse = commandModule.Execute(context);
+                                commandResponse = commandModule.Execute(context);
 
-                                // Set our status flags and serialize the response to send back
-                                args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
+                                // Serialize the response to send back
                                 args.Response.CommandResponseString = responseSerializer.Serialize(commandResponse);
                             }
                             finally
@@ -716,18 +715,21 @@ namespace Hyper.NodeServices
                         else
                         {
                             // Unrecognized command
-                            args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Failure | MessageProcessStatusFlags.InvalidCommand;
+                            commandResponse = new CommandResponse(MessageProcessStatusFlags.Failure | MessageProcessStatusFlags.InvalidCommand);
                             args.ActivityTracker.TrackFormat("Fatal error: Invalid command '{0}'.", args.Message.CommandName);
                         }
                     } break;
             }
+
+            args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
         }
 
         private void ChildThreadCleanup(ChildThreadCleanupParameter args)
         {
             /* Signal completion before we dispose our subscribers. This is necessary because clients who are polling the service for progress
-             * updates must know when the service is done sending updates. */
-            args.ActivityTracker.TrackFinished();
+             * updates must know when the service is done sending updates. Make sure we pass the final, completed response object in case we have
+             * any monitors that are watching for it. */
+            args.ActivityTracker.TrackFinished(args.Response);
 
             // We're about to dispose of these subscribers, so we no longer need the backup reference
             if (_backupSubscriberReference != null)
