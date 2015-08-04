@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -15,12 +14,13 @@ using Hyper.ActivityTracking;
 using Hyper.NodeServices.ActivityTracking;
 using Hyper.NodeServices.Client;
 using Hyper.NodeServices.CommandModules;
+using Hyper.NodeServices.CommandModules.SystemCommands;
+using Hyper.NodeServices.CommandModules.TestCommands;
 using Hyper.NodeServices.Configuration;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Contracts.Serializers;
 using Hyper.NodeServices.Extensibility;
-using Hyper.NodeServices.SystemCommands;
 
 namespace Hyper.NodeServices
 {
@@ -589,136 +589,78 @@ namespace Hyper.NodeServices
         {
             ICommandResponse commandResponse;
 
-            switch (args.Message.CommandName)
+            CommandModuleConfiguration commandModuleConfig;
+            if (_commandModuleConfigurations.ContainsKey(args.Message.CommandName) &&
+                _commandModuleConfigurations.TryGetValue(args.Message.CommandName, out commandModuleConfig) &&
+                commandModuleConfig.Enabled)
             {
-                case "ValidCommand":
+                // Create our command module instance
+                var commandModule = (ICommandModule)Activator.CreateInstance(commandModuleConfig.CommandModuleType);
+
+                ICommandRequestSerializer requestSerializer = null;
+                ICommandResponseSerializer responseSerializer = null;
+
+                // Check if our command module is able to create request and/or response serializers
+                var requestSerializerFactory = commandModule as ICommandRequestSerializerFactory;
+                var responseSerializerFactory = commandModule as ICommandResponseSerializerFactory;
+
+                // Use the factories to create serializers, if applicable
+                if (requestSerializerFactory != null)
+                    requestSerializer = requestSerializerFactory.Create();
+                if (responseSerializerFactory != null)
+                    responseSerializer = responseSerializerFactory.Create();
+
+                // Allow the command module factory-created serializers to take precedence over the configured serializers
+                requestSerializer = requestSerializer ?? commandModuleConfig.RequestSerializer ?? DefaultRequestSerializer;
+                responseSerializer = responseSerializer ?? commandModuleConfig.ResponseSerializer ?? DefaultResponseSerializer;
+
+                try
+                {
+                    // Deserialize the request string
+                    var commandRequest = requestSerializer.Deserialize(args.Message.CommandRequestString);
+
+                    // Create the execution context to pass into our module
+                    var context = new CommandExecutionContext
                     {
-                        // This simulates a long-running task
-                        //Thread.Sleep(10000);
-                        args.ActivityTracker.Track("Got here past the sleep!");
+                        TaskId = args.Response.TaskId,
+                        MessageGuid = args.Message.MessageGuid,
+                        CommandName = args.Message.CommandName,
+                        CreatedByAgentName = args.Message.CreatedByAgentName,
+                        CreationDateTime = args.Message.CreationDateTime,
+                        Request = commandRequest,
+                        Activity = args.ActivityTracker,
+                        Token = args.Token
+                    };
 
-                        //Thread.Sleep(3000);
-                        args.ActivityTracker.Track("Another step in the process.");
-                        //throw new Exception("Bad!");
+                    // Copy in the info from our top-level message and response. We're using AddRange() for collections instead
+                    // of just assignment so that if the user changes anything, it doesn't affect the top-level message
+                    context.IntendedRecipientNodeNames.AddRange(args.Message.IntendedRecipientNodeNames);
+                    context.SeenByNodeNames.AddRange(args.Message.SeenByNodeNames);
 
-                        commandResponse = new CommandResponse(MessageProcessStatusFlags.Success | MessageProcessStatusFlags.HadNonFatalErrors | MessageProcessStatusFlags.HadWarnings);
-                    } break;
-                case "LongRunningTaskTest":
-                    {
-                        var progressTotal = 100;
-                        args.ActivityTracker.TrackFormat("CommandName '{0}' recognized. Commencing execution of task.", args.Message.CommandName);
-                        Thread.Sleep(3000);
-                        args.ActivityTracker.Track("Progress update 1", 10, progressTotal);
-                        Thread.Sleep(3000);
-                        args.ActivityTracker.Track("Progress update 2", 20, progressTotal);
-                        Thread.Sleep(3000);
-                        args.ActivityTracker.Track("Progress update 3", 30, progressTotal);
-                        Thread.Sleep(3000);
-                        args.ActivityTracker.Track("Progress update 4", 44, progressTotal);
-                        Thread.Sleep(3000);
-                        args.ActivityTracker.Track("Progress update 5", 53, progressTotal);
-                        Thread.Sleep(3000);
-                        args.ActivityTracker.Track("Progress update 6", 72, progressTotal);
-                        Thread.Sleep(6000);
-                        args.ActivityTracker.Track("Progress update 7", 95, progressTotal);
+                    // Execute the command
+                    // TODO: Process the message
+                    // TODO: Make calls to activityTracker.Track() as needed
+                    // TODO: If non-fatal errors are encountered during processing, set the HadNonFatalErrors flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadNonFatalErrors;
+                    // TODO: If warnings are encountered during processing, set the HadWarnings flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
+                    // TODO: If we successfully process the message, set response.ProcessStatusFlags equal to Success
+                    commandResponse = commandModule.Execute(context);
 
-                        args.ActivityTracker.Track("Progress update 8", progressTotal, progressTotal);
-                        
-                        commandResponse = new CommandResponse(MessageProcessStatusFlags.Success);
-                    } break;
-                case "SuperLongRunningTestTask":
-                    {
-                        var stopwatch = new Stopwatch();
-                        stopwatch.Start();
-
-                        while (stopwatch.Elapsed <= TimeSpan.FromMinutes(1) && !args.Token.IsCancellationRequested)
-                        {
-                            args.ActivityTracker.TrackFormat("Elapsed time: {0}", stopwatch.Elapsed);
-                            Thread.Sleep(TimeSpan.FromSeconds(5));
-                        }
-
-                        stopwatch.Stop();
-
-                        args.ActivityTracker.TrackFormat("Out of loop at {0}. Cancellation was{1} requested.", stopwatch.Elapsed, (args.Token.IsCancellationRequested ? "" : " not"));
-                        
-                        commandResponse = new CommandResponse((args.Token.IsCancellationRequested ? MessageProcessStatusFlags.Cancelled : MessageProcessStatusFlags.Success));
-                    }
-                    break;
-                default:
-                    {
-                        CommandModuleConfiguration commandModuleConfig;
-                        if (_commandModuleConfigurations.ContainsKey(args.Message.CommandName) &&
-                            _commandModuleConfigurations.TryGetValue(args.Message.CommandName, out commandModuleConfig) &&
-                            commandModuleConfig.Enabled)
-                        {
-                            // Create our command module instance
-                            var commandModule = (ICommandModule)Activator.CreateInstance(commandModuleConfig.CommandModuleType);
-
-                            ICommandRequestSerializer requestSerializer = null;
-                            ICommandResponseSerializer responseSerializer = null;
-
-                            // Check if our command module is able to create request and/or response serializers
-                            var requestSerializerFactory = commandModule as ICommandRequestSerializerFactory;
-                            var responseSerializerFactory = commandModule as ICommandResponseSerializerFactory;
-
-                            // Use the factories to create serializers, if applicable
-                            if (requestSerializerFactory != null)
-                                requestSerializer = requestSerializerFactory.Create();
-                            if (responseSerializerFactory != null)
-                                responseSerializer = responseSerializerFactory.Create();
-
-                            // Allow the command module factory-created serializers to take precedence over the configured serializers
-                            requestSerializer = requestSerializer ?? commandModuleConfig.RequestSerializer;
-                            responseSerializer = responseSerializer ?? commandModuleConfig.ResponseSerializer;
-
-                            try
-                            {
-                                // Deserialize the request string
-                                var commandRequest = requestSerializer.Deserialize(args.Message.CommandRequestString);
-
-                                // Create the execution context to pass into our module
-                                var context = new CommandExecutionContext
-                                {
-                                    TaskId = args.Response.TaskId,
-                                    MessageGuid = args.Message.MessageGuid,
-                                    CreatedByAgentName = args.Message.CreatedByAgentName,
-                                    CreationDateTime = args.Message.CreationDateTime,
-                                    Request = commandRequest,
-                                    Activity = args.ActivityTracker,
-                                    Token = args.Token
-                                };
-
-                                // Copy in the info from our top-level message and response. We're using AddRange() for collections instead
-                                // of just assignment so that if the user changes anything, it doesn't affect the top-level message
-                                context.IntendedRecipientNodeNames.AddRange(args.Message.IntendedRecipientNodeNames);
-                                context.SeenByNodeNames.AddRange(args.Message.SeenByNodeNames);
-
-                                // Execute the command
-                                // TODO: Process the message
-                                // TODO: Make calls to activityTracker.Track() as needed
-                                // TODO: If non-fatal errors are encountered during processing, set the HadNonFatalErrors flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadNonFatalErrors;
-                                // TODO: If warnings are encountered during processing, set the HadWarnings flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
-                                // TODO: If we successfully process the message, set response.ProcessStatusFlags equal to Success
-                                commandResponse = commandModule.Execute(context);
-
-                                // Serialize the response to send back
-                                args.Response.CommandResponseString = responseSerializer.Serialize(commandResponse);
-                            }
-                            finally
-                            {
-                                // Check if our module is disposable and take care of it appropriately
-                                var disposableCommandModule = commandModule as IDisposable;
-                                if (disposableCommandModule != null)
-                                    disposableCommandModule.Dispose();
-                            }
-                        }
-                        else
-                        {
-                            // Unrecognized command
-                            commandResponse = new CommandResponse(MessageProcessStatusFlags.Failure | MessageProcessStatusFlags.InvalidCommand);
-                            args.ActivityTracker.TrackFormat("Fatal error: Invalid command '{0}'.", args.Message.CommandName);
-                        }
-                    } break;
+                    // Serialize the response to send back
+                    args.Response.CommandResponseString = responseSerializer.Serialize(commandResponse);
+                }
+                finally
+                {
+                    // Check if our module is disposable and take care of it appropriately
+                    var disposableCommandModule = commandModule as IDisposable;
+                    if (disposableCommandModule != null)
+                        disposableCommandModule.Dispose();
+                }
+            }
+            else
+            {
+                // Unrecognized command
+                commandResponse = new CommandResponse(MessageProcessStatusFlags.Failure | MessageProcessStatusFlags.InvalidCommand);
+                args.ActivityTracker.TrackFormat("Fatal error: Invalid command '{0}'.", args.Message.CommandName);
             }
 
             args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
@@ -769,18 +711,58 @@ namespace Hyper.NodeServices
         {
             // TODO: Bring the config into this somehow. If nothing else, need to be able to enable/disable system commands via config.
             if (!service._commandModuleConfigurations.TryAdd(
-                "GetCachedProgressInfo",
-                new CommandModuleConfiguration
-                {
-                    CommandName = "GetCachedProgressInfo",
-                    Enabled = true, // TODO: Should be set from config
-                    CommandModuleType = typeof (GetCachedProgressInfoCommand),
-                    RequestSerializer = new PassThroughSerializer(),
-                    ResponseSerializer = new NetDataContractResponseSerializer<HyperNodeProgressInfo>()
-                }
-                ))
+                    "GetCachedProgressInfo",
+                    new CommandModuleConfiguration
+                    {
+                        CommandName = "GetCachedProgressInfo",
+                        Enabled = true, // TODO: Should be set from config
+                        CommandModuleType = typeof(GetCachedProgressInfoCommand),
+                        RequestSerializer = new PassThroughSerializer(),
+                        ResponseSerializer = new NetDataContractResponseSerializer<HyperNodeProgressInfo>()
+                    }
+                 )
+                )
             {
                 throw new DuplicateCommandException("A command already exists with the name 'GetCachedProgressInfo'.");
+            }
+            if (!service._commandModuleConfigurations.TryAdd(
+                    "ValidCommand",
+                    new CommandModuleConfiguration
+                    {
+                        CommandName = "ValidCommand",
+                        Enabled = true, // TODO: Should be set from config
+                        CommandModuleType = typeof(ValidCommandTest)
+                    }
+                 )
+                )
+            {
+                throw new DuplicateCommandException("A command already exists with the name 'ValidCommand'.");
+            }
+            if (!service._commandModuleConfigurations.TryAdd(
+                    "LongRunningTaskTest",
+                    new CommandModuleConfiguration
+                    {
+                        CommandName = "LongRunningTaskTest",
+                        Enabled = true, // TODO: Should be set from config
+                        CommandModuleType = typeof(LongRunningCommandTest)
+                    }
+                 )
+                )
+            {
+                throw new DuplicateCommandException("A command already exists with the name 'LongRunningTaskTest'.");
+            }
+            if (!service._commandModuleConfigurations.TryAdd(
+                    "SuperLongRunningTestTask",
+                    new CommandModuleConfiguration
+                    {
+                        CommandName = "SuperLongRunningTestTask",
+                        Enabled = true, // TODO: Should be set from config
+                        CommandModuleType = typeof(SuperLongRunningCommandTest)
+                    }
+                 )
+                )
+            {
+                throw new DuplicateCommandException("A command already exists with the name 'SuperLongRunningTestTask'.");
             }
         }
 

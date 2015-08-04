@@ -10,6 +10,7 @@ namespace Hyper.NodeServices.CommandModules
     {
         public string TaskId { get; set; }
         public Guid MessageGuid { get; set; }
+        public string CommandName { get; set; }
         public string CreatedByAgentName { get; set; }
         public DateTime CreationDateTime { get; set; }
         public List<string> IntendedRecipientNodeNames { get; set; }

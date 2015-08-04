@@ -3,7 +3,7 @@ using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Extensibility;
 
-namespace Hyper.NodeServices.SystemCommands
+namespace Hyper.NodeServices.CommandModules.SystemCommands
 {
     internal class GetCachedProgressInfoCommand : ICommandModule
     {
