@@ -20,7 +20,12 @@ namespace Hyper.NodeServices.ActivityTracking
         /// <returns></returns>
         public override bool ShouldTrack(IHyperNodeActivityEventItem activity)
         {
-            return activity.EventData is HyperNodeMessageResponse;
+            // Not only do we want to make sure the event data object is an instance of HyperNodeMessageResponse,
+            // but we also want to make sure it came from a child node instead of this node. To do this, we can
+            // check the RespondingNodeName of the response and see if the response came from a node other than
+            // this one.
+            var response = activity.EventData as HyperNodeMessageResponse;
+            return (response != null && response.RespondingNodeName != activity.Agent);
         }
 
         public override void OnNext(IHyperNodeActivityEventItem activity)

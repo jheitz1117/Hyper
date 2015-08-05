@@ -132,7 +132,7 @@ namespace HyperNodeTestClient
 
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
-                    CommandName = "LongRunningTaskTest",
+                    CommandName = "ComplexCommand",
                     CommandRequestString = serializer.Serialize(
                         new ComplexCommandRequest
                         {
