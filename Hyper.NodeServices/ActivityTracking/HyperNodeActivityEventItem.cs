@@ -7,6 +7,7 @@ namespace Hyper.NodeServices.ActivityTracking
     {
         // These properties have an internal setter because they are hard-set by the activity tracker
         public Guid MessageGuid { get; internal set; }
+        public string TaskId { get; internal set; }
         public string CommandName { get; internal set; }
 
         // These properties are free to be modified by the user if they wish

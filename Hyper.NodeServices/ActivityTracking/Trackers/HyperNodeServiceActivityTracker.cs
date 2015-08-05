@@ -5,8 +5,8 @@ namespace Hyper.NodeServices.ActivityTracking
 {
     internal sealed class HyperNodeServiceActivityTracker : HyperNodeTaskActivityTracker
     {
-        public HyperNodeServiceActivityTracker(string hyperNodeName, HyperNodeMessageRequest messageToTrack)
-            : base(hyperNodeName, messageToTrack) { }
+        public HyperNodeServiceActivityTracker(HyperNodeActivityContext context)
+            : base(context) { }
 
         public void TrackCreated()
         {

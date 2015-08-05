@@ -60,6 +60,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActivityTracking\HyperNodeActivityContext.cs" />
     <Compile Include="CommandModules\TestCommands\SuperLongRunningCommandTest.cs" />
     <Compile Include="CommandModules\TestCommands\LongRunningCommandTest.cs" />
     <Compile Include="CommandModules\TestCommands\ValidCommandTest.cs" />

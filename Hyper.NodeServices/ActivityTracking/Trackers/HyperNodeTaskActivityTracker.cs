@@ -1,21 +1,16 @@
 ﻿using System;
 using Hyper.ActivityTracking;
-using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility;
 
 namespace Hyper.NodeServices.ActivityTracking
 {
     internal class HyperNodeTaskActivityTracker : HyperActivityTracker, ITaskActivityTracker
     {
-        private readonly string _hyperNodeName;
-        private readonly Guid _messageGuid;
-        private readonly string _commandName;
-
-        public HyperNodeTaskActivityTracker(string hyperNodeName, HyperNodeMessageRequest messageToTrack)
+        private readonly HyperNodeActivityContext _context;
+        
+        public HyperNodeTaskActivityTracker(HyperNodeActivityContext context)
         {
-            _hyperNodeName = hyperNodeName;
-            _messageGuid = messageToTrack.MessageGuid;
-            _commandName = messageToTrack.CommandName;
+            _context = context;
         }
 
         public void Track(string eventDescription)
@@ -70,10 +65,11 @@ namespace Hyper.NodeServices.ActivityTracking
                 new TrackActivityEventArgs(
                     new HyperNodeActivityEventItem(isCompletionEvent)
                     {
-                        MessageGuid = _messageGuid,
-                        CommandName = _commandName,
+                        MessageGuid = _context.MessageGuid,
+                        TaskId = _context.TaskId,
+                        CommandName = _context.CommandName,
                         EventDateTime = DateTime.Now,
-                        Agent = _hyperNodeName,
+                        Agent = _context.HyperNodeName,
                         EventDescription = eventDescription,
                         EventDetail = eventDetail,
                         EventData = eventData,

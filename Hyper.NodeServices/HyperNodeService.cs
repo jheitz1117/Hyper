@@ -101,6 +101,8 @@ namespace Hyper.NodeServices
 
         public HyperNodeMessageResponse ProcessMessage(HyperNodeMessageRequest message)
         {
+            // TODO: Validate message contents and throw exceptions if invalid message?
+
             var response = new HyperNodeMessageResponse(this.HyperNodeName)
             {
                 NodeAction = HyperNodeActionType.None,
@@ -108,9 +110,62 @@ namespace Hyper.NodeServices
                 ProcessStatusFlags = MessageProcessStatusFlags.None
             };
 
-            var activityTracker = new HyperNodeServiceActivityTracker(this.HyperNodeName, message);
+            #region Create Task ID
+
+            var taskId = "";
+            HyperNodeActivityItem illBehavedTaskIdProviderActivityItem = null;
+
+            try
+            {
+                // Try to use our custom task ID provider
+                taskId = this.TaskIdProvider.CreateTaskId(message);
+
+                // Check for a blank task ID
+                if (string.IsNullOrWhiteSpace(taskId))
+                {
+                    illBehavedTaskIdProviderActivityItem = new HyperNodeActivityItem(this.HyperNodeName)
+                    {
+                        EventDescription = string.Format(
+                            "The class '{0}' created a blank task ID.",
+                            this.TaskIdProvider.GetType().FullName
+                        )
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                // Custom task ID provider threw an exception, so we'll just use our default provider to recover
+                illBehavedTaskIdProviderActivityItem = new HyperNodeActivityItem(this.HyperNodeName)
+                {
+                    EventDescription = "An exception was thrown while attempting to create a task ID.",
+                    EventDetail = ex.ToString()
+                };
+            }
+
+            // Check if we had an ill-behaved task ID provider. If so, use our default task ID provider instead.
+            if (illBehavedTaskIdProviderActivityItem != null)
+            {
+                taskId = DefaultTaskIdProvider.CreateTaskId(message);
+
+                illBehavedTaskIdProviderActivityItem.EventDescription += " The default task ID provider was used to generate a non-blank task ID instead.";
+                response.TaskTrace.Add(illBehavedTaskIdProviderActivityItem);
+            }
+
+            // Finally, set our task ID
+            response.TaskId = taskId;
+
+            #endregion Create Task ID
 
             #region Activity Tracker Setup
+
+            var activityTracker = new HyperNodeServiceActivityTracker(
+                new HyperNodeActivityContext(
+                    this.HyperNodeName,
+                    message.MessageGuid,
+                    message.CommandName,
+                    response.TaskId
+                )
+            );
 
             /*****************************************************************************************************************
              * Setup our activity tracker
@@ -129,8 +184,8 @@ namespace Hyper.NodeServices
                     h => activityTracker.TrackActivityHandler += h,
                     h => activityTracker.TrackActivityHandler -= h
                 ).Select(
-                    // Cast all our activity items as HyperNodeActivityEventItem
-                    a => a.EventArgs.ActivityItem as HyperNodeActivityEventItem
+                    // Cast all our activity items as IHyperNodeActivityEventItem
+                    a => a.EventArgs.ActivityItem as IHyperNodeActivityEventItem
                 );
 
                 /*****************************************************************************************************************
@@ -255,12 +310,6 @@ namespace Hyper.NodeServices
 
             try
             {
-                // Assign a task id to our result object using a custom provider.
-                // As of 6:39 a.m. on 7/18/2015, nothing in the HyperNodeService depends on the TaskId, so if the provider returns an empty string it won't break anything.
-                // The Task Id is just here for reference for the consuming services and clients. However, if the provider throws an exception (it is user code after all),
-                // at least it won't crash the server since we're in a try/catch block.
-                response.TaskId = this.TaskIdProvider.CreateTaskId(message);
-
                 var childTasks = new List<Task>();
 
                 // Confirm receipt of the message
