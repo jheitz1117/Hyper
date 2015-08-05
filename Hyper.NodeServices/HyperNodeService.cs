@@ -20,6 +20,7 @@ using Hyper.NodeServices.Configuration;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Contracts.Serializers;
+using Hyper.NodeServices.Contracts.SystemCommands;
 using Hyper.NodeServices.Extensibility;
 
 namespace Hyper.NodeServices
@@ -57,7 +58,7 @@ namespace Hyper.NodeServices
         private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
         private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
         private readonly TimeSpan _defaultActivityCacheSlidingExpiration = TimeSpan.FromHours(1);
-        private readonly CachedProgressInfoCollector _activityCache = new CachedProgressInfoCollector();
+        private readonly ProgressCacheItemCollector _activityCache = new ProgressCacheItemCollector();
         private readonly List<HyperNodeServiceActivityMonitor> _activityMonitors = new List<HyperNodeServiceActivityMonitor>();
         private readonly ConcurrentDictionary<string, CommandModuleConfiguration> _commandModuleConfigurations = new ConcurrentDictionary<string, CommandModuleConfiguration>();
 
@@ -201,7 +202,7 @@ namespace Hyper.NodeServices
                 /*****************************************************************************************************************
                  * If we want a task trace returned, that's fine, but the task trace in the real-time response would only ever contain events recorded during the current
                  * call to ProcessMessage() as opposed to the entire lifetime of a task in general. This is because a task can be spawned in a child thread and can outlive
-                 * the original call to ProcessMessage(). This is the whole reason why we have a CachedProgressInfoCollector that is in charge of collecting trace information
+                 * the original call to ProcessMessage(). This is the whole reason why we have a ProgressCacheItemCollector that is in charge of collecting trace information
                  * for tasks that run concurrently. It should be noted that if the client elects to use caching AND return a task trace, then the events recorded in the
                  * real-time task trace and those recorded in the cache will likely overlap for events which fired before ProcessMessage() returned. However, any events that
                  * fired after ProcessMessage() returned would only be recorded in the cache. This may result in a task trace that looks incomplete since the "processing
@@ -760,14 +761,14 @@ namespace Hyper.NodeServices
         {
             // TODO: Bring the config into this somehow. If nothing else, need to be able to enable/disable system commands via config.
             if (!service._commandModuleConfigurations.TryAdd(
-                    "GetCachedProgressInfo",
+                    "GetCachedTaskProgressInfo",
                     new CommandModuleConfiguration
                     {
-                        CommandName = "GetCachedProgressInfo",
+                        CommandName = "GetCachedTaskProgressInfo",
                         Enabled = true, // TODO: Should be set from config
-                        CommandModuleType = typeof(GetCachedProgressInfoCommand),
-                        RequestSerializer = new PassThroughSerializer(),
-                        ResponseSerializer = new NetDataContractResponseSerializer<HyperNodeProgressInfo>()
+                        CommandModuleType = typeof(GetCachedTaskProgressInfoCommand),
+                        RequestSerializer = new NetDataContractRequestSerializer<GetCachedTaskProgressInfoRequest>(),
+                        ResponseSerializer = new NetDataContractResponseSerializer<HyperNodeTaskProgressInfo>()
                     }
                  )
                 )
@@ -923,9 +924,9 @@ namespace Hyper.NodeServices
 
         #region Internal Helper Methods
 
-        internal HyperNodeProgressInfo GetCachedProgressInfo(string key)
+        internal HyperNodeTaskProgressInfo GetCachedTaskProgressInfo(Guid messageGuid, string taskId)
         {
-            return _activityCache.GetProgressInfo(key);
+            return _activityCache.GetTaskProgressInfo(messageGuid, taskId);
         }
 
         // TODO: Write helper for "Discover" command (no params, searches config and forwards command to all children.)
