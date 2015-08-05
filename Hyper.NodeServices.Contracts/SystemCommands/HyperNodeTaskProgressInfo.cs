@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Hyper.NodeServices.Contracts.Extensibility;
 
@@ -7,6 +8,9 @@ namespace Hyper.NodeServices.Contracts.SystemCommands
     [DataContract]
     public class HyperNodeTaskProgressInfo : ICommandResponse
     {
+        [DataMember]
+        public Guid ParentMessageGuid { get; set; }
+
         [DataMember]
         public List<HyperNodeActivityItem> Activity { get; set; }
 
@@ -38,6 +42,11 @@ namespace Hyper.NodeServices.Contracts.SystemCommands
         public HyperNodeTaskProgressInfo()
         {
             this.Activity = new List<HyperNodeActivityItem>();
+        }
+
+        public HyperNodeTaskProgressInfo(Guid parentMessageGuid) : this()
+        {
+            this.ParentMessageGuid = parentMessageGuid;
         }
 
         [DataMember]

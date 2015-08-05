@@ -185,8 +185,7 @@ namespace Hyper.NodeServices
                     h => activityTracker.TrackActivityHandler += h,
                     h => activityTracker.TrackActivityHandler -= h
                 ).Select(
-                    // Cast all our activity items as IHyperNodeActivityEventItem
-                    a => a.EventArgs.ActivityItem as IHyperNodeActivityEventItem
+                    a => a.EventArgs.ActivityItem as IHyperNodeActivityEventItem // Cast all our activity items as IHyperNodeActivityEventItem
                 );
 
                 /*****************************************************************************************************************
@@ -197,7 +196,13 @@ namespace Hyper.NodeServices
                  * activity.
                  *****************************************************************************************************************/
                 if (this.EnableActivityCache && message.CacheProgressInfo)
-                    longLivedSubscribers.Add(liveEvents.Subscribe(_activityCache));
+                {
+                    longLivedSubscribers.Add(
+                        liveEvents
+                            .Where(a => _activityCache.ShouldTrack(a))
+                            .Subscribe(_activityCache)
+                    );
+                }
 
                 /*****************************************************************************************************************
                  * If we want a task trace returned, that's fine, but the task trace in the real-time response would only ever contain events recorded during the current
@@ -210,7 +215,6 @@ namespace Hyper.NodeServices
                  *****************************************************************************************************************/
                 if (message.ReturnTaskTrace)
                 {
-                    // See description above for why this is a short-lived subscriber instead of a long-lived one
                     var taskTraceCollector = new HyperNodeTaskTraceCollector(response);
                     longLivedSubscribers.Add(
                         liveEvents
@@ -221,26 +225,31 @@ namespace Hyper.NodeServices
 
                 /*****************************************************************************************************************
                  * Concurrent tasks cannot return anything meaningful in the real-time response because the main thread gets to the return statement long before the
-                 * child threads complete their processing. Any response that is returned by the main thread contains minimal information: perhaps a cursory task
+                 * child threads complete their processing. Any response that is returned by the main thread contains minimal information: perhaps an incomplete task
                  * trace and some enum values, but that's it. Therefore, by design, clients who elect to run tasks concurrently inherently decide to disregard the
                  * real-time response object in favor of a progress cache which can be queried after the initial call. This cache can either be the in-memory cache
                  * of the hypernode, or it can be some other repository that the user sets up themselves via a custom monitor.
                  * 
-                 * On the other hand, if the client elects to run non-concurrently (aka synchronously), then it expects to and should receive a well-formed response
-                 * object. For this, we have a response collector whose sole job it is to collect response objects for child nodes to which the message is forwarded
-                 * and return an aggregate response to the client. The response has a tree-like structure in which child node responses are referenced by their node
-                 * name. Because the request is synchronous, this monitor will not need to live beyond the scope of this call. Hence, we add it to the collection of
-                 * short-lived subscribers.
+                 * On the other hand, if the client elects to run non-concurrently (aka synchronously), then it expects to and should receive a complete response
+                 * object.
+                 * 
+                 * This response collector monitor's job is to collect response objects for child nodes to which the message is forwarded and add them to the target
+                 * response object. Responses compiled this way have a tree-like structure in which child node responses are referenced by their node name.
+                 * 
+                 * For synchronous operations, this results in a real-time response that contains all of the response information for this node and its decendants.
+                 * 
+                 * For asynchronous operations, the real-time response contains the task ID for the main thread executed on this node. The cached response for that
+                 * real-time task ID contains the task IDs of the main threads executed on the child nodes. The cached responses for those task IDs contain the
+                 * task IDs of the main threads executed on the grandchildren nodes, etc. Perhaps a new command can be written to automatically get a list of all
+                 * intended recipients and the corresponding "main" task IDs to use to request status updates. This would be exclusively for the cache. If the
+                 * user wanted to use something other than the cache, they would have to determine the task IDs their own way.
                  *****************************************************************************************************************/
-                if (!message.RunConcurrently)
-                {
-                    var responseCollector = new HyperNodeMessageResponseCollector(response);
-                    shortLivedSubscribers.Add(
-                        liveEvents
-                            .Where(a => responseCollector.ShouldTrack(a))
-                            .Subscribe(responseCollector)
-                    );
-                }
+                var responseCollector = new HyperNodeMessageResponseCollector(response);
+                longLivedSubscribers.Add(
+                    liveEvents
+                        .Where(a => responseCollector.ShouldTrack(a))
+                        .Subscribe(responseCollector)
+                );
 
                 /*****************************************************************************************************************
                  * Subscribe our custom activity monitors to the event stream last, just in case any of them throw exceptions. If they do, we've already setup our

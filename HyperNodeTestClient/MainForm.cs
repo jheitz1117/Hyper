@@ -30,9 +30,10 @@ namespace HyperNodeTestClient
             progressTimer.Start();
 
             var alice = new HyperNodeClient("Alice");
-            var progressResponse = new HyperNodeTaskProgressInfo();
+            var taskProgressInfo = new HyperNodeTaskProgressInfo();
             ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<HyperNodeTaskProgressInfo>();
-            while (!progressResponse.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
+
+            while (!taskProgressInfo.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
             {
                 var aliceProgress = alice.ProcessMessage((HyperNodeMessageRequest)e.Argument);
                 if (aliceProgress == null)
@@ -42,16 +43,16 @@ namespace HyperNodeTestClient
                 if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseString))
                     break;
 
-                progressResponse = (HyperNodeTaskProgressInfo)serializer.Deserialize(targetProgress.CommandResponseString);
+                taskProgressInfo = (HyperNodeTaskProgressInfo)serializer.Deserialize(targetProgress.CommandResponseString);
 
-                ((BackgroundWorker)sender).ReportProgress(Convert.ToInt32(progressResponse.ProgressPercentage), progressResponse);
+                ((BackgroundWorker)sender).ReportProgress(Convert.ToInt32(taskProgressInfo.ProgressPercentage), taskProgressInfo);
 
                 Task.Delay(500).Wait();
             }
 
             progressTimer.Stop();
 
-            e.Result = progressResponse;
+            e.Result = taskProgressInfo;
         }
 
         private void aliceProgressWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -65,10 +66,12 @@ namespace HyperNodeTestClient
                 MessageBox.Show(e.Error.ToString(), "Error Getting Progress", MessageBoxButtons.OK, MessageBoxIcon.Error);
             else
             {
-                var progressInfo = (HyperNodeTaskProgressInfo)e.Result;
+                var taskProgressInfo = (HyperNodeTaskProgressInfo)e.Result;
 
-                lstAliceProgress.DataSource = GetActivityStrings(progressInfo.Activity);
-                PopulateResponse(lstFinalAliceResponse, progressInfo.Response);
+                lstAliceProgress.DataSource = GetActivityStrings(taskProgressInfo.Activity);
+                PopulateResponse(lstFinalAliceResponse, taskProgressInfo.Response);
+
+                StartBobProgressTracking(taskProgressInfo.ParentMessageGuid, taskProgressInfo.Response.ChildResponses["Bob"].TaskId);
             }
         }
 
@@ -192,7 +195,6 @@ namespace HyperNodeTestClient
                     lblBobProgress.Text = string.Format("Bob Progress (Message GUID {0})", msg.MessageGuid);
 
                     StartAliceProgressTracking(msg.MessageGuid, response.TaskId);
-                    StartBobProgressTracking(msg.MessageGuid, response.TaskId);
                 }
             }
             catch (Exception ex)

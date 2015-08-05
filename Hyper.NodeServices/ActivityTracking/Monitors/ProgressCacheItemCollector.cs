@@ -42,7 +42,7 @@ namespace Hyper.NodeServices.ActivityTracking
             var cacheItem = AddOrGetExisting(activity.MessageGuid.ToString(), () => new HyperNodeProgressCacheItem());
 
             // Now get or add a task progress info object for this task ID
-            var taskProgressInfo = cacheItem.TaskProgress.GetOrAdd(activity.TaskId, s => new HyperNodeTaskProgressInfo());
+            var taskProgressInfo = cacheItem.TaskProgress.GetOrAdd(activity.TaskId, s => new HyperNodeTaskProgressInfo(activity.MessageGuid));
 
             // Now add our specific item to our list of activity items. Need lock because list is not thread-safe
             lock (Lock)
@@ -63,18 +63,9 @@ namespace Hyper.NodeServices.ActivityTracking
             var response = activity.EventData as HyperNodeMessageResponse;
             if (response != null && response.RespondingNodeName == activity.Agent)
             {
-                // TODO: We may not need the IsCompletionEvent property on the activity anymore since we can just uncomment the blow line, right?
-                //taskProgressInfo.IsComplete = true;
+                taskProgressInfo.IsComplete = true;
                 taskProgressInfo.Response = response;
             }
-
-            /****************************************************************************************************************
-             * We should only ever get one completion event per task, and that completion event should be the last event.
-             * However, just in case we get another non-completion event after we get the completion event, we'll combine the
-             * boolean values in a way that will allow us to stay completed once we get completed in the first place.
-             ****************************************************************************************************************/
-            // TODO: May not need this anymore (see setting response object above)
-            taskProgressInfo.IsComplete |= activity.IsCompletionEvent;
 
             // Make sure our progress properties are updated. If no values were supplied, then we presume there are no updates, but we'll keep any values we had before
             taskProgressInfo.ProgressPart = activity.ProgressPart ?? taskProgressInfo.ProgressPart;
