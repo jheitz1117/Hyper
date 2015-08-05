@@ -52,6 +52,7 @@
     <Compile Include="HyperNodeMessageResponse.cs" />
     <Compile Include="HyperNodePath.cs" />
     <Compile Include="SystemCommands\GetCachedTaskProgressInfoRequest.cs" />
+    <Compile Include="SystemCommands\GetKnownCommandsResponse.cs" />
     <Compile Include="SystemCommands\HyperNodeProgressCacheItem.cs" />
     <Compile Include="SystemCommands\HyperNodeTaskProgressInfo.cs" />
     <Compile Include="HyperNodeVertex.cs" />

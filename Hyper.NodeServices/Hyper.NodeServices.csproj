@@ -62,9 +62,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivityTracking\HyperNodeActivityContext.cs" />
+    <Compile Include="CommandModules\SystemCommands\GetKnownCommandsCommand.cs" />
     <Compile Include="CommandModules\TestCommands\SuperLongRunningCommandTest.cs" />
     <Compile Include="CommandModules\TestCommands\LongRunningCommandTest.cs" />
     <Compile Include="CommandModules\TestCommands\ValidCommandTest.cs" />
+    <Compile Include="Exceptions\InvalidCommandRequestTypeException.cs" />
     <Compile Include="Exceptions\ActivityMonitorSubscriptionException.cs">
       <SubType>Code</SubType>
     </Compile>

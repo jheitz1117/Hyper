@@ -785,6 +785,21 @@ namespace Hyper.NodeServices
                 throw new DuplicateCommandException("A command already exists with the name 'GetCachedProgressInfo'.");
             }
             if (!service._commandModuleConfigurations.TryAdd(
+                    "GetKnownCommands",
+                    new CommandModuleConfiguration
+                    {
+                        CommandName = "GetKnownCommands",
+                        Enabled = true, // TODO: Should be set from config
+                        CommandModuleType = typeof(GetKnownCommandsCommand),
+                        RequestSerializer = new PassThroughSerializer(),
+                        ResponseSerializer = new NetDataContractResponseSerializer<GetKnownCommandsResponse>()
+                    }
+                 )
+                )
+            {
+                throw new DuplicateCommandException("A command already exists with the name 'GetKnownCommands'.");
+            }
+            if (!service._commandModuleConfigurations.TryAdd(
                     "ValidCommand",
                     new CommandModuleConfiguration
                     {
@@ -938,6 +953,11 @@ namespace Hyper.NodeServices
             return _activityCache.GetTaskProgressInfo(messageGuid, taskId);
         }
 
+        internal ICollection<string> GetKnownCommands()
+        {
+            return _commandModuleConfigurations.Keys;
+        } 
+
         // TODO: Write helper for "Discover" command (no params, searches config and forwards command to all children.)
         // TODO: Write helper for "GetSettings" command (which settings, in particular?)
         // TODO: Write helper for "EnableCommand" command (input name of command to enable)
@@ -945,6 +965,9 @@ namespace Hyper.NodeServices
         // TODO: Write helper for "EnableActivityMonitor" command (input name of monitor to enable)
         // TODO: Write helper for "DisableActivityMonitor" command (input name of monitor to disable)
         // TODO: Write helper for "RenameActivityMonitor" command (input old name and new name of monitor to rename)
+        // TODO: Other command ideas: bring in Echo, but modify to say "HyperNode 'Bob' says, "input string""
+        // TODO: Other command idea: enable/disable diagnostics (stopwatch, for instance. but are we just going to have a blank "elapsed seconds" on every response that only gets populated if this is turned on?)
+        // TODO: Other command idea: GetAllTasksForMessageGUID
 
         /*************************************************************************************************************************************
          * Cancellation Notes
