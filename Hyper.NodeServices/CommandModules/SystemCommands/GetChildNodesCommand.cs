@@ -5,7 +5,7 @@ using Hyper.NodeServices.Extensibility;
 
 namespace Hyper.NodeServices.CommandModules.SystemCommands
 {
-    public class GetChildNodesCommand : ICommandModule
+    internal class GetChildNodesCommand : ICommandModule
     {
         public ICommandResponse Execute(ICommandExecutionContext context)
         {

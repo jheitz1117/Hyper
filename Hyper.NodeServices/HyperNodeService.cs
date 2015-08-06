@@ -345,8 +345,9 @@ namespace Hyper.NodeServices
                     message.SeenByNodeNames.Add(this.HyperNodeName);
                     activityTracker.TrackSeen();
 
-                    // Check if this message was intended for this node
-                    if (!message.IntendedRecipientNodeNames.Contains(this.HyperNodeName))
+                    // Check if this message has a list of intended recipients, and if this node was one of them.
+                    // An empty list means means the message is intended for this recipient by default.
+                    if (message.IntendedRecipientNodeNames.Any() && !message.IntendedRecipientNodeNames.Contains(this.HyperNodeName))
                     {
                         // This node was not an intended recipient, so ignore the message, but still forward it if possible.
                         response.NodeAction = HyperNodeActionType.Ignored;
@@ -681,9 +682,11 @@ namespace Hyper.NodeServices
                     {
                         TaskId = args.Response.TaskId,
                         MessageGuid = args.Message.MessageGuid,
+                        ExecutingNodeName = this.HyperNodeName,
                         CommandName = args.Message.CommandName,
                         CreatedByAgentName = args.Message.CreatedByAgentName,
                         CreationDateTime = args.Message.CreationDateTime,
+                        ProcessOptionFlags = args.Message.ProcessOptionFlags,
                         Request = commandRequest,
                         Activity = args.ActivityTracker,
                         Token = args.Token
@@ -768,10 +771,10 @@ namespace Hyper.NodeServices
         {
             // TODO: Bring the config into this somehow. If nothing else, need to be able to enable/disable system commands via config.
             if (!service._commandModuleConfigurations.TryAdd(
-                    "GetCachedTaskProgressInfo",
+                    SystemCommandNames.GetCachedTaskProgressInfo,
                     new CommandModuleConfiguration
                     {
-                        CommandName = "GetCachedTaskProgressInfo",
+                        CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
                         Enabled = true, // TODO: Should be set from config
                         CommandModuleType = typeof(GetCachedTaskProgressInfoCommand),
                         RequestSerializer = new NetDataContractRequestSerializer<GetCachedTaskProgressInfoRequest>(),
@@ -780,13 +783,15 @@ namespace Hyper.NodeServices
                  )
                 )
             {
-                throw new DuplicateCommandException("A command already exists with the name 'GetCachedProgressInfo'.");
+                throw new DuplicateCommandException(
+                    string.Format("A command already exists with the name '{0}'.", SystemCommandNames.GetCachedTaskProgressInfo)
+                );
             }
             if (!service._commandModuleConfigurations.TryAdd(
-                    "GetKnownCommands",
+                    SystemCommandNames.GetKnownCommands,
                     new CommandModuleConfiguration
                     {
-                        CommandName = "GetKnownCommands",
+                        CommandName = SystemCommandNames.GetKnownCommands,
                         Enabled = true, // TODO: Should be set from config
                         CommandModuleType = typeof(GetKnownCommandsCommand),
                         RequestSerializer = new PassThroughSerializer(),
@@ -795,13 +800,15 @@ namespace Hyper.NodeServices
                  )
                 )
             {
-                throw new DuplicateCommandException("A command already exists with the name 'GetKnownCommands'.");
+                throw new DuplicateCommandException(
+                    string.Format("A command already exists with the name '{0}'.", SystemCommandNames.GetKnownCommands)
+                );
             }
             if (!service._commandModuleConfigurations.TryAdd(
-                    "GetChildNodes",
+                    SystemCommandNames.GetChildNodes,
                     new CommandModuleConfiguration
                     {
-                        CommandName = "GetChildNodes",
+                        CommandName = SystemCommandNames.GetChildNodes,
                         Enabled = true, // TODO: Should be set from config
                         CommandModuleType = typeof(GetChildNodesCommand),
                         RequestSerializer = new PassThroughSerializer(),
@@ -810,7 +817,26 @@ namespace Hyper.NodeServices
                  )
                 )
             {
-                throw new DuplicateCommandException("A command already exists with the name 'GetChildNodes'.");
+                throw new DuplicateCommandException(
+                    string.Format("A command already exists with the name '{0}'.", SystemCommandNames.GetChildNodes)
+                );
+            }
+            if (!service._commandModuleConfigurations.TryAdd(
+                    SystemCommandNames.Discover,
+                    new CommandModuleConfiguration
+                    {
+                        CommandName = SystemCommandNames.Discover,
+                        Enabled = true, // TODO: Should be set from config
+                        CommandModuleType = typeof(DiscoverCommand),
+                        RequestSerializer = new PassThroughSerializer(),
+                        ResponseSerializer = new NetDataContractResponseSerializer<DiscoverResponse>()
+                    }
+                 )
+                )
+            {
+                throw new DuplicateCommandException(
+                    string.Format("A command already exists with the name '{0}'.", SystemCommandNames.Discover)
+                );
             }
             if (!service._commandModuleConfigurations.TryAdd(
                     "ValidCommand",

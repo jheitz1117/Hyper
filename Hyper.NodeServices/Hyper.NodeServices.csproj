@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivityTracking\HyperNodeActivityContext.cs" />
+    <Compile Include="CommandModules\SystemCommands\DiscoverCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\GetChildNodesCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\GetKnownCommandsCommand.cs" />
     <Compile Include="CommandModules\TestCommands\SuperLongRunningCommandTest.cs" />

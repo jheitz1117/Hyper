@@ -47,6 +47,7 @@ namespace HyperNodeTestClient
             this.lstFinalAliceResponse = new System.Windows.Forms.ListBox();
             this.lblFinalBobResponse = new System.Windows.Forms.Label();
             this.lstFinalBobResponse = new System.Windows.Forms.ListBox();
+            this.btnDiscover = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnToBobViaAlice
@@ -161,7 +162,6 @@ namespace HyperNodeTestClient
             this.tvwTaskTrace.Name = "tvwTaskTrace";
             this.tvwTaskTrace.Size = new System.Drawing.Size(317, 173);
             this.tvwTaskTrace.TabIndex = 14;
-            this.tvwTaskTrace.BeforeExpand += tvwTaskTrace_OnBeforeExpand;
             // 
             // lblFinalAliceResponse
             // 
@@ -197,11 +197,22 @@ namespace HyperNodeTestClient
             this.lstFinalBobResponse.Size = new System.Drawing.Size(399, 173);
             this.lstFinalBobResponse.TabIndex = 17;
             // 
+            // btnDiscover
+            // 
+            this.btnDiscover.Location = new System.Drawing.Point(174, 12);
+            this.btnDiscover.Name = "btnDiscover";
+            this.btnDiscover.Size = new System.Drawing.Size(155, 23);
+            this.btnDiscover.TabIndex = 19;
+            this.btnDiscover.Text = "Discover";
+            this.btnDiscover.UseVisualStyleBackColor = true;
+            this.btnDiscover.Click += new System.EventHandler(this.btnDiscover_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1225, 521);
+            this.Controls.Add(this.btnDiscover);
             this.Controls.Add(this.lblFinalBobResponse);
             this.Controls.Add(this.lstFinalBobResponse);
             this.Controls.Add(this.lblFinalAliceResponse);
@@ -243,6 +254,7 @@ namespace HyperNodeTestClient
         private ListBox lstFinalAliceResponse;
         private Label lblFinalBobResponse;
         private ListBox lstFinalBobResponse;
+        private Button btnDiscover;
     }
 }
 
