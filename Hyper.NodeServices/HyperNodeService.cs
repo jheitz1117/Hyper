@@ -607,7 +607,7 @@ namespace Hyper.NodeServices
             return forwardingTasks;
         }
 
-        private IEnumerable<HyperNodeVertex> GetConnectedHyperNodeChildren(List<HyperNodeVertex> vertices, HyperNodeServiceActivityTracker activityTracker)
+        private static IEnumerable<HyperNodeVertex> GetConnectedHyperNodeChildren(List<HyperNodeVertex> vertices, ITaskActivityTracker activityTracker)
         {
             // Check to see if the path specified any child nodes that don't have endpoints defined in the app.config
             var configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -615,10 +615,7 @@ namespace Hyper.NodeServices
             if (serviceModelGroup == null)
             {
                 // No endpoints exist because no service model section exists
-                activityTracker.TrackFormat(
-                    "Configuration does not contain a serviceModel section. Message forwarding is disabled.",
-                    this.HyperNodeName
-                );
+                activityTracker.Track("Configuration does not contain a serviceModel section. Message forwarding is disabled.");
 
                 // Just clear the list so we don't try to forward to anyone
                 vertices.Clear();
@@ -641,6 +638,7 @@ namespace Hyper.NodeServices
                     }
                 );
             }
+
             return vertices;
         }
 
@@ -800,6 +798,21 @@ namespace Hyper.NodeServices
                 throw new DuplicateCommandException("A command already exists with the name 'GetKnownCommands'.");
             }
             if (!service._commandModuleConfigurations.TryAdd(
+                    "GetChildNodes",
+                    new CommandModuleConfiguration
+                    {
+                        CommandName = "GetChildNodes",
+                        Enabled = true, // TODO: Should be set from config
+                        CommandModuleType = typeof(GetChildNodesCommand),
+                        RequestSerializer = new PassThroughSerializer(),
+                        ResponseSerializer = new NetDataContractResponseSerializer<GetChildNodesResponse>()
+                    }
+                 )
+                )
+            {
+                throw new DuplicateCommandException("A command already exists with the name 'GetChildNodes'.");
+            }
+            if (!service._commandModuleConfigurations.TryAdd(
                     "ValidCommand",
                     new CommandModuleConfiguration
                     {
@@ -956,7 +969,27 @@ namespace Hyper.NodeServices
         internal ICollection<string> GetKnownCommands()
         {
             return _commandModuleConfigurations.Keys;
-        } 
+        }
+
+        internal IEnumerable<string> GetChildNodes()
+        {
+            var childNodes = new List<string>();
+
+            // Check the app.config for client endpoints for the IHyperNodeService interface
+            var configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var serviceModelGroup = ServiceModelSectionGroup.GetSectionGroup(configuration);
+            if (serviceModelGroup != null)
+            {
+                childNodes.AddRange(
+                    serviceModelGroup.Client.Endpoints
+                        .Cast<ChannelEndpointElement>()
+                        .Where(e => e.Contract == typeof(IHyperNodeService).FullName)
+                        .Select(e => e.Name)
+                );
+            }
+
+            return childNodes;
+        }
 
         // TODO: Write helper for "Discover" command (no params, searches config and forwards command to all children.)
         // TODO: Write helper for "GetSettings" command (which settings, in particular?)
@@ -968,7 +1001,7 @@ namespace Hyper.NodeServices
         // TODO: Other command ideas: bring in Echo, but modify to say "HyperNode 'Bob' says, "input string""
         // TODO: Other command idea: enable/disable diagnostics (stopwatch, for instance. but are we just going to have a blank "elapsed seconds" on every response that only gets populated if this is turned on?)
         // TODO: Other command idea: GetAllTasksForMessageGUID
-
+        // TODO: Update GetKnownCommands to be GetCommandConfig, which should return not only the command names, but also whether or not they are enabled, the command module type, their request/response types, and their request/response serialization types
         /*************************************************************************************************************************************
          * Cancellation Notes
          * 

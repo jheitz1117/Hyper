@@ -136,7 +136,7 @@ namespace HyperNodeTestClient
 
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
-                    CommandName = "GetKnownCommands",
+                    CommandName = "GetChildNodes",
                     CommandRequestString = serializer.Serialize(
                         new ComplexCommandRequest
                         {
