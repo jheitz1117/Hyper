@@ -68,6 +68,8 @@
     <Compile Include="CommandModules\TestCommands\SuperLongRunningCommandTest.cs" />
     <Compile Include="CommandModules\TestCommands\LongRunningCommandTest.cs" />
     <Compile Include="CommandModules\TestCommands\ValidCommandTest.cs" />
+    <Compile Include="Configuration\SystemCommandElement.cs" />
+    <Compile Include="Configuration\SystemCommandElementCollection.cs" />
     <Compile Include="Exceptions\InvalidCommandRequestTypeException.cs" />
     <Compile Include="Exceptions\ActivityMonitorSubscriptionException.cs">
       <SubType>Code</SubType>

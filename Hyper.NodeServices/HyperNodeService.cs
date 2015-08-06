@@ -57,6 +57,7 @@ namespace Hyper.NodeServices
         private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
         private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
+        private const bool DefaultSystemCommandsEnabled = true;
         private readonly TimeSpan _defaultActivityCacheSlidingExpiration = TimeSpan.FromHours(1);
         private readonly ProgressCacheItemCollector _activityCache = new ProgressCacheItemCollector();
         private readonly List<HyperNodeServiceActivityMonitor> _activityMonitors = new List<HyperNodeServiceActivityMonitor>();
@@ -764,13 +765,19 @@ namespace Hyper.NodeServices
 
         private static void ConfigureSystemCommands(HyperNodeService service, HyperNodeConfigurationSection config)
         {
-            // TODO: Bring the config into this somehow. If nothing else, need to be able to enable/disable system commands via config.
+            // Grab our user-defined default for system commands being enabled or disabled
+            bool? userDefinedSystemCommandsEnabledDefault = null;
+            var systemCommandsCollection = config.SystemCommands;
+            if (systemCommandsCollection != null)
+                userDefinedSystemCommandsEnabledDefault = systemCommandsCollection.Enabled;
+
+            // Make all commands enabled or disabled according to the user-defined default, or the HyperNode's default if the user did not define a default
             var systemCommandConfigs = new List<CommandModuleConfiguration>
             {
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
-                    Enabled = true, // TODO: Should be set from config
+                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
                     CommandModuleType = typeof(GetCachedTaskProgressInfoCommand),
                     RequestSerializer = new NetDataContractRequestSerializer<GetCachedTaskProgressInfoRequest>(),
                     ResponseSerializer = new NetDataContractResponseSerializer<HyperNodeTaskProgressInfo>()
@@ -778,7 +785,7 @@ namespace Hyper.NodeServices
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.GetKnownCommands,
-                    Enabled = true, // TODO: Should be set from config
+                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
                     CommandModuleType = typeof(GetKnownCommandsCommand),
                     RequestSerializer = new PassThroughSerializer(),
                     ResponseSerializer = new NetDataContractResponseSerializer<GetKnownCommandsResponse>()
@@ -786,7 +793,7 @@ namespace Hyper.NodeServices
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.GetChildNodes,
-                    Enabled = true, // TODO: Should be set from config
+                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
                     CommandModuleType = typeof(GetChildNodesCommand),
                     RequestSerializer = new PassThroughSerializer(),
                     ResponseSerializer = new NetDataContractResponseSerializer<GetChildNodesResponse>()
@@ -794,7 +801,7 @@ namespace Hyper.NodeServices
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.Discover,
-                    Enabled = true, // TODO: Should be set from config
+                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
                     CommandModuleType = typeof(DiscoverCommand),
                     RequestSerializer = new PassThroughSerializer(),
                     ResponseSerializer = new NetDataContractResponseSerializer<DiscoverResponse>()
@@ -802,28 +809,36 @@ namespace Hyper.NodeServices
                 new CommandModuleConfiguration
                 {
                     CommandName = "ValidCommand",
-                    Enabled = true, // TODO: Should be set from config
+                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
                     CommandModuleType = typeof(ValidCommandTest)
                 },
                 new CommandModuleConfiguration
                 {
                     CommandName = "LongRunningTaskTest",
-                    Enabled = true, // TODO: Should be set from config
+                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
                     CommandModuleType = typeof(LongRunningCommandTest)
                 },
                 new CommandModuleConfiguration
                 {
                     CommandName = "SuperLongRunningTestTask",
-                    Enabled = true, // TODO: Should be set from config
+                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
                     CommandModuleType = typeof(SuperLongRunningCommandTest)
                 }
             };
 
-            foreach (var systemCommandConfig in systemCommandConfigs.Where(sc => !service._commandModuleConfigurations.TryAdd(sc.CommandName, sc)))
+            foreach (var systemCommandConfig in systemCommandConfigs)
             {
-                throw new DuplicateCommandException(
-                    string.Format("A command already exists with the name '{0}'.", systemCommandConfig.CommandName)
-                );
+                // Allow each system command to be enabled or disabled individually. This takes precedence over any defaults defined previously
+                if (config.SystemCommands != null && config.SystemCommands[systemCommandConfig.CommandName] != null)
+                    systemCommandConfig.Enabled = config.SystemCommands[systemCommandConfig.CommandName].Enabled;
+
+                // Finally, try to add this system command to our collection
+                if (!service._commandModuleConfigurations.TryAdd(systemCommandConfig.CommandName, systemCommandConfig))
+                {
+                    throw new DuplicateCommandException(
+                        string.Format("A command already exists with the name '{0}'.", systemCommandConfig.CommandName)
+                    ); 
+                }
             }
         }
 

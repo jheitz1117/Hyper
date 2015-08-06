@@ -157,7 +157,7 @@ namespace HyperNodeTestClient
                     {
                         "Bob"
                     },
-                    //ForwardingPath = GetForwardingPath("Alice", "Bob"),
+                    ForwardingPath = GetForwardingPath("Alice", "Bob"),
                     //ForwardingTimeout = new TimeSpan(0, 0, 5),
                     //MessageLifeSpan = new TimeSpan(1, 0, 0), // long running command needs a lifespan of longer than the default
                     ProcessOptionFlags = (chkReturnTaskTrace.Checked ? MessageProcessOptionFlags.ReturnTaskTrace : MessageProcessOptionFlags.None) |

@@ -39,6 +39,13 @@ namespace Hyper.NodeServices.Configuration
             get { return this["activityMonitors"] as ActivityMonitorElementCollection; }
         }
 
+        [ConfigurationProperty("systemCommands")]
+        [ConfigurationCollection(typeof(SystemCommandElementCollection), AddItemName = "systemCommand")]
+        public SystemCommandElementCollection SystemCommands
+        {
+            get { return this["systemCommands"] as SystemCommandElementCollection; }
+        }
+
         [ConfigurationProperty("commandModules")]
         [ConfigurationCollection(typeof(CommandModuleElementCollection))]
         public CommandModuleElementCollection CommandModules

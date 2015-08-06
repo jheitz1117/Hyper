@@ -44,30 +44,57 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                 // Now send the request to all children
                 foreach (var childNodeName in childNodeNames)
                 {
+                    DiscoverResponse childDiscoverResponse = null;
+
                     try
                     {
                         // Discover grandchildren
                         var childResponse = new HyperNodeClient(childNodeName).ProcessMessage(discoverRequest);
 
-                        DiscoverResponse childDiscoverResponse = null;
-
-                        // Check if the message was accepted
+                        // Check if the message was accepted, and that the command was recognized
                         if (childResponse.NodeAction == HyperNodeActionType.Accepted)
                         {
+                            context.Activity.TrackFormat("Child node '{0}' accepted the request.", childNodeName);
+
+                            // Check if the child node recognized the command. If not, skip to the next child
+                            if ((childResponse.ProcessStatusFlags & MessageProcessStatusFlags.InvalidCommand) == MessageProcessStatusFlags.InvalidCommand)
+                            {
+                                context.Activity.TrackFormat(
+                                    "Child node '{0}' did not recognize the command name '{1}'.",
+                                    childNodeName,
+                                    discoverRequest.CommandName
+                                );
+
+                                continue;
+                            }
+
                             // Deserialize discover response
                             childDiscoverResponse = serializer.Deserialize(childResponse.CommandResponseString) as DiscoverResponse;
-                            
-                            // Add in any extra status flags imposed by the child call
-                            response.ProcessStatusFlags |= childResponse.ProcessStatusFlags;    
-                        }
 
-                        // Add the new response to our response tree regardless
-                        response.ChildNodes.TryAdd(childNodeName, childDiscoverResponse);
+                            // Add in any extra status flags imposed by the child call
+                            response.ProcessStatusFlags |= childResponse.ProcessStatusFlags;
+                        }
+                        else
+                        {
+                            context.Activity.Track(
+                                "Child node '{0}' did not accept the request.",
+                                string.Format(
+                                    "The node action was '{0}' and the action reason was '{1}'.",
+                                    childResponse.NodeAction,
+                                    childResponse.NodeActionReason
+                                    )
+                                );
+                        }
                     }
                     catch (Exception ex)
                     {
                         context.Activity.TrackException(ex);
                         response.ProcessStatusFlags |= MessageProcessStatusFlags.HadNonFatalErrors;
+                    }
+                    finally
+                    {
+                        // Add the new response to our response tree regardless
+                        response.ChildNodes.TryAdd(childNodeName, childDiscoverResponse);
                     }
                 }
             }
