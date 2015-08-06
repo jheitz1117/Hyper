@@ -1017,7 +1017,6 @@ namespace Hyper.NodeServices
             return childNodes;
         }
 
-        // TODO: Write helper for "Discover" command (no params, searches config and forwards command to all children.)
         // TODO: Write helper for "GetSettings" command (which settings, in particular?)
         // TODO: Write helper for "EnableCommand" command (input name of command to enable)
         // TODO: Write helper for "DisableCommand" command (input name of command to disable)
