@@ -8,6 +8,7 @@ namespace Hyper.NodeServices.Contracts
     public class HyperNodeMessageRequest
     {
         private readonly TimeSpan _defaultMessageLifeSpan = TimeSpan.FromMinutes(1);
+        private readonly TimeSpan _defaultForwardingTimeout = TimeSpan.FromSeconds(5);
 
         [DataMember]
         public Guid MessageGuid { get; set; }
@@ -21,11 +22,6 @@ namespace Hyper.NodeServices.Contracts
         [DataMember]
         public TimeSpan MessageLifeSpan { get; set; }
 
-        public DateTime ExpirationDateTime
-        {
-            get { return this.CreationDateTime + this.MessageLifeSpan; }
-        }
-
         [DataMember]
         public List<string> IntendedRecipientNodeNames { get; set; }
 
@@ -37,6 +33,12 @@ namespace Hyper.NodeServices.Contracts
 
         [DataMember]
         public string CommandRequestString { get; set; }
+
+        [DataMember]
+        public HyperNodePath ForwardingPath { get; set; }
+
+        [DataMember]
+        public TimeSpan ForwardingTimeout { get; set; }
 
         [DataMember]
         public MessageProcessOptionFlags ProcessOptionFlags { get; set; }
@@ -65,17 +67,17 @@ namespace Hyper.NodeServices.Contracts
             }
         }
 
-        [DataMember]
-        public HyperNodePath ForwardingPath { get; set; }
-
-        [DataMember]
-        public TimeSpan ForwardingTimeout { get; set; }
+        public DateTime ExpirationDateTime
+        {
+            get { return this.CreationDateTime + this.MessageLifeSpan; }
+        }
 
         public HyperNodeMessageRequest()
         {
             this.MessageGuid = Guid.NewGuid();
             this.CreationDateTime = DateTime.Now;
             this.MessageLifeSpan = _defaultMessageLifeSpan;
+            this.ForwardingTimeout = _defaultForwardingTimeout;
             this.IntendedRecipientNodeNames = new List<string>();
             this.SeenByNodeNames = new List<string>();
             this.ForwardingPath = new HyperNodePath();

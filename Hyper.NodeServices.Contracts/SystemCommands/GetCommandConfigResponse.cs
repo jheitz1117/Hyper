@@ -5,17 +5,17 @@ using Hyper.NodeServices.Contracts.Extensibility;
 namespace Hyper.NodeServices.Contracts.SystemCommands
 {
     [DataContract]
-    public class GetKnownCommandsResponse : ICommandResponse
+    public class GetCommandConfigResponse : ICommandResponse
     {
         [DataMember]
         public MessageProcessStatusFlags ProcessStatusFlags { get; set; }
 
         [DataMember]
-        public List<string> KnownCommands { get; set; }
+        public IEnumerable<CommandConfiguration> CommandConfigurations { get; set; }
 
-        public GetKnownCommandsResponse()
+        public GetCommandConfigResponse()
         {
-            this.KnownCommands = new List<string>();
+            this.CommandConfigurations = new List<CommandConfiguration>();
         }
     }
 }

@@ -784,11 +784,11 @@ namespace Hyper.NodeServices
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.GetKnownCommands,
+                    CommandName = SystemCommandNames.GetCommandConfig,
                     Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
-                    CommandModuleType = typeof(GetKnownCommandsCommand),
+                    CommandModuleType = typeof(GetCommandConfigCommand),
                     RequestSerializer = new PassThroughSerializer(),
-                    ResponseSerializer = new NetDataContractResponseSerializer<GetKnownCommandsResponse>()
+                    ResponseSerializer = new NetDataContractResponseSerializer<GetCommandConfigResponse>()
                 },
                 new CommandModuleConfiguration
                 {
@@ -955,9 +955,16 @@ namespace Hyper.NodeServices
             return _activityCache.GetTaskProgressInfo(messageGuid, taskId);
         }
 
-        internal ICollection<string> GetKnownCommands()
+        internal IEnumerable<CommandConfiguration> GetCommandConfig()
         {
-            return _commandModuleConfigurations.Keys;
+            return _commandModuleConfigurations.Keys.Select(
+                commandName => new CommandConfiguration
+                {
+                    CommandName = commandName,
+                    CommandType = (SystemCommandNames.IsSystemCommand(commandName) ? HyperNodeCommandType.SystemCommand : HyperNodeCommandType.CustomCommand),
+                    Enabled = _commandModuleConfigurations[commandName].Enabled
+                }
+            );
         }
 
         internal IEnumerable<string> GetChildNodes()
@@ -980,7 +987,7 @@ namespace Hyper.NodeServices
             return childNodes;
         }
 
-        // TODO: Write helper for "GetSettings" command (which settings, in particular?)
+        // TODO: Write helper for "GetSettings" command (which settings, in particular? Perhaps the sliding expiration on the cache, and maybe some other properties...)
         // TODO: Write helper for "EnableCommand" command (input name of command to enable)
         // TODO: Write helper for "DisableCommand" command (input name of command to disable)
         // TODO: Write helper for "EnableActivityMonitor" command (input name of monitor to enable)
@@ -989,7 +996,7 @@ namespace Hyper.NodeServices
         // TODO: Other command ideas: bring in Echo, but modify to say "HyperNode 'Bob' says, "input string""
         // TODO: Other command idea: enable/disable diagnostics (stopwatch, for instance. but are we just going to have a blank "elapsed seconds" on every response that only gets populated if this is turned on?)
         // TODO: Other command idea: GetAllTasksForMessageGUID
-        // TODO: Update GetKnownCommands to be GetCommandConfig, which should return not only the command names, but also whether or not they are enabled, the command module type, their request/response types, and their request/response serialization types
+        
         /*************************************************************************************************************************************
          * Cancellation Notes
          * 

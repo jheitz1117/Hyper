@@ -134,11 +134,11 @@ namespace HyperNodeTestClient
 
                 var alice = new HyperNodeClient("Alice");
 
-                var serializer = new NetDataContractCommandSerializer<ComplexCommandRequest, DiscoverResponse>();
+                var serializer = new NetDataContractCommandSerializer<ComplexCommandRequest, GetCommandConfigResponse>();
 
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
-                    CommandName = "LongRunningTaskTest",
+                    CommandName = SystemCommandNames.GetCommandConfig,
                     //CommandRequestString = serializer.Serialize(
                     //    new ComplexCommandRequest
                     //    {
@@ -148,7 +148,6 @@ namespace HyperNodeTestClient
                     //        MyTimeSpan = TimeSpan.FromHours(50)
                     //    }
                     //),
-                    //CommandName = "GetKnownCommands",
                     //CommandName = "ComplexCommand",
                     //CommandName = "SuperLongRunningTestTask",
                     //CommandName = "LongRunningTaskTest",
@@ -158,7 +157,6 @@ namespace HyperNodeTestClient
                         "Bob"
                     },
                     ForwardingPath = GetForwardingPath("Alice", "Bob"),
-                    //ForwardingTimeout = new TimeSpan(0, 0, 5),
                     //MessageLifeSpan = new TimeSpan(1, 0, 0), // long running command needs a lifespan of longer than the default
                     ProcessOptionFlags = (chkReturnTaskTrace.Checked ? MessageProcessOptionFlags.ReturnTaskTrace : MessageProcessOptionFlags.None) |
                                          (chkRunConcurrently.Checked ? MessageProcessOptionFlags.RunConcurrently : MessageProcessOptionFlags.None) |
@@ -211,11 +209,7 @@ namespace HyperNodeTestClient
         {
             try
             {
-                // Clear out our datasource first
-                ClearResponseData();
-
                 var alice = new HyperNodeClient("Alice");
-
                 var serializer = new NetDataContractResponseSerializer<DiscoverResponse>();
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
@@ -227,39 +221,6 @@ namespace HyperNodeTestClient
 
                 var response = alice.ProcessMessage(msg);
                 PopulateResponse(lstRealTimeResponse, response);
-
-                tvwTaskTrace.Nodes.AddRange(
-                    new[]
-                    {
-                        new TreeNode(
-                            response.RespondingNodeName,
-                            GetActivityStrings(response.TaskTrace).Select(s=>new TreeNode(s)).ToArray()
-                        )
-                        {
-                            Tag = response
-                        },
-                        new TreeNode(
-                            "Child Responses", 
-                            response.ChildResponses.Select(
-                                r=> new TreeNode(r.Key)
-                                {
-                                    Tag = r.Value
-                                }
-                            ).ToArray()
-                        )
-                        {
-                            Tag = response.ChildResponses
-                        }
-                    }
-                );
-
-                if (msg.CacheProgressInfo)
-                {
-                    lblAliceProgress.Text = string.Format("Alice Progress (Message GUID {0})", msg.MessageGuid);
-                    lblBobProgress.Text = string.Format("Bob Progress (Message GUID {0})", msg.MessageGuid);
-
-                    StartAliceProgressTracking(msg.MessageGuid, response.TaskId);
-                }
 
                 var aliceDiscoverResponse = ((ICommandResponseSerializer)serializer).Deserialize(response.CommandResponseString) as DiscoverResponse;
                 if (aliceDiscoverResponse != null)

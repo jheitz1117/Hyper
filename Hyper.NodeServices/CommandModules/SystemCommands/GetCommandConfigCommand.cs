@@ -1,21 +1,20 @@
-﻿using Hyper.NodeServices.Contracts;
+﻿using System.Linq;
+using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Contracts.SystemCommands;
 using Hyper.NodeServices.Extensibility;
 
 namespace Hyper.NodeServices.CommandModules.SystemCommands
 {
-    internal class GetKnownCommandsCommand : ICommandModule
+    internal class GetCommandConfigCommand : ICommandModule
     {
         public ICommandResponse Execute(ICommandExecutionContext context)
         {
-            var response = new GetKnownCommandsResponse();
+            var response = new GetCommandConfigResponse();
 
             context.Activity.Track("Retrieving known commands.");
-            
-            response.KnownCommands.AddRange(
-                HyperNodeService.Instance.GetKnownCommands()
-            );
+
+            response.CommandConfigurations = HyperNodeService.Instance.GetCommandConfig().ToList();
             
             response.ProcessStatusFlags = MessageProcessStatusFlags.Success;
 
