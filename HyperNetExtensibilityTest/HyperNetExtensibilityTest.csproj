@@ -41,7 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActivityMonitors\DatabaseActivityMonitor.cs" />
+    <Compile Include="ActivityMonitors\MondayLogFileActivityMonitor.cs" />
     <Compile Include="CommandModules\ComplexCommandModule.cs" />
     <Compile Include="CommandModules\DisposableCommandModule.cs" />
     <Compile Include="CommandModules\EchoCommandModule.cs" />

@@ -38,11 +38,6 @@ namespace Hyper.NodeServices.ActivityTracking
             Track("Message seen.");
         }
 
-        public void TrackException(Exception exception)
-        {
-            Track(exception.Message, exception.ToString());
-        }
-
         public void TrackHyperNodeResponded(string hyperNodeName, HyperNodeMessageResponse response)
         {
             var eventDescription = string.Format("Response received from HyperNode '{0}'.", hyperNodeName);
@@ -62,7 +57,7 @@ namespace Hyper.NodeServices.ActivityTracking
         /// <param name="response">The complete <see cref="HyperNodeMessageResponse"/> object to report.</param>
         public void TrackFinished(HyperNodeMessageResponse response)
         {
-            TrackFinished("Processing completed.", null, response);
+            Track("Processing completed.", null, response);
         }
     }
 }

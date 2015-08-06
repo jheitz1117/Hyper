@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Hyper.NodeServices.Extensibility;
 
 namespace HyperNetExtensibilityTest.ActivityMonitors
@@ -17,32 +16,18 @@ namespace HyperNetExtensibilityTest.ActivityMonitors
             this.Name = GetType().Name;
         }
 
-        public override bool ShouldTrack(IHyperNodeActivityEventItem activity)
-        {
-            return activity.CommandName == "Echo";
-        }
-
         public override void OnNext(IHyperNodeActivityEventItem activity)
         {
             Trace.WriteLine(
-                string.Format("{0}  {1:G} {2}\r\n{3}\r\n{4}",
+                string.Format("{0}\r\n{1}\r\n    {2:G} {3}\r\n    {4}\r\n    {5}",
                     activity.MessageGuid,
+                    activity.TaskId,
                     activity.EventDateTime,
                     activity.Agent,
                     activity.EventDescription,
                     activity.EventDetail
                 )
             );
-        }
-
-        public override void OnCompleted()
-        {
-            Trace.WriteLine("Event stream has signaled completion.");
-        }
-
-        public override void OnError(Exception error)
-        {
-            Trace.WriteLine("An exception was thrown while tracing tracking activity. Exception information follows:\r\n" + error);
         }
     }
 }

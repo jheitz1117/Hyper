@@ -30,12 +30,6 @@ namespace Hyper.NodeServices.ActivityTracking
             this.Name = GetType().Name;
         }
 
-        public ProgressCacheItemCollector(TimeSpan cacheDuration)
-            : this()
-        {
-            this.CacheDuration = cacheDuration;
-        }
-
         public override void OnNext(IHyperNodeActivityEventItem activity)
         {
             // First add a new cache item or get the existing cache item with the specified key

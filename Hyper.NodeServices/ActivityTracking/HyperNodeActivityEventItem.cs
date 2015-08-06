@@ -19,18 +19,9 @@ namespace Hyper.NodeServices.ActivityTracking
         public double? ProgressPart { get; set; }
         public double? ProgressTotal { get; set; }
 
-        private readonly bool _isCompletionEvent;
-        public bool IsCompletionEvent { get { return _isCompletionEvent; } }
-
         internal HyperNodeActivityEventItem()
         {
             this.EventDateTime = DateTime.Now;
-        }
-
-        internal HyperNodeActivityEventItem(bool isCompletionEvent)
-            : this()
-        {
-            _isCompletionEvent = isCompletionEvent;
         }
     }
 }

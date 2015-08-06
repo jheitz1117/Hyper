@@ -18,11 +18,6 @@ namespace Hyper.NodeServices.ActivityTracking
             Track(eventDescription, null);
         }
 
-        public void TrackFormat(string eventDescription, params object[] args)
-        {
-            Track(string.Format(eventDescription, args));
-        }
-
         public void Track(string eventDescription, string eventDetail)
         {
             Track(eventDescription, eventDetail, null);
@@ -30,7 +25,7 @@ namespace Hyper.NodeServices.ActivityTracking
 
         public void Track(string eventDescription, string eventDetail, object eventData)
         {
-            Track(eventDescription, eventDetail, eventData, null, null, false);
+            Track(eventDescription, eventDetail, eventData, null, null);
         }
 
         public void Track(string eventDescription, double? progressPart, double? progressTotal)
@@ -45,25 +40,9 @@ namespace Hyper.NodeServices.ActivityTracking
 
         public void Track(string eventDescription, string eventDetail, object eventData, double? progressPart, double? progressTotal)
         {
-            Track(eventDescription, eventDetail, eventData, progressPart, progressTotal, false);
-        }
-
-        /// <summary>
-        /// Raises an event with IsCompleted set to true. This method is internal to prevent user code from calling it.
-        /// </summary>
-        /// <param name="eventDescription"></param>
-        /// <param name="eventDetail"></param>
-        /// <param name="eventData"></param>
-        internal protected void TrackFinished(string eventDescription, string eventDetail, object eventData)
-        {
-            Track(eventDescription, eventDetail, eventData, null, null, true);
-        }
-
-        private void Track(string eventDescription, string eventDetail, object eventData, double? progressPart, double? progressTotal, bool isCompletionEvent)
-        {
             OnTrackActivity(
                 new TrackActivityEventArgs(
-                    new HyperNodeActivityEventItem(isCompletionEvent)
+                    new HyperNodeActivityEventItem
                     {
                         MessageGuid = _context.MessageGuid,
                         TaskId = _context.TaskId,
@@ -78,6 +57,16 @@ namespace Hyper.NodeServices.ActivityTracking
                     }
                 )
             );
+        }
+
+        public void TrackFormat(string eventDescription, params object[] args)
+        {
+            Track(string.Format(eventDescription, args));
+        }
+
+        public void TrackException(Exception exception)
+        {
+            Track(exception.Message, exception.ToString());
         }
     }
 }

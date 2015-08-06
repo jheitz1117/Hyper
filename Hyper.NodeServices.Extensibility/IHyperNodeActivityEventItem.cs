@@ -11,6 +11,5 @@ namespace Hyper.NodeServices.Extensibility
         object EventData { get; set; }
         double? ProgressPart { get; set; }
         double? ProgressTotal { get; set; }
-        bool IsCompletionEvent { get; }
     }
 }

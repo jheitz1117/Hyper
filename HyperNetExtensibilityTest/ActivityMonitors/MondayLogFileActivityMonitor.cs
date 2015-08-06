@@ -4,13 +4,13 @@ using Hyper.NodeServices.Extensibility;
 
 namespace HyperNetExtensibilityTest.ActivityMonitors
 {
-    public class DatabaseActivityMonitor : HyperNodeServiceActivityMonitor
+    public class MondayLogFileActivityMonitor : HyperNodeServiceActivityMonitor
     {
         public static int OnNextCount;
-        private readonly object _lock = new object();
+        private static readonly object Lock = new object();
 
         /// <summary>
-        /// Only track on Tuesdays
+        /// Only track on Mondays
         /// </summary>
         /// <param name="activity"></param>
         /// <returns></returns>
@@ -21,11 +21,11 @@ namespace HyperNetExtensibilityTest.ActivityMonitors
 
         public override void OnNext(IHyperNodeActivityEventItem activity)
         {
-            OnNextCount++;
-            
-            lock (_lock)
+            lock (Lock)
             {
-                using (var writer = new StreamWriter("DatabaseWriter.txt", true))
+                OnNextCount++;
+
+                using (var writer = new StreamWriter("DatabaseWriter" + OnNextCount + ".txt", true))
                 {
                     writer.WriteLine(OnNextCount);
                     writer.Flush();
