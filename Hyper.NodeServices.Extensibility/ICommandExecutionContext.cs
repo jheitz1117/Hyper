@@ -14,8 +14,8 @@ namespace Hyper.NodeServices.Extensibility
         string CommandName { get; }
         string CreatedByAgentName { get; }
         DateTime CreationDateTime { get; }
-        List<string> IntendedRecipientNodeNames { get; }
-        List<string> SeenByNodeNames { get; }
+        IReadOnlyList<string> IntendedRecipientNodeNames { get; }
+        IReadOnlyList<string> SeenByNodeNames { get; }
         MessageProcessOptionFlags ProcessOptionFlags { get; }
         ICommandRequest Request { get; }
         ITaskActivityTracker Activity { get; }

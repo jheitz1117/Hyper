@@ -678,7 +678,7 @@ namespace Hyper.NodeServices
                     var commandRequest = requestSerializer.Deserialize(args.Message.CommandRequestString);
 
                     // Create the execution context to pass into our module
-                    var context = new CommandExecutionContext
+                    var context = new CommandExecutionContext(args.Message.IntendedRecipientNodeNames, args.Message.SeenByNodeNames)
                     {
                         TaskId = args.Response.TaskId,
                         MessageGuid = args.Message.MessageGuid,
@@ -691,11 +691,6 @@ namespace Hyper.NodeServices
                         Activity = args.ActivityTracker,
                         Token = args.Token
                     };
-
-                    // Copy in the info from our top-level message and response. We're using AddRange() for collections instead
-                    // of just assignment so that if the user changes anything, it doesn't affect the top-level message
-                    context.IntendedRecipientNodeNames.AddRange(args.Message.IntendedRecipientNodeNames);
-                    context.SeenByNodeNames.AddRange(args.Message.SeenByNodeNames);
 
                     // Execute the command
                     // TODO: Process the message
@@ -770,112 +765,65 @@ namespace Hyper.NodeServices
         private static void ConfigureSystemCommands(HyperNodeService service, HyperNodeConfigurationSection config)
         {
             // TODO: Bring the config into this somehow. If nothing else, need to be able to enable/disable system commands via config.
-            if (!service._commandModuleConfigurations.TryAdd(
-                    SystemCommandNames.GetCachedTaskProgressInfo,
-                    new CommandModuleConfiguration
-                    {
-                        CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
-                        Enabled = true, // TODO: Should be set from config
-                        CommandModuleType = typeof(GetCachedTaskProgressInfoCommand),
-                        RequestSerializer = new NetDataContractRequestSerializer<GetCachedTaskProgressInfoRequest>(),
-                        ResponseSerializer = new NetDataContractResponseSerializer<HyperNodeTaskProgressInfo>()
-                    }
-                 )
-                )
+            var systemCommandConfigs = new List<CommandModuleConfiguration>
+            {
+                new CommandModuleConfiguration
+                {
+                    CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
+                    Enabled = true, // TODO: Should be set from config
+                    CommandModuleType = typeof(GetCachedTaskProgressInfoCommand),
+                    RequestSerializer = new NetDataContractRequestSerializer<GetCachedTaskProgressInfoRequest>(),
+                    ResponseSerializer = new NetDataContractResponseSerializer<HyperNodeTaskProgressInfo>()
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = SystemCommandNames.GetKnownCommands,
+                    Enabled = true, // TODO: Should be set from config
+                    CommandModuleType = typeof(GetKnownCommandsCommand),
+                    RequestSerializer = new PassThroughSerializer(),
+                    ResponseSerializer = new NetDataContractResponseSerializer<GetKnownCommandsResponse>()
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = SystemCommandNames.GetChildNodes,
+                    Enabled = true, // TODO: Should be set from config
+                    CommandModuleType = typeof(GetChildNodesCommand),
+                    RequestSerializer = new PassThroughSerializer(),
+                    ResponseSerializer = new NetDataContractResponseSerializer<GetChildNodesResponse>()
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = SystemCommandNames.Discover,
+                    Enabled = true, // TODO: Should be set from config
+                    CommandModuleType = typeof(DiscoverCommand),
+                    RequestSerializer = new PassThroughSerializer(),
+                    ResponseSerializer = new NetDataContractResponseSerializer<DiscoverResponse>()
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = "ValidCommand",
+                    Enabled = true, // TODO: Should be set from config
+                    CommandModuleType = typeof(ValidCommandTest)
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = "LongRunningTaskTest",
+                    Enabled = true, // TODO: Should be set from config
+                    CommandModuleType = typeof(LongRunningCommandTest)
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = "SuperLongRunningTestTask",
+                    Enabled = true, // TODO: Should be set from config
+                    CommandModuleType = typeof(SuperLongRunningCommandTest)
+                }
+            };
+
+            foreach (var systemCommandConfig in systemCommandConfigs.Where(sc => !service._commandModuleConfigurations.TryAdd(sc.CommandName, sc)))
             {
                 throw new DuplicateCommandException(
-                    string.Format("A command already exists with the name '{0}'.", SystemCommandNames.GetCachedTaskProgressInfo)
+                    string.Format("A command already exists with the name '{0}'.", systemCommandConfig.CommandName)
                 );
-            }
-            if (!service._commandModuleConfigurations.TryAdd(
-                    SystemCommandNames.GetKnownCommands,
-                    new CommandModuleConfiguration
-                    {
-                        CommandName = SystemCommandNames.GetKnownCommands,
-                        Enabled = true, // TODO: Should be set from config
-                        CommandModuleType = typeof(GetKnownCommandsCommand),
-                        RequestSerializer = new PassThroughSerializer(),
-                        ResponseSerializer = new NetDataContractResponseSerializer<GetKnownCommandsResponse>()
-                    }
-                 )
-                )
-            {
-                throw new DuplicateCommandException(
-                    string.Format("A command already exists with the name '{0}'.", SystemCommandNames.GetKnownCommands)
-                );
-            }
-            if (!service._commandModuleConfigurations.TryAdd(
-                    SystemCommandNames.GetChildNodes,
-                    new CommandModuleConfiguration
-                    {
-                        CommandName = SystemCommandNames.GetChildNodes,
-                        Enabled = true, // TODO: Should be set from config
-                        CommandModuleType = typeof(GetChildNodesCommand),
-                        RequestSerializer = new PassThroughSerializer(),
-                        ResponseSerializer = new NetDataContractResponseSerializer<GetChildNodesResponse>()
-                    }
-                 )
-                )
-            {
-                throw new DuplicateCommandException(
-                    string.Format("A command already exists with the name '{0}'.", SystemCommandNames.GetChildNodes)
-                );
-            }
-            if (!service._commandModuleConfigurations.TryAdd(
-                    SystemCommandNames.Discover,
-                    new CommandModuleConfiguration
-                    {
-                        CommandName = SystemCommandNames.Discover,
-                        Enabled = true, // TODO: Should be set from config
-                        CommandModuleType = typeof(DiscoverCommand),
-                        RequestSerializer = new PassThroughSerializer(),
-                        ResponseSerializer = new NetDataContractResponseSerializer<DiscoverResponse>()
-                    }
-                 )
-                )
-            {
-                throw new DuplicateCommandException(
-                    string.Format("A command already exists with the name '{0}'.", SystemCommandNames.Discover)
-                );
-            }
-            if (!service._commandModuleConfigurations.TryAdd(
-                    "ValidCommand",
-                    new CommandModuleConfiguration
-                    {
-                        CommandName = "ValidCommand",
-                        Enabled = true, // TODO: Should be set from config
-                        CommandModuleType = typeof(ValidCommandTest)
-                    }
-                 )
-                )
-            {
-                throw new DuplicateCommandException("A command already exists with the name 'ValidCommand'.");
-            }
-            if (!service._commandModuleConfigurations.TryAdd(
-                    "LongRunningTaskTest",
-                    new CommandModuleConfiguration
-                    {
-                        CommandName = "LongRunningTaskTest",
-                        Enabled = true, // TODO: Should be set from config
-                        CommandModuleType = typeof(LongRunningCommandTest)
-                    }
-                 )
-                )
-            {
-                throw new DuplicateCommandException("A command already exists with the name 'LongRunningTaskTest'.");
-            }
-            if (!service._commandModuleConfigurations.TryAdd(
-                    "SuperLongRunningTestTask",
-                    new CommandModuleConfiguration
-                    {
-                        CommandName = "SuperLongRunningTestTask",
-                        Enabled = true, // TODO: Should be set from config
-                        CommandModuleType = typeof(SuperLongRunningCommandTest)
-                    }
-                 )
-                )
-            {
-                throw new DuplicateCommandException("A command already exists with the name 'SuperLongRunningTestTask'.");
             }
         }
 
