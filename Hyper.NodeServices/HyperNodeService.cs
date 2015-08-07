@@ -1062,8 +1062,11 @@ namespace Hyper.NodeServices
 
         // TODO: Enable/Disable Activity cache (HyperNodeService.Instance.EnableActivityCache property)
         // TODO: Update ActivityCacheSlidingExpiration
-        // TODO: Write helper for "GetSettings" command (which settings, in particular? Perhaps the sliding expiration on the cache, and maybe some other properties...)
-        // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. but are we just going to have a blank "elapsed seconds" on every response that only gets populated if this is turned on?)
+        // TODO: Get ActivityMonitorConfig (behaves similar to GetCommandConfig)
+        // TODO: Update GetCommandConfig to return a description of the command. Can add a GetDescription() method to ICommandModule interface.
+        // TODO: Write helper for "GetSettings" command (returns the sliding expiration, whether the cache is enabled, and lists of commands and activity monitors and their enabled status, count of "back up references" list)
+        // TODO: Force-clear the cache
+        // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. Can just add an additional activity item indicating how long it took, if it's enabled.)
         // TODO: Other command idea: GetAllTasksForMessageGUID
         
         /*************************************************************************************************************************************
