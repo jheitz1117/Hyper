@@ -30,6 +30,123 @@ namespace HyperNodeTestClient
 
         #region Events
 
+        private void btnDiscover_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                cboHyperNodeNames.DataSource = null;
+
+                var serializer = new NetDataContractResponseSerializer<DiscoverResponse>();
+                var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
+                {
+                    CommandName = SystemCommandNames.Discover
+                };
+
+                var response = new HyperNodeClient("Alice").ProcessMessage(msg);
+
+                if (!string.IsNullOrWhiteSpace(response.CommandResponseString))
+                {
+                    var aliceDiscoverResponse = ((ICommandResponseSerializer)serializer).Deserialize(response.CommandResponseString) as DiscoverResponse;
+                    if (aliceDiscoverResponse != null)
+                    {
+                        cboHyperNodeNames.DataSource = new[]
+                        {
+                            new []
+                            {
+                                "Alice"
+                            },
+                            aliceDiscoverResponse.ChildNodes.Keys
+                        }.SelectMany(l => l)
+                        .ToList();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnRefreshCommandList_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                cboCommandNames.DataSource = null;
+
+                var serializer = new NetDataContractResponseSerializer<GetCommandConfigResponse>();
+                var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
+                {
+                    CommandName = SystemCommandNames.GetCommandConfig,
+                    IntendedRecipientNodeNames = new List<string>
+                    {
+                        cboHyperNodeNames.Text
+                    },
+                    ForwardingPath = GetForwardingPathFromAliceToBob()
+                };
+
+                var response = new HyperNodeClient("Alice").ProcessMessage(msg);
+
+                // TODO: Recursively find the response we're actually interested in
+
+                if (!string.IsNullOrWhiteSpace(response.CommandResponseString))
+                {
+                    var commandResponse =
+                        ((ICommandResponseSerializer)serializer).Deserialize(response.CommandResponseString) as
+                            GetCommandConfigResponse;
+                    if (commandResponse != null)
+                        cboCommandNames.DataSource =
+                            commandResponse.CommandConfigurations.Select(c => c.CommandName).ToList();
+                }
+                else
+                {
+                    MessageBox.Show(response.RespondingNodeName + " did not send back a command response string.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnRunCommand_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Clear out our datasource first
+                ClearResponseData();
+
+                // Create our message request
+                var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
+                {
+                    CommandName = cboCommandNames.Text,
+                    IntendedRecipientNodeNames = new List<string>
+                    {
+                        cboHyperNodeNames.Text
+                    },
+                    ProcessOptionFlags = (chkReturnTaskTrace.Checked ? MessageProcessOptionFlags.ReturnTaskTrace : MessageProcessOptionFlags.None) |
+                                         (chkRunConcurrently.Checked ? MessageProcessOptionFlags.RunConcurrently : MessageProcessOptionFlags.None) |
+                                         (chkCacheProgressInfo.Checked ? MessageProcessOptionFlags.CacheProgressInfo : MessageProcessOptionFlags.None)
+                };
+
+                if (cboHyperNodeNames.Text == "Bob")
+                    msg.ForwardingPath = GetForwardingPathFromAliceToBob();
+
+                txtMessageId.Text = msg.MessageGuid.ToString();
+
+                var response = new HyperNodeClient("Alice").ProcessMessage(msg);
+
+                PopulateResponseSummary(lstRealTimeResponse, response);
+                PopulateTaskTrace(tvwRealTimeTaskTrace, response);
+
+                if (msg.CacheProgressInfo)
+                    StartAliceProgressTracking(msg.MessageGuid, response.TaskId);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private static void aliceProgressWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             var progressTimer = new Stopwatch();
@@ -67,7 +184,7 @@ namespace HyperNodeTestClient
 
             lstAliceActivityItems.DataSource = GetActivityStrings(taskProgressInfo.Activity);
 
-            if (taskProgressInfo.ChildTaskIds.ContainsKey("Bob") && !_bobIsProgressTracking)
+            if (taskProgressInfo.ChildTaskIds.ContainsKey("Bob") && !_bobIsProgressTracking && cboHyperNodeNames.Text == "Bob")
                 StartBobProgressTracking(taskProgressInfo.ParentMessageGuid, taskProgressInfo.ChildTaskIds["Bob"]);
         }
 
@@ -139,84 +256,6 @@ namespace HyperNodeTestClient
             _bobIsProgressTracking = false;
         }
 
-        private void btnToBobViaAlice_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // Clear out our datasource first
-                ClearResponseData();
-
-                // Create our message request
-                var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
-                {
-                    CommandName = "TestLongRunningCommand",
-                    IntendedRecipientNodeNames = new List<string>
-                    {
-                        "Alice",
-                        "Bob"
-                    },
-                    ForwardingPath = GetForwardingPath(),
-                    ProcessOptionFlags = (chkReturnTaskTrace.Checked ? MessageProcessOptionFlags.ReturnTaskTrace : MessageProcessOptionFlags.None) |
-                                         (chkRunConcurrently.Checked ? MessageProcessOptionFlags.RunConcurrently : MessageProcessOptionFlags.None) |
-                                         (chkCacheProgressInfo.Checked ? MessageProcessOptionFlags.CacheProgressInfo : MessageProcessOptionFlags.None)
-                };
-
-                txtMessageId.Text = msg.MessageGuid.ToString();
-
-                var response = new HyperNodeClient("Alice").ProcessMessage(msg);
-
-                PopulateResponseSummary(lstRealTimeResponse, response);
-                PopulateTaskTrace(tvwRealTimeTaskTrace, response);
-
-                if (msg.CacheProgressInfo)
-                    StartAliceProgressTracking(msg.MessageGuid, response.TaskId);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void btnDiscover_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                ClearResponseData();
-
-                var alice = new HyperNodeClient("Alice");
-                var serializer = new NetDataContractResponseSerializer<DiscoverResponse>();
-                var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
-                {
-                    CommandName = SystemCommandNames.Discover,
-                    ProcessOptionFlags = (chkReturnTaskTrace.Checked ? MessageProcessOptionFlags.ReturnTaskTrace : MessageProcessOptionFlags.None) |
-                                         (chkRunConcurrently.Checked ? MessageProcessOptionFlags.RunConcurrently : MessageProcessOptionFlags.None) |
-                                         (chkCacheProgressInfo.Checked ? MessageProcessOptionFlags.CacheProgressInfo : MessageProcessOptionFlags.None)
-                };
-
-                var response = alice.ProcessMessage(msg);
-
-                if (!string.IsNullOrWhiteSpace(response.CommandResponseString))
-                {
-                    var aliceDiscoverResponse = ((ICommandResponseSerializer)serializer).Deserialize(response.CommandResponseString) as DiscoverResponse;
-                    if (aliceDiscoverResponse != null)
-                    {
-                        MessageBox.Show(
-                            string.Join(
-                                "\r\n",
-                                aliceDiscoverResponse.ChildNodes.Keys
-                            ),
-                            "Alice's Children",
-                            MessageBoxButtons.OK
-                        );
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
         private static void tvwTaskTrace_OnBeforeExpand(object sender, TreeViewCancelEventArgs treeViewCancelEventArgs)
         {
             var expandingNode = treeViewCancelEventArgs.Node;
@@ -258,7 +297,7 @@ namespace HyperNodeTestClient
 
         #region Private Methods
 
-        private static HyperNodePath GetForwardingPath()
+        private static HyperNodePath GetForwardingPathFromAliceToBob()
         {
             var path = new HyperNodePath();
 
@@ -270,20 +309,6 @@ namespace HyperNodeTestClient
                     new HyperNodeVertex
                     {
                         Key = "Bob"
-                    },
-                    new HyperNodeVertex
-                    {
-                        Key="John"
-                    }
-                }
-            );
-
-            path.PathTree.TryAdd("Bob",
-                new List<HyperNodeVertex>
-                {
-                    new HyperNodeVertex
-                    {
-                        Key = "Alice"
                     }
                 }
             );
@@ -364,7 +389,7 @@ namespace HyperNodeTestClient
                 {
                     "Bob"
                 },
-                ForwardingPath = GetForwardingPath()
+                ForwardingPath = GetForwardingPathFromAliceToBob()
             };
 
             var progressWorker = new BackgroundWorker

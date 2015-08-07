@@ -348,7 +348,7 @@ namespace Hyper.NodeServices
                     activityTracker.TrackSeen();
 
                     // Check if this message has a list of intended recipients, and if this node was one of them.
-                    // An empty list means means the message is intended for this recipient by default.
+                    // An empty recipients list means means the message is indended for all nodes in the forwarding path.
                     if (message.IntendedRecipientNodeNames.Any() && !message.IntendedRecipientNodeNames.Contains(this.HyperNodeName))
                     {
                         // This node was not an intended recipient, so ignore the message, but still forward it if possible.
@@ -491,10 +491,12 @@ namespace Hyper.NodeServices
         {
             Task[] forwardingTasks = { };
 
+            // Allow a null path to be passed. We can just treat it as an empty path and not forward the message to anyone
             var children = GetConnectedHyperNodeChildren(
-                message.ForwardingPath.GetChildren(this.HyperNodeName).ToList(),
+                (message.ForwardingPath ?? new HyperNodePath()).GetChildren(this.HyperNodeName).ToList(),
                 activityTracker
             );
+
             if (children != null)
             {
                 forwardingTasks = children.Select(
