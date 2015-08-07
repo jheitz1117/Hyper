@@ -44,7 +44,6 @@
     <Compile Include="ActivityMonitors\MondayLogFileActivityMonitor.cs" />
     <Compile Include="CommandModules\ComplexCommandModule.cs" />
     <Compile Include="CommandModules\DisposableCommandModule.cs" />
-    <Compile Include="CommandModules\EchoCommandModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ActivityMonitors\TaskActivityTracer.cs" />
     <Compile Include="TaskIdProviders\NumericTaskIdProvider.cs" />

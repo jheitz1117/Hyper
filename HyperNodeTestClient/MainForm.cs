@@ -59,7 +59,17 @@ namespace HyperNodeTestClient
 
         private void aliceProgressWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            lstAliceProgress.DataSource = GetActivityStrings(((HyperNodeTaskProgressInfo)e.UserState).Activity);
+            var progressInfo = ((HyperNodeTaskProgressInfo) e.UserState);
+
+            lstAliceProgress.DataSource = GetActivityStrings(progressInfo.Activity);
+
+            // TODO: Need to go back to what we were doing before with a completion event. I want to always return a hyper node response, it's just that the response will become more and more complete as we go until the final event reports a completed response AND the completion event.
+            // TODO: This way, we can retrieve bob's task id as soon as Alice knows it and we can begin tracking bob's task
+
+            // Disable this until we report the progress correctly
+            var bobIsProgressTracking = true;
+            if (progressInfo.Response != null && progressInfo.Response.ChildResponses.ContainsKey("Bob") && !bobIsProgressTracking)
+                StartBobProgressTracking(progressInfo.ParentMessageGuid, progressInfo.Response.ChildResponses["Bob"].TaskId);
         }
 
         private void aliceProgressWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -138,7 +148,7 @@ namespace HyperNodeTestClient
 
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
-                    CommandName = SystemCommandNames.GetCommandConfig,
+                    CommandName = "TestLongRunningCommand",
                     //CommandRequestString = serializer.Serialize(
                     //    new ComplexCommandRequest
                     //    {
@@ -154,9 +164,10 @@ namespace HyperNodeTestClient
                     //CommandName = "ValidCommand",
                     IntendedRecipientNodeNames = new List<string>
                     {
+                        "Alice",
                         "Bob"
                     },
-                    ForwardingPath = GetForwardingPath("Alice", "Bob"),
+                    ForwardingPath = GetForwardingPath(),
                     //MessageLifeSpan = new TimeSpan(1, 0, 0), // long running command needs a lifespan of longer than the default
                     ProcessOptionFlags = (chkReturnTaskTrace.Checked ? MessageProcessOptionFlags.ReturnTaskTrace : MessageProcessOptionFlags.None) |
                                          (chkRunConcurrently.Checked ? MessageProcessOptionFlags.RunConcurrently : MessageProcessOptionFlags.None) |
@@ -222,17 +233,20 @@ namespace HyperNodeTestClient
                 var response = alice.ProcessMessage(msg);
                 PopulateResponse(lstRealTimeResponse, response);
 
-                var aliceDiscoverResponse = ((ICommandResponseSerializer)serializer).Deserialize(response.CommandResponseString) as DiscoverResponse;
-                if (aliceDiscoverResponse != null)
+                if (!string.IsNullOrWhiteSpace(response.CommandResponseString))
                 {
-                    MessageBox.Show(
-                        string.Join(
-                            "\r\n",
-                            aliceDiscoverResponse.ChildNodes.Keys
-                        ),
-                        "Alice's Children",
-                        MessageBoxButtons.OK
-                    );
+                    var aliceDiscoverResponse = ((ICommandResponseSerializer)serializer).Deserialize(response.CommandResponseString) as DiscoverResponse;
+                    if (aliceDiscoverResponse != null)
+                    {
+                        MessageBox.Show(
+                            string.Join(
+                                "\r\n",
+                                aliceDiscoverResponse.ChildNodes.Keys
+                            ),
+                            "Alice's Children",
+                            MessageBoxButtons.OK
+                        );
+                    }
                 }
             }
             catch (Exception ex)
@@ -241,7 +255,7 @@ namespace HyperNodeTestClient
             }
         }
 
-        private void tvwTaskTrace_OnBeforeExpand(object sender, TreeViewCancelEventArgs treeViewCancelEventArgs)
+        private static void tvwTaskTrace_OnBeforeExpand(object sender, TreeViewCancelEventArgs treeViewCancelEventArgs)
         {
             var expandingNode = treeViewCancelEventArgs.Node;
             var expandingResponse = expandingNode.Tag as ConcurrentDictionary<string, HyperNodeMessageResponse>;
@@ -282,7 +296,7 @@ namespace HyperNodeTestClient
 
         #region Private Methods
 
-        private static HyperNodePath GetForwardingPath(string fromNode, string toNode)
+        private static HyperNodePath GetForwardingPath()
         {
             var path = new HyperNodePath();
 
@@ -341,7 +355,7 @@ namespace HyperNodeTestClient
                 {
                     "Alice"
                 },
-                ForwardingPath = GetForwardingPath("Alice", "Bob"),
+                ForwardingPath = GetForwardingPath(),
                 ForwardingTimeout = new TimeSpan(0, 0, 5),
                 MessageLifeSpan = new TimeSpan(1, 0, 0)
             };
@@ -375,7 +389,7 @@ namespace HyperNodeTestClient
                 {
                     "Bob"
                 },
-                ForwardingPath = GetForwardingPath("Alice", "Bob"),
+                ForwardingPath = GetForwardingPath(),
                 ForwardingTimeout = new TimeSpan(0, 0, 5),
                 MessageLifeSpan = new TimeSpan(1, 0, 0)
             };

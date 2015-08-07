@@ -39,19 +39,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandRequestString.cs" />
-    <Compile Include="CommandResponse.cs" />
-    <Compile Include="CommandResponseString.cs" />
-    <Compile Include="HyperNodeServiceActivityMonitor.cs" />
-    <Compile Include="ICommandExecutionContext.cs" />
-    <Compile Include="ICommandModule.cs" />
-    <Compile Include="ICommandRequestSerializerFactory.cs" />
-    <Compile Include="ICommandResponseSerializerFactory.cs" />
-    <Compile Include="IHyperNodeActivityEventItem.cs" />
-    <Compile Include="ITaskActivityTracker.cs" />
+    <Compile Include="CommandModules\CommandRequestString.cs" />
+    <Compile Include="CommandModules\CommandResponse.cs" />
+    <Compile Include="CommandModules\CommandResponseString.cs" />
+    <Compile Include="Exceptions\InvalidCommandRequestTypeException.cs" />
+    <Compile Include="ActivityTracking\HyperNodeServiceActivityMonitor.cs" />
+    <Compile Include="CommandModules\ICommandExecutionContext.cs" />
+    <Compile Include="CommandModules\ICommandModule.cs" />
+    <Compile Include="CommandModules\ICommandRequestSerializerFactory.cs" />
+    <Compile Include="CommandModules\ICommandResponseSerializerFactory.cs" />
+    <Compile Include="ActivityTracking\IHyperNodeActivityEventItem.cs" />
+    <Compile Include="ActivityTracking\ITaskActivityTracker.cs" />
     <Compile Include="TaskIdProviderBase.cs" />
     <Compile Include="ITaskIdProvider.cs" />
-    <Compile Include="PassThroughSerializer.cs" />
+    <Compile Include="CommandModules\PassThroughSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

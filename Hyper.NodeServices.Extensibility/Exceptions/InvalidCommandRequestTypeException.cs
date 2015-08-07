@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Hyper.NodeServices
+namespace Hyper.NodeServices.Extensibility.Exceptions
 {
     [Serializable]
-    internal class InvalidCommandRequestTypeException : ApplicationException
+    public class InvalidCommandRequestTypeException : ApplicationException
     {
         public InvalidCommandRequestTypeException() { }
         public InvalidCommandRequestTypeException(Type expectedType, Type actualType)
@@ -12,6 +12,5 @@ namespace Hyper.NodeServices
         public InvalidCommandRequestTypeException(string message) : base(message) { }
         public InvalidCommandRequestTypeException(SerializationInfo info, StreamingContext context) : base(info, context) { }
         public InvalidCommandRequestTypeException(string message, Exception innerException) : base(message, innerException) { }
-
     }
 }

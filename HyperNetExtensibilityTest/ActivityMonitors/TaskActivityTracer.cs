@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using Hyper.NodeServices.Extensibility;
+using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace HyperNetExtensibilityTest.ActivityMonitors
 {

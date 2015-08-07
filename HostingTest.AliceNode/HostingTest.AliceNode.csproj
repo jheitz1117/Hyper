@@ -57,6 +57,10 @@
       <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
       <Name>Hyper.NodeServices.Contracts</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Hyper.NodeServices.UnitTesting\Hyper.NodeServices.UnitTesting.csproj">
+      <Project>{3770a663-2499-4897-a669-58e90d340760}</Project>
+      <Name>Hyper.NodeServices.UnitTesting</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Hyper.NodeServices\Hyper.NodeServices.csproj">
       <Project>{0D7D8078-E918-4579-BFD5-105742557575}</Project>
       <Name>Hyper.NodeServices</Name>

@@ -1,6 +1,6 @@
 ﻿using System;
 using Hyper.ActivityTracking;
-using Hyper.NodeServices.Extensibility;
+using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.ActivityTracking
 {

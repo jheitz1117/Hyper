@@ -15,13 +15,14 @@ using Hyper.NodeServices.ActivityTracking;
 using Hyper.NodeServices.Client;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
-using Hyper.NodeServices.CommandModules.TestCommands;
 using Hyper.NodeServices.Configuration;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
-using Hyper.NodeServices.Contracts.Serializers;
 using Hyper.NodeServices.Contracts.SystemCommands;
 using Hyper.NodeServices.Extensibility;
+using Hyper.NodeServices.Extensibility.ActivityTracking;
+using Hyper.NodeServices.Extensibility.CommandModules;
+using HyperNetExtensibilityTest.CommandModules;
 
 namespace Hyper.NodeServices
 {
@@ -778,51 +779,31 @@ namespace Hyper.NodeServices
                 {
                     CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
                     Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
-                    CommandModuleType = typeof(GetCachedTaskProgressInfoCommand),
-                    RequestSerializer = new NetDataContractRequestSerializer<GetCachedTaskProgressInfoRequest>(),
-                    ResponseSerializer = new NetDataContractResponseSerializer<HyperNodeTaskProgressInfo>()
+                    CommandModuleType = typeof(GetCachedTaskProgressInfoCommand)
                 },
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.GetCommandConfig,
                     Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
-                    CommandModuleType = typeof(GetCommandConfigCommand),
-                    RequestSerializer = new PassThroughSerializer(),
-                    ResponseSerializer = new NetDataContractResponseSerializer<GetCommandConfigResponse>()
+                    CommandModuleType = typeof(GetCommandConfigCommand)
                 },
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.GetChildNodes,
                     Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
-                    CommandModuleType = typeof(GetChildNodesCommand),
-                    RequestSerializer = new PassThroughSerializer(),
-                    ResponseSerializer = new NetDataContractResponseSerializer<GetChildNodesResponse>()
+                    CommandModuleType = typeof(GetChildNodesCommand)
                 },
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.Discover,
                     Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
-                    CommandModuleType = typeof(DiscoverCommand),
-                    RequestSerializer = new PassThroughSerializer(),
-                    ResponseSerializer = new NetDataContractResponseSerializer<DiscoverResponse>()
+                    CommandModuleType = typeof(DiscoverCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = "ValidCommand",
+                    CommandName = SystemCommandNames.Echo,
                     Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
-                    CommandModuleType = typeof(ValidCommandTest)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = "LongRunningTaskTest",
-                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
-                    CommandModuleType = typeof(LongRunningCommandTest)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = "SuperLongRunningTestTask",
-                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
-                    CommandModuleType = typeof(SuperLongRunningCommandTest)
+                    CommandModuleType = typeof(EchoCommand)
                 }
             };
 
@@ -993,8 +974,7 @@ namespace Hyper.NodeServices
         // TODO: Write helper for "EnableActivityMonitor" command (input name of monitor to enable)
         // TODO: Write helper for "DisableActivityMonitor" command (input name of monitor to disable)
         // TODO: Write helper for "RenameActivityMonitor" command (input old name and new name of monitor to rename)
-        // TODO: Other command ideas: bring in Echo, but modify to say "HyperNode 'Bob' says, "input string""
-        // TODO: Other command idea: enable/disable diagnostics (stopwatch, for instance. but are we just going to have a blank "elapsed seconds" on every response that only gets populated if this is turned on?)
+        // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. but are we just going to have a blank "elapsed seconds" on every response that only gets populated if this is turned on?)
         // TODO: Other command idea: GetAllTasksForMessageGUID
         
         /*************************************************************************************************************************************

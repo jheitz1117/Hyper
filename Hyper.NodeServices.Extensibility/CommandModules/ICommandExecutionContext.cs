@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
+using Hyper.NodeServices.Extensibility.ActivityTracking;
 
-namespace Hyper.NodeServices.Extensibility
+namespace Hyper.NodeServices.Extensibility.CommandModules
 {
     public interface ICommandExecutionContext
     {

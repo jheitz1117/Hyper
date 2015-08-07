@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Caching;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.SystemCommands;
-using Hyper.NodeServices.Extensibility;
+using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.ActivityTracking
 {

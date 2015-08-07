@@ -4,16 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5E28A099-71A3-4572-A908-37CA4CCBE314}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{3770A663-2499-4897-A669-58E90D340760}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HostingTest.BobNode</RootNamespace>
-    <AssemblyName>HostingTest.BobNode</AssemblyName>
+    <RootNamespace>Hyper.NodeServices.UnitTesting</RootNamespace>
+    <AssemblyName>Hyper.NodeServices.UnitTesting</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -34,7 +32,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -42,36 +39,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BobNode.cs" />
+    <Compile Include="CommandModules\LongRunningCommandTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Hyper.Extensibility\Hyper.Extensibility.csproj">
-      <Project>{8BE9047A-C0C3-468D-ACFF-9BD332C975B4}</Project>
-      <Name>Hyper.Extensibility</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Hyper.NodeServices.Contracts\Hyper.NodeServices.Contracts.csproj">
       <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
       <Name>Hyper.NodeServices.Contracts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyper.NodeServices.UnitTesting\Hyper.NodeServices.UnitTesting.csproj">
-      <Project>{3770a663-2499-4897-a669-58e90d340760}</Project>
-      <Name>Hyper.NodeServices.UnitTesting</Name>
+    <ProjectReference Include="..\Hyper.NodeServices.Extensibility\Hyper.NodeServices.Extensibility.csproj">
+      <Project>{B9A95110-2589-42D9-88F7-D72E684F6FB1}</Project>
+      <Name>Hyper.NodeServices.Extensibility</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyper.NodeServices\Hyper.NodeServices.csproj">
-      <Project>{0D7D8078-E918-4579-BFD5-105742557575}</Project>
-      <Name>Hyper.NodeServices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Hyper.WcfHosting\Hyper.WcfHosting.csproj">
-      <Project>{BAFB81F3-F856-416D-871E-6C13BA3D9A36}</Project>
-      <Name>Hyper.WcfHosting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\HyperNetExtensibilityTest\HyperNetExtensibilityTest.csproj">
-      <Project>{01837910-e278-4f61-93e4-673f0f012aa0}</Project>
-      <Name>HyperNetExtensibilityTest</Name>
+    <ProjectReference Include="..\Hyper.NodeServices.UnitTesting.Contracts\Hyper.NodeServices.UnitTesting.Contracts.csproj">
+      <Project>{43F73423-A2DD-4D58-B680-C64DFB948E78}</Project>
+      <Name>Hyper.NodeServices.UnitTesting.Contracts</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

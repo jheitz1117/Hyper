@@ -1,6 +1,6 @@
 ﻿using Hyper.NodeServices.Contracts;
 
-namespace Hyper.NodeServices.Extensibility
+namespace Hyper.NodeServices.Extensibility.CommandModules
 {
     public sealed class CommandResponseString : CommandResponse
     {

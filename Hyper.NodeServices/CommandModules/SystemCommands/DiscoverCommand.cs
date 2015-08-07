@@ -5,7 +5,7 @@ using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Contracts.Serializers;
 using Hyper.NodeServices.Contracts.SystemCommands;
-using Hyper.NodeServices.Extensibility;
+using Hyper.NodeServices.Extensibility.CommandModules;
 
 namespace Hyper.NodeServices.CommandModules.SystemCommands
 {
@@ -24,7 +24,7 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                 // Note that we're deliberately NOT running this discover request concurrently. This would defeat the purpose.
                 var discoverRequest = new HyperNodeMessageRequest(context.ExecutingNodeName)
                 {
-                    CommandName = SystemCommandNames.Discover
+                    CommandName = context.CommandName
                 };
 
                 // Enable caching if the caller originally requested it

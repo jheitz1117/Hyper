@@ -16,7 +16,7 @@ namespace Hyper.NodeServices.Contracts.SystemCommands
 
         [DataMember]
         public HyperNodeMessageResponse Response { get; set; }
-
+        
         [DataMember]
         public bool IsComplete { get; set; }
 
