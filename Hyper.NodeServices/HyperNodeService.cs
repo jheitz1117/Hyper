@@ -838,6 +838,12 @@ namespace Hyper.NodeServices
                     CommandName = SystemCommandNames.EnableActivityMonitor,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(EnableActivityMonitorCommand)
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = SystemCommandNames.RenameActivityMonitor,
+                    Enabled = actualDefaultEnabled,
+                    CommandModuleType = typeof(RenameActivityMonitorCommand)
                 }
             };
 
@@ -1040,10 +1046,23 @@ namespace Hyper.NodeServices
             return result;
         }
 
+        internal bool RenameActivityMonitor(string oldName, string newName)
+        {
+            var result = false;
+
+            var activityMonitor = _activityMonitors.FirstOrDefault(a => a.Name == oldName);
+            if (activityMonitor != null)
+            {
+                activityMonitor.Name = newName;
+                result = true;
+            }
+
+            return result;
+        }
+
         // TODO: Enable/Disable Activity cache (HyperNodeService.Instance.EnableActivityCache property)
         // TODO: Update ActivityCacheSlidingExpiration
         // TODO: Write helper for "GetSettings" command (which settings, in particular? Perhaps the sliding expiration on the cache, and maybe some other properties...)
-        // TODO: Write helper for "RenameActivityMonitor" command (input old name and new name of monitor to rename)
         // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. but are we just going to have a blank "elapsed seconds" on every response that only gets populated if this is turned on?)
         // TODO: Other command idea: GetAllTasksForMessageGUID
         

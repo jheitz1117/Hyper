@@ -95,7 +95,7 @@ namespace HyperNodeTestClient
                             GetCommandConfigResponse;
                     if (commandResponse != null)
                         cboCommandNames.DataSource =
-                            commandResponse.CommandConfigurations.Select(c => c.CommandName).ToList();
+                            commandResponse.CommandConfigurations.Select(c => c.CommandName).OrderBy(cn=>cn).ToList();
                 }
                 else
                 {
@@ -116,15 +116,15 @@ namespace HyperNodeTestClient
                 ClearResponseData();
 
                 // Create our message request
-                var serializer = new NetDataContractRequestSerializer<EnableActivityMonitorRequest>();
+                var serializer = new NetDataContractRequestSerializer<RenameActivityMonitorRequest>();
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
                     CommandName = cboCommandNames.Text,
                     CommandRequestString = serializer.Serialize(
-                        new EnableActivityMonitorRequest
+                        new RenameActivityMonitorRequest
                         {
-                            ActivityMonitorName = "TaskActivityTracer",
-                            Enable = true
+                            OldName = "TaskActivityTracer",
+                            NewName = "Pony"
                         }
                     ),
                     IntendedRecipientNodeNames = new List<string>
