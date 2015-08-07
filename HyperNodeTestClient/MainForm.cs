@@ -116,9 +116,17 @@ namespace HyperNodeTestClient
                 ClearResponseData();
 
                 // Create our message request
+                var serializer = new NetDataContractRequestSerializer<EnableCommandModuleRequest>();
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
                     CommandName = cboCommandNames.Text,
+                    CommandRequestString = serializer.Serialize(
+                        new EnableCommandModuleRequest
+                        {
+                            CommandName = "Discover",
+                            Enable = true
+                        }
+                    ),
                     IntendedRecipientNodeNames = new List<string>
                     {
                         cboHyperNodeNames.Text

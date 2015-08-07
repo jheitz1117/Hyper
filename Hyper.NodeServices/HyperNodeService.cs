@@ -22,6 +22,7 @@ using Hyper.NodeServices.Contracts.SystemCommands;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
+using Hyper.NodeServices.Extensibility.Exceptions;
 using HyperNetExtensibilityTest.CommandModules;
 
 namespace Hyper.NodeServices
@@ -374,6 +375,10 @@ namespace Hyper.NodeServices
                                 catch (Exception ex)
                                 {
                                     args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
+
+                                    if (ex is InvalidCommandRequestTypeException)
+                                        args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.InvalidCommandRequest;
+                                    
                                     args.ActivityTracker.TrackException(ex);
                                 }
                                 finally
@@ -806,6 +811,12 @@ namespace Hyper.NodeServices
                     CommandName = SystemCommandNames.Echo,
                     Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
                     CommandModuleType = typeof(EchoCommand)
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = SystemCommandNames.EnableCommand,
+                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
+                    CommandModuleType = typeof(EnableCommandModuleCommand)
                 }
             };
 
@@ -970,9 +981,26 @@ namespace Hyper.NodeServices
             return childNodes;
         }
 
+        internal bool IsKnownCommand(string commandName)
+        {
+            return _commandModuleConfigurations.ContainsKey(commandName);
+        }
+
+        internal bool EnableCommandModule(string commandName, bool enable)
+        {
+            var result = false;
+
+            CommandModuleConfiguration commandConfig;
+            if (_commandModuleConfigurations.TryGetValue(commandName, out commandConfig) && commandConfig != null)
+            {
+                commandConfig.Enabled = enable;
+                result = true;
+            }
+
+            return result;
+        }
+
         // TODO: Write helper for "GetSettings" command (which settings, in particular? Perhaps the sliding expiration on the cache, and maybe some other properties...)
-        // TODO: Write helper for "EnableCommand" command (input name of command to enable)
-        // TODO: Write helper for "DisableCommand" command (input name of command to disable)
         // TODO: Write helper for "EnableActivityMonitor" command (input name of monitor to enable)
         // TODO: Write helper for "DisableActivityMonitor" command (input name of monitor to disable)
         // TODO: Write helper for "RenameActivityMonitor" command (input old name and new name of monitor to rename)

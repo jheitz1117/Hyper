@@ -9,6 +9,7 @@ namespace Hyper.NodeServices.Contracts
         public const string GetChildNodes             = "GetChildNodes";
         public const string GetCommandConfig          = "GetCommandConfig";
         public const string Echo                      = "Echo";
+        public const string EnableCommand             = "EnableCommand";
 
         private static readonly string[] SystemCommands =
         {
@@ -16,7 +17,8 @@ namespace Hyper.NodeServices.Contracts
             GetCachedTaskProgressInfo,
             GetChildNodes,
             GetCommandConfig,
-            Echo
+            Echo,
+            EnableCommand
         };
 
         public static bool IsSystemCommand(string commandName)
