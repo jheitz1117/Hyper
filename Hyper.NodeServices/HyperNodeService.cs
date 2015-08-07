@@ -51,19 +51,24 @@ namespace Hyper.NodeServices
     )]
     public sealed class HyperNodeService : IHyperNodeService, IDisposable
     {
+        #region Defaults
+
+        private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
+        private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
+        private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
+        private static readonly TimeSpan DefaultActivityCacheSlidingExpiration = TimeSpan.FromHours(1);
+        private const bool DefaultSystemCommandsEnabled = true;
+
+        #endregion Defaults
+
         #region Private Members
 
         private readonly string _hyperNodeName;
         private readonly object _lock = new object();
-        private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
-        private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
-        private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
-        private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
-        private const bool DefaultSystemCommandsEnabled = true;
-        private readonly TimeSpan _defaultActivityCacheSlidingExpiration = TimeSpan.FromHours(1);
         private readonly ProgressCacheItemCollector _activityCache = new ProgressCacheItemCollector();
         private readonly List<HyperNodeServiceActivityMonitor> _activityMonitors = new List<HyperNodeServiceActivityMonitor>();
         private readonly ConcurrentDictionary<string, CommandModuleConfiguration> _commandModuleConfigurations = new ConcurrentDictionary<string, CommandModuleConfiguration>();
+        private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
 
         /// <summary>
         /// This member is meant to store a backup of all of the <see cref="IDisposable" /> subscribers to our activity feed.
@@ -103,10 +108,13 @@ namespace Hyper.NodeServices
 
         #region Public Methods
 
+        /// <summary>
+        /// Processes and/or forwards the specified message.
+        /// </summary>
+        /// <param name="message">The <see cref="HyperNodeMessageRequest"/> object to process.</param>
+        /// <returns></returns>
         public HyperNodeMessageResponse ProcessMessage(HyperNodeMessageRequest message)
         {
-            // TODO: Validate message contents and throw exceptions if invalid message?
-
             var response = new HyperNodeMessageResponse(this.HyperNodeName)
             {
                 NodeAction = HyperNodeActionType.None,
@@ -321,6 +329,8 @@ namespace Hyper.NodeServices
 
             #endregion Activity Tracker Setup
 
+            #region Process Message
+
             try
             {
                 var childTasks = new List<Task>();
@@ -378,7 +388,7 @@ namespace Hyper.NodeServices
 
                                     if (ex is InvalidCommandRequestTypeException)
                                         args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.InvalidCommandRequest;
-                                    
+
                                     args.ActivityTracker.TrackException(ex);
                                 }
                                 finally
@@ -429,11 +439,13 @@ namespace Hyper.NodeServices
                 shortLivedSubscribers.Dispose();
             }
 
+            #endregion Process Message
+
             return response;
         }
 
         /// <summary>
-        /// Communicates a request for cancellation.
+        /// Initiates a cancellation request.
         /// </summary>
         public void Cancel()
         {
@@ -442,7 +454,7 @@ namespace Hyper.NodeServices
 
         /// <summary>
         /// This method provides one last chance to dispose of any subscribers that may still exist due to child threads not
-        /// terminating as expected. This is also where the memory cache is disposed.
+        /// terminating as expected.
         /// </summary>
         public void Dispose()
         {
@@ -489,9 +501,15 @@ namespace Hyper.NodeServices
         private HyperNodeService(string hyperNodeName)
         {
             _hyperNodeName = hyperNodeName;
-            this.ActivityCacheSlidingExpiration = _defaultActivityCacheSlidingExpiration;
+            this.ActivityCacheSlidingExpiration = DefaultActivityCacheSlidingExpiration;
         }
 
+        /// <summary>
+        /// Forwards the specified <see cref="HyperNodeMessageRequest"/> object using the specified <see cref="HyperNodeServiceActivityTracker"/> object to track activity.
+        /// </summary>
+        /// <param name="message">The <see cref="HyperNodeMessageRequest"/> object to forward.</param>
+        /// <param name="activityTracker">The <see cref="HyperNodeServiceActivityTracker"/> object to use to track activity.</param>
+        /// <returns></returns>
         private IEnumerable<Task> ForwardMessage(HyperNodeMessageRequest message, HyperNodeServiceActivityTracker activityTracker)
         {
             Task[] forwardingTasks = { };
@@ -702,11 +720,6 @@ namespace Hyper.NodeServices
                     };
 
                     // Execute the command
-                    // TODO: Process the message
-                    // TODO: Make calls to activityTracker.Track() as needed
-                    // TODO: If non-fatal errors are encountered during processing, set the HadNonFatalErrors flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadNonFatalErrors;
-                    // TODO: If warnings are encountered during processing, set the HadWarnings flag: response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
-                    // TODO: If we successfully process the message, set response.ProcessStatusFlags equal to Success
                     commandResponse = commandModule.Execute(context);
 
                     // Serialize the response to send back
@@ -751,7 +764,7 @@ namespace Hyper.NodeServices
                 args.ToDispose.Dispose();
         }
 
-        #region Static
+        #region Configuration
 
         private static HyperNodeService Create()
         {
@@ -946,7 +959,7 @@ namespace Hyper.NodeServices
             }
         }
 
-        #endregion Static
+        #endregion Configuration
 
         #endregion Private Methods
 
@@ -1027,6 +1040,8 @@ namespace Hyper.NodeServices
             return result;
         }
 
+        // TODO: Enable/Disable Activity cache (HyperNodeService.Instance.EnableActivityCache property)
+        // TODO: Update ActivityCacheSlidingExpiration
         // TODO: Write helper for "GetSettings" command (which settings, in particular? Perhaps the sliding expiration on the cache, and maybe some other properties...)
         // TODO: Write helper for "RenameActivityMonitor" command (input old name and new name of monitor to rename)
         // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. but are we just going to have a blank "elapsed seconds" on every response that only gets populated if this is turned on?)
