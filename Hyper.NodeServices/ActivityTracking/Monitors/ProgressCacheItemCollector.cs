@@ -53,12 +53,23 @@ namespace Hyper.NodeServices.ActivityTracking
                 );
             }
 
-            // Set our response object. We should only ever get one per task, but we need to make sure the responding node is actually this node
+            // Check if we were given a response to cache
             var response = activity.EventData as HyperNodeMessageResponse;
-            if (response != null && response.RespondingNodeName == activity.Agent)
+            if (response != null)
             {
-                taskProgressInfo.IsComplete = true;
-                taskProgressInfo.Response = response;
+                /* If the response belongs to this node, then this is a completion event and we're done. We just set our response property to the completed response object we received.
+                 * We should only ever get one response object from this node.*/
+                if (response.RespondingNodeName == activity.Agent)
+                {
+                    taskProgressInfo.IsComplete = true;
+                    taskProgressInfo.Response = response;
+                }
+                else
+                {
+                    /* Otherwise, we assume the response came from a child node. In this case, we'll add the task ID from
+                     * the child node's response object to our collection so we can propagate to the caller if necessary.*/
+                    taskProgressInfo.ChildTaskIds.TryAdd(response.RespondingNodeName, response.TaskId);
+                }
             }
 
             // Make sure our progress properties are updated. If no values were supplied, then we presume there are no updates, but we'll keep any values we had before

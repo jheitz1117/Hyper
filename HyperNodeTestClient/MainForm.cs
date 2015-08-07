@@ -17,6 +17,9 @@ namespace HyperNodeTestClient
 {
     public partial class MainForm : Form
     {
+        private bool _bobIsProgressTracking = false;
+        private bool _aliceIsProgressTracking = false;
+
         public MainForm()
         {
             InitializeComponent();
@@ -63,13 +66,8 @@ namespace HyperNodeTestClient
 
             lstAliceProgress.DataSource = GetActivityStrings(progressInfo.Activity);
 
-            // TODO: Need to go back to what we were doing before with a completion event. I want to always return a hyper node response, it's just that the response will become more and more complete as we go until the final event reports a completed response AND the completion event.
-            // TODO: This way, we can retrieve bob's task id as soon as Alice knows it and we can begin tracking bob's task
-
-            // Disable this until we report the progress correctly
-            var bobIsProgressTracking = true;
-            if (progressInfo.Response != null && progressInfo.Response.ChildResponses.ContainsKey("Bob") && !bobIsProgressTracking)
-                StartBobProgressTracking(progressInfo.ParentMessageGuid, progressInfo.Response.ChildResponses["Bob"].TaskId);
+            if (progressInfo.ChildTaskIds.ContainsKey("Bob") && !_bobIsProgressTracking)
+                StartBobProgressTracking(progressInfo.ParentMessageGuid, progressInfo.ChildTaskIds["Bob"]);
         }
 
         private void aliceProgressWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -82,9 +80,9 @@ namespace HyperNodeTestClient
 
                 lstAliceProgress.DataSource = GetActivityStrings(taskProgressInfo.Activity);
                 PopulateResponse(lstFinalAliceResponse, taskProgressInfo.Response);
-
-                StartBobProgressTracking(taskProgressInfo.ParentMessageGuid, taskProgressInfo.Response.ChildResponses["Bob"].TaskId);
             }
+
+            _aliceIsProgressTracking = false;
         }
 
         private static void bobProgressWorker_DoWork(object sender, DoWorkEventArgs e)
@@ -133,6 +131,8 @@ namespace HyperNodeTestClient
                 lstBobProgress.DataSource = GetActivityStrings(progressInfo.Activity);
                 PopulateResponse(lstFinalBobResponse, progressInfo.Response);
             }
+
+            _bobIsProgressTracking = false;
         }
 
         private void btnToBobViaAlice_Click(object sender, EventArgs e)
@@ -340,6 +340,14 @@ namespace HyperNodeTestClient
 
         private void StartAliceProgressTracking(Guid messageGuid, string taskId)
         {
+            if (_aliceIsProgressTracking)
+            {
+                MessageBox.Show("Alice is already tracking progress.", "Error", MessageBoxButtons.OK);
+                return;
+            }
+
+            _aliceIsProgressTracking = true;
+
             var serializer = new NetDataContractRequestSerializer<GetCachedTaskProgressInfoRequest>();
             var progressRequest = new HyperNodeMessageRequest("HyperNodeTestClient")
             {
@@ -374,6 +382,14 @@ namespace HyperNodeTestClient
 
         private void StartBobProgressTracking(Guid messageGuid, string taskId)
         {
+            if (_bobIsProgressTracking)
+            {
+                MessageBox.Show("Bob is already tracking progress.", "Error", MessageBoxButtons.OK);
+                return;
+            }
+
+            _bobIsProgressTracking = true;
+
             var serializer = new NetDataContractRequestSerializer<GetCachedTaskProgressInfoRequest>();
             var progressRequest = new HyperNodeMessageRequest("HyperNodeTestClient")
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Hyper.NodeServices.Contracts.Extensibility;
@@ -16,7 +17,10 @@ namespace Hyper.NodeServices.Contracts.SystemCommands
 
         [DataMember]
         public HyperNodeMessageResponse Response { get; set; }
-        
+
+        [DataMember]
+        public ConcurrentDictionary<string, string> ChildTaskIds { get; set; }
+
         [DataMember]
         public bool IsComplete { get; set; }
 
@@ -42,6 +46,7 @@ namespace Hyper.NodeServices.Contracts.SystemCommands
         public HyperNodeTaskProgressInfo()
         {
             this.Activity = new List<HyperNodeActivityItem>();
+            this.ChildTaskIds = new ConcurrentDictionary<string, string>();
         }
 
         public HyperNodeTaskProgressInfo(Guid parentMessageGuid) : this()
