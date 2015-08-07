@@ -779,44 +779,52 @@ namespace Hyper.NodeServices
             if (systemCommandsCollection != null)
                 userDefinedSystemCommandsEnabledDefault = systemCommandsCollection.Enabled;
 
+            var actualDefaultEnabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled;
+            
             // Make all commands enabled or disabled according to the user-defined default, or the HyperNode's default if the user did not define a default
             var systemCommandConfigs = new List<CommandModuleConfiguration>
             {
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
-                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
+                    Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(GetCachedTaskProgressInfoCommand)
                 },
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.GetCommandConfig,
-                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
+                    Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(GetCommandConfigCommand)
                 },
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.GetChildNodes,
-                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
+                    Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(GetChildNodesCommand)
                 },
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.Discover,
-                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
+                    Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(DiscoverCommand)
                 },
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.Echo,
-                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
+                    Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(EchoCommand)
                 },
                 new CommandModuleConfiguration
                 {
                     CommandName = SystemCommandNames.EnableCommand,
-                    Enabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled,
+                    Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(EnableCommandModuleCommand)
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = SystemCommandNames.EnableActivityMonitor,
+                    Enabled = actualDefaultEnabled,
+                    CommandModuleType = typeof(EnableActivityMonitorCommand)
                 }
             };
 
@@ -983,7 +991,12 @@ namespace Hyper.NodeServices
 
         internal bool IsKnownCommand(string commandName)
         {
-            return _commandModuleConfigurations.ContainsKey(commandName);
+            return _commandModuleConfigurations.ContainsKey(commandName ?? "");
+        }
+
+        internal bool IsKnownActivityMonitor(string activityMonitorName)
+        {
+            return _activityMonitors.Any(a => a.Name == activityMonitorName);
         }
 
         internal bool EnableCommandModule(string commandName, bool enable)
@@ -1000,9 +1013,21 @@ namespace Hyper.NodeServices
             return result;
         }
 
+        internal bool EnableActivityMonitor(string activityMonitorName, bool enable)
+        {
+            var result = false;
+
+            var activityMonitor = _activityMonitors.FirstOrDefault(a => a.Name == activityMonitorName);
+            if (activityMonitor != null)
+            {
+                activityMonitor.Enabled = enable;
+                result = true;
+            }
+
+            return result;
+        }
+
         // TODO: Write helper for "GetSettings" command (which settings, in particular? Perhaps the sliding expiration on the cache, and maybe some other properties...)
-        // TODO: Write helper for "EnableActivityMonitor" command (input name of monitor to enable)
-        // TODO: Write helper for "DisableActivityMonitor" command (input name of monitor to disable)
         // TODO: Write helper for "RenameActivityMonitor" command (input old name and new name of monitor to rename)
         // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. but are we just going to have a blank "elapsed seconds" on every response that only gets populated if this is turned on?)
         // TODO: Other command idea: GetAllTasksForMessageGUID

@@ -52,6 +52,7 @@
     <Compile Include="HyperNodeMessageResponse.cs" />
     <Compile Include="HyperNodePath.cs" />
     <Compile Include="SystemCommandNames.cs" />
+    <Compile Include="SystemCommands\EnableActivityMonitorRequest.cs" />
     <Compile Include="SystemCommands\EnableCommandModuleRequest.cs" />
     <Compile Include="SystemCommands\CommandConfiguration.cs" />
     <Compile Include="SystemCommands\DiscoverResponse.cs" />

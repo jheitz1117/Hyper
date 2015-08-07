@@ -116,14 +116,14 @@ namespace HyperNodeTestClient
                 ClearResponseData();
 
                 // Create our message request
-                var serializer = new NetDataContractRequestSerializer<EnableCommandModuleRequest>();
+                var serializer = new NetDataContractRequestSerializer<EnableActivityMonitorRequest>();
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
                     CommandName = cboCommandNames.Text,
                     CommandRequestString = serializer.Serialize(
-                        new EnableCommandModuleRequest
+                        new EnableActivityMonitorRequest
                         {
-                            CommandName = "Discover",
+                            ActivityMonitorName = "TaskActivityTracer",
                             Enable = true
                         }
                     ),

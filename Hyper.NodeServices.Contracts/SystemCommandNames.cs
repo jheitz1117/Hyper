@@ -10,6 +10,7 @@ namespace Hyper.NodeServices.Contracts
         public const string GetCommandConfig          = "GetCommandConfig";
         public const string Echo                      = "Echo";
         public const string EnableCommand             = "EnableCommand";
+        public const string EnableActivityMonitor     = "EnableActivityMonitor";
 
         private static readonly string[] SystemCommands =
         {
@@ -18,7 +19,8 @@ namespace Hyper.NodeServices.Contracts
             GetChildNodes,
             GetCommandConfig,
             Echo,
-            EnableCommand
+            EnableCommand,
+            EnableActivityMonitor
         };
 
         public static bool IsSystemCommand(string commandName)
