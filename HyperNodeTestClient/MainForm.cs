@@ -11,14 +11,13 @@ using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Contracts.Serializers;
 using Hyper.NodeServices.Contracts.SystemCommands;
-using HyperNet.ExtensibilityTest.Shared.CommandModules;
 
 namespace HyperNodeTestClient
 {
     public partial class MainForm : Form
     {
-        private bool _bobIsProgressTracking = false;
-        private bool _aliceIsProgressTracking = false;
+        private bool _bobIsProgressTracking;
+        private bool _aliceIsProgressTracking;
 
         public MainForm()
         {
@@ -144,7 +143,7 @@ namespace HyperNodeTestClient
 
                 var alice = new HyperNodeClient("Alice");
 
-                var serializer = new NetDataContractCommandSerializer<ComplexCommandRequest, GetCommandConfigResponse>();
+                //var serializer = new NetDataContractCommandSerializer<ComplexCommandRequest, GetCommandConfigResponse>();
 
                 var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
                 {
