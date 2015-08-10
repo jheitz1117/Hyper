@@ -79,26 +79,8 @@ namespace Hyper.NodeServices.ActivityTracking
 
         public HyperNodeTaskProgressInfo GetTaskProgressInfo(Guid messageGuid, string taskId)
         {
-            // If we can't find any task progress info for the specified Task ID, we'll return a placeholder object in Completed status that informs the caller that no progress
-            // information exists for this task ID. This will prevent the caller from sitting in an infinite loop waiting for IsComplete to be true when there may not be a cache
-            // item available, or no cache at all
             HyperNodeTaskProgressInfo taskProgressInfo;
-            if (!GetProgressCacheItem(messageGuid).TaskProgress.TryGetValue(taskId, out taskProgressInfo))
-            {
-                taskProgressInfo = new HyperNodeTaskProgressInfo
-                {
-                    IsComplete = true,
-                    Activity = new List<HyperNodeActivityItem>
-                    {
-                        new HyperNodeActivityItem
-                        {
-                            EventDateTime = DateTime.Now,
-                            EventDescription = string.Format("No task progress information exists for task ID '{0}'", taskId),
-                            Agent = GetType().Name
-                        }
-                    }
-                };
-            }
+            GetProgressCacheItem(messageGuid).TaskProgress.TryGetValue(taskId, out taskProgressInfo);
             
             return taskProgressInfo;
         }

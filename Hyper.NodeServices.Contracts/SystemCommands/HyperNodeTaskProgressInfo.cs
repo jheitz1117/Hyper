@@ -2,12 +2,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using Hyper.NodeServices.Contracts.Extensibility;
 
 namespace Hyper.NodeServices.Contracts.SystemCommands
 {
     [DataContract]
-    public class HyperNodeTaskProgressInfo : ICommandResponse
+    public class HyperNodeTaskProgressInfo
     {
         [DataMember]
         public Guid ParentMessageGuid { get; set; }
@@ -53,8 +52,5 @@ namespace Hyper.NodeServices.Contracts.SystemCommands
         {
             this.ParentMessageGuid = parentMessageGuid;
         }
-
-        [DataMember]
-        public MessageProcessStatusFlags ProcessStatusFlags { get; set; }
     }
 }

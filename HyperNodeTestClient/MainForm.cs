@@ -16,6 +16,8 @@ namespace HyperNodeTestClient
 {
     public partial class MainForm : Form
     {
+        private const string ClientAgentName = "HyperNodeTestClient";
+
         private bool _bobIsProgressTracking;
         private bool _aliceIsProgressTracking;
 
@@ -37,7 +39,7 @@ namespace HyperNodeTestClient
                 cboHyperNodeNames.DataSource = null;
 
                 var serializer = new NetDataContractResponseSerializer<DiscoverResponse>();
-                var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
+                var msg = new HyperNodeMessageRequest(ClientAgentName)
                 {
                     CommandName = SystemCommandNames.Discover
                 };
@@ -74,7 +76,7 @@ namespace HyperNodeTestClient
                 cboCommandNames.DataSource = null;
 
                 var serializer = new NetDataContractResponseSerializer<GetCommandConfigResponse>();
-                var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
+                var msg = new HyperNodeMessageRequest(ClientAgentName)
                 {
                     CommandName = SystemCommandNames.GetCommandConfig,
                     IntendedRecipientNodeNames = new List<string>
@@ -95,7 +97,7 @@ namespace HyperNodeTestClient
                             GetCommandConfigResponse;
                     if (commandResponse != null)
                         cboCommandNames.DataSource =
-                            commandResponse.CommandConfigurations.Select(c => c.CommandName).OrderBy(cn=>cn).ToList();
+                            commandResponse.CommandConfigurations.Select(c => c.CommandName).OrderBy(cn => cn).ToList();
                 }
                 else
                 {
@@ -117,7 +119,7 @@ namespace HyperNodeTestClient
 
                 // Create our message request
                 var serializer = new NetDataContractRequestSerializer<RenameActivityMonitorRequest>();
-                var msg = new HyperNodeMessageRequest("HyperNodeTestClient")
+                var msg = new HyperNodeMessageRequest(ClientAgentName)
                 {
                     CommandName = cboCommandNames.Text,
                     CommandRequestString = serializer.Serialize(
@@ -161,20 +163,34 @@ namespace HyperNodeTestClient
             progressTimer.Start();
 
             var alice = new HyperNodeClient("Alice");
+            var request = (HyperNodeMessageRequest)e.Argument;
             var taskProgressInfo = new HyperNodeTaskProgressInfo();
-            ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<HyperNodeTaskProgressInfo>();
+            ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<GetCachedTaskProgressInfoResponse>();
 
             while (!taskProgressInfo.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
             {
-                var aliceProgress = alice.ProcessMessage((HyperNodeMessageRequest)e.Argument);
-                if (aliceProgress == null)
+                var aliceResponse = alice.ProcessMessage(request);
+                if (aliceResponse == null)
                     break;
 
-                var targetProgress = aliceProgress;
-                if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseString))
+                var targetResponse = aliceResponse;
+                if (string.IsNullOrWhiteSpace(targetResponse.CommandResponseString))
                     break;
 
-                taskProgressInfo = (HyperNodeTaskProgressInfo)serializer.Deserialize(targetProgress.CommandResponseString);
+                var commandResponse = (GetCachedTaskProgressInfoResponse)serializer.Deserialize(targetResponse.CommandResponseString);
+                taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo(request.MessageGuid);
+                if (!commandResponse.ActivityCacheIsEnabled)
+                {
+                    taskProgressInfo.Activity.Add(
+                        new HyperNodeActivityItem(ClientAgentName)
+                        {
+                            EventDescription = string.Format("Warning: Activity cache is not enabled for HyperNode 'Alice'.")
+                        }
+                    );
+
+                    // Make sure we exit the loop, since we're not going to get anything useful in this case.
+                    taskProgressInfo.IsComplete = true;
+                }
 
                 ((BackgroundWorker)sender).ReportProgress(Convert.ToInt32(taskProgressInfo.ProgressPercentage), taskProgressInfo);
 
@@ -218,20 +234,34 @@ namespace HyperNodeTestClient
             progressTimer.Start();
 
             var alice = new HyperNodeClient("Alice");
+            var request = (HyperNodeMessageRequest)e.Argument;
             var taskProgressInfo = new HyperNodeTaskProgressInfo();
-            ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<HyperNodeTaskProgressInfo>();
+            ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<GetCachedTaskProgressInfoResponse>();
 
             while (!taskProgressInfo.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
             {
-                var aliceProgress = alice.ProcessMessage((HyperNodeMessageRequest)e.Argument);
-                if (aliceProgress == null || !aliceProgress.ChildResponses.ContainsKey("Bob"))
+                var aliceResponse = alice.ProcessMessage(request);
+                if (aliceResponse == null || !aliceResponse.ChildResponses.ContainsKey("Bob"))
                     break;
 
-                var targetProgress = aliceProgress.ChildResponses["Bob"];
-                if (string.IsNullOrWhiteSpace(targetProgress.CommandResponseString))
+                var targetResponse = aliceResponse.ChildResponses["Bob"];
+                if (string.IsNullOrWhiteSpace(targetResponse.CommandResponseString))
                     break;
 
-                taskProgressInfo = (HyperNodeTaskProgressInfo)serializer.Deserialize(targetProgress.CommandResponseString);
+                var commandResponse = (GetCachedTaskProgressInfoResponse)serializer.Deserialize(targetResponse.CommandResponseString);
+                taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo(request.MessageGuid);
+                if (!commandResponse.ActivityCacheIsEnabled)
+                {
+                    taskProgressInfo.Activity.Add(
+                        new HyperNodeActivityItem(ClientAgentName)
+                        {
+                            EventDescription = string.Format("Warning: Activity cache is not enabled for HyperNode 'Bob'.")
+                        }
+                    );
+
+                    // Make sure we exit the loop, since we're not going to get anything useful in this case.
+                    taskProgressInfo.IsComplete = true;
+                }
 
                 ((BackgroundWorker)sender).ReportProgress(Convert.ToInt32(taskProgressInfo.ProgressPercentage), taskProgressInfo);
 

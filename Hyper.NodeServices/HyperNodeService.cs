@@ -91,7 +91,11 @@ namespace Hyper.NodeServices
 
         private ITaskIdProvider TaskIdProvider { get; set; }
 
-        private bool EnableActivityCache { get; set; }
+        internal bool EnableActivityCache
+        {
+            get { return _activityCache.Enabled; }
+            private set { _activityCache.Enabled = value; }
+        }
 
         private TimeSpan ActivityCacheSlidingExpiration
         {
@@ -793,7 +797,7 @@ namespace Hyper.NodeServices
                 userDefinedSystemCommandsEnabledDefault = systemCommandsCollection.Enabled;
 
             var actualDefaultEnabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled;
-            
+
             // Make all commands enabled or disabled according to the user-defined default, or the HyperNode's default if the user did not define a default
             var systemCommandConfigs = new List<CommandModuleConfiguration>
             {
@@ -858,7 +862,7 @@ namespace Hyper.NodeServices
                 {
                     throw new DuplicateCommandException(
                         string.Format("A command already exists with the name '{0}'.", systemCommandConfig.CommandName)
-                    ); 
+                    );
                 }
             }
         }
@@ -1068,7 +1072,7 @@ namespace Hyper.NodeServices
         // TODO: Force-clear the cache
         // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. Can just add an additional activity item indicating how long it took, if it's enabled.)
         // TODO: Other command idea: GetAllTasksForMessageGUID
-        
+
         /*************************************************************************************************************************************
          * Cancellation Notes
          * 
