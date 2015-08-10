@@ -12,6 +12,7 @@ namespace Hyper.NodeServices.Contracts
         public const string EnableCommand             = "EnableCommand";
         public const string EnableActivityMonitor     = "EnableActivityMonitor";
         public const string RenameActivityMonitor     = "RenameActivityMonitor";
+        public const string EnableActivityCache       = "EnableActivityCache";
 
         private static readonly string[] SystemCommands =
         {
@@ -22,7 +23,8 @@ namespace Hyper.NodeServices.Contracts
             Echo,
             EnableCommand,
             EnableActivityMonitor,
-            RenameActivityMonitor
+            RenameActivityMonitor,
+            EnableActivityCache
         };
 
         public static bool IsSystemCommand(string commandName)

@@ -118,17 +118,18 @@ namespace HyperNodeTestClient
                 ClearResponseData();
 
                 // Create our message request
-                var serializer = new NetDataContractRequestSerializer<RenameActivityMonitorRequest>();
+                var serializer = new NetDataContractRequestSerializer<EnableActivityCacheRequest>();
+                var commandRequestString = serializer.Serialize(
+                    new EnableActivityCacheRequest
+                    {
+                        Enable = false
+                    }
+                );
+
                 var msg = new HyperNodeMessageRequest(ClientAgentName)
                 {
                     CommandName = cboCommandNames.Text,
-                    CommandRequestString = serializer.Serialize(
-                        new RenameActivityMonitorRequest
-                        {
-                            OldName = "TaskActivityTracer",
-                            NewName = "Pony"
-                        }
-                    ),
+                    CommandRequestString = commandRequestString,
                     IntendedRecipientNodeNames = new List<string>
                     {
                         cboHyperNodeNames.Text

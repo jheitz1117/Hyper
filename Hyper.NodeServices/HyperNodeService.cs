@@ -94,7 +94,7 @@ namespace Hyper.NodeServices
         internal bool EnableActivityCache
         {
             get { return _activityCache.Enabled; }
-            private set { _activityCache.Enabled = value; }
+            set { _activityCache.Enabled = value; }
         }
 
         private TimeSpan ActivityCacheSlidingExpiration
@@ -848,6 +848,12 @@ namespace Hyper.NodeServices
                     CommandName = SystemCommandNames.RenameActivityMonitor,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(RenameActivityMonitorCommand)
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = SystemCommandNames.EnableActivityCache,
+                    Enabled = actualDefaultEnabled,
+                    CommandModuleType = typeof(EnableActivityCacheCommand)
                 }
             };
 
