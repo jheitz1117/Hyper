@@ -18,13 +18,13 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
 
         public ICommandResponse Execute(ICommandExecutionContext context)
         {
-            // This technique allows us to optionally take a command request. If they just want to run the default settings, we won't force them to pass in a fully formed request object.
+            // This technique allows us to optionally take a command request. If they just want to run the default settings, they can just pass an empty string and we'll supply the default values.
             var stringRequest = context.Request as CommandRequestString;
             if (stringRequest == null)
                 throw new InvalidCommandRequestTypeException(typeof(CommandRequestString), context.Request.GetType());
 
-            // Test if we have a command request string. If we do, then deserialize it and use it. Otherwise, just use the defaults.
-            LongRunningCommandTestRequest request;
+            // Test if we have a command request string. If we have a non-blank request string, then try to deserialize it
+            var request = new LongRunningCommandTestRequest();
             if (!string.IsNullOrWhiteSpace(stringRequest.RequestString))
             {
                 context.Activity.Track("Request string found. Attempting deserialization of request object.");
@@ -32,15 +32,9 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
 
                 // Now that we've tried to deserialize it manually, if the request couldn't be deserialized into the expected, we can throw the invalid command request type exception.
                 if (request == null)
-                    throw new InvalidCommandRequestTypeException(typeof(LongRunningCommandTestRequest), context.Request.GetType());
+                    throw new InvalidCommandRequestTypeException(typeof(LongRunningCommandTestRequest),
+                        context.Request.GetType());
             }
-
-            // If we get here, we'll just setup a request object with the default settings
-            request = new LongRunningCommandTestRequest
-            {
-                MinimumSleepInterval = DefaultMinimumSleepInterval,
-                TotalRunTime = DefaultTotalRunTime
-            };
 
             var totalRunTime = request.TotalRunTime ?? DefaultTotalRunTime;
             var minSleepMilliseconds = (int)Math.Min(int.MaxValue, (request.MinimumSleepInterval ?? DefaultMinimumSleepInterval).TotalMilliseconds);
@@ -54,6 +48,7 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
             stopwatch.Start();
             while (stopwatch.ElapsedMilliseconds < totalRunTime.TotalMilliseconds)
             {
+                context.Token.ThrowIfCancellationRequested();
                 // Capture the remaining run time. Smart check for max size for an Int32.
                 var remainingMilliseconds = (int)Math.Min(int.MaxValue, totalRunTime.TotalMilliseconds - stopwatch.ElapsedMilliseconds);
 
@@ -77,11 +72,19 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
             }
 
             stopwatch.Stop();
-            context.Activity.Track(
-                string.Format("Progress update {0}.", ++progressReportCount),
-                totalRunTime.TotalMilliseconds,
-                totalRunTime.TotalMilliseconds
-            );
+
+            if (context.Token.IsCancellationRequested)
+            {
+                context.Activity.TrackFormat("Cancellation requested after {0}.", stopwatch.Elapsed);
+            }
+            else
+            {
+                context.Activity.Track(
+                    string.Format("Progress update {0}.", ++progressReportCount),
+                    totalRunTime.TotalMilliseconds,
+                    totalRunTime.TotalMilliseconds
+                );    
+            }
 
             return new CommandResponse(MessageProcessStatusFlags.Success);
         }

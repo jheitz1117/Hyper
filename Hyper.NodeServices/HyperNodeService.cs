@@ -393,7 +393,10 @@ namespace Hyper.NodeServices
                                     }
                                     catch (Exception ex)
                                     {
-                                        args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
+                                        if (ex is OperationCanceledException)
+                                            args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.Cancelled;
+                                        else
+                                            args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
 
                                         if (ex is InvalidCommandRequestTypeException)
                                             args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.InvalidCommandRequest;
@@ -541,6 +544,7 @@ namespace Hyper.NodeServices
         /// </summary>
         /// <param name="message">The <see cref="HyperNodeMessageRequest"/> object to forward.</param>
         /// <param name="activityTracker">The <see cref="HyperNodeServiceActivityTracker"/> object to use to track activity.</param>
+        /// <param name="token">The <see cref="CancellationToken"/> to use to cancel the <see cref="Task"/> objects created by this method.</param>
         /// <returns></returns>
         private IEnumerable<Task> ForwardMessage(HyperNodeMessageRequest message, HyperNodeServiceActivityTracker activityTracker, CancellationToken token)
         {
@@ -772,6 +776,10 @@ namespace Hyper.NodeServices
                 args.ActivityTracker.TrackFormat("Fatal error: Invalid command '{0}'.", args.Message.CommandName);
             }
 
+            // Make sure we report cancellation if it was requested
+            if (args.Token.IsCancellationRequested)
+                commandResponse.ProcessStatusFlags |= MessageProcessStatusFlags.Cancelled;
+
             args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
         }
 
@@ -887,6 +895,12 @@ namespace Hyper.NodeServices
                     CommandName = SystemCommandNames.EnableActivityCache,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(EnableActivityCacheCommand)
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = SystemCommandNames.CancelTask,
+                    Enabled = actualDefaultEnabled,
+                    CommandModuleType = typeof(CancelTaskCommand)
                 }
             };
 
@@ -1103,6 +1117,20 @@ namespace Hyper.NodeServices
             return result;
         }
 
+        internal bool CancelTask(string taskId)
+        {
+            var result = false;
+
+            HyperNodeTaskInfo taskInfo;
+            if (_taskInfo.TryGetValue(taskId, out taskInfo) && taskInfo != null)
+            {
+                taskInfo.Cancel();
+                result = true;
+            }
+
+            return result;
+        }
+
         // TODO: Update GetCommandConfig command to be GetStatus command (see comments below)
 
         /*************************************************************************************************************************************
@@ -1129,9 +1157,6 @@ namespace Hyper.NodeServices
          * 
          * I'm considering creating new cancellation token sources as requests come in. There will be the top-level cancellation triggered
          * by a call to the HyperNode's Cancel() method, but there could also be task-level and message-level cancellation token sources.
-         * 
-         * A task-level cancellation token source should be created via CancellationTokenSource.CreateLinkedTokenSource(master)
-         * and should be passed into the child threads.
          * 
          * A message-level cancellation token source should trigger cancellation of all tasks spawned for that message GUID across all
          * HyperNodes in the network. In this case, if I ask Alice and Bob to process the same message, and then I send a message-level
@@ -1183,7 +1208,6 @@ namespace Hyper.NodeServices
          *************************************************************************************************************************************/
 
         // TODO: Write helper for "CancelMessage" command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
-        // TODO: Write helper for "CancelTask" command (input task id of task to cancel, DOES NOT forward command to children. Intended to target cancellation for a single task for a single node.)
 
         #endregion Internal Helper Methods
     }

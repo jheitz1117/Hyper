@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivityTracking\HyperNodeActivityContext.cs" />
+    <Compile Include="CommandModules\SystemCommands\CancelTaskCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\DiscoverCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\EnableActivityCacheCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\RenameActivityMonitorCommand.cs" />

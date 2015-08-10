@@ -123,7 +123,9 @@ namespace HyperNodeTestClient
                 var commandRequestString = serializer.Serialize(
                     new LongRunningCommandTestRequest
                     {
-                        TotalRunTime = TimeSpan.FromHours(1)
+                        TotalRunTime = TimeSpan.FromHours(1),
+                        MinimumSleepInterval = TimeSpan.FromSeconds(1),
+                        MaximumSleepInterval = TimeSpan.FromSeconds(5)
                     }
                 );
 
