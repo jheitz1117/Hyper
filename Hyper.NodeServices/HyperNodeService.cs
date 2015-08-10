@@ -1070,11 +1070,25 @@ namespace Hyper.NodeServices
             return result;
         }
 
-        // TODO: GetActivityMonitorConfig (behaves similar to GetCommandConfig)
+        // TODO: Update GetCommandConfig command to be GetStatus command (see comments below)
+
+        /*************************************************************************************************************************************
+         * GetStatus
+         * 
+         * Returns the following:
+         * -Current value of activity cache sliding expiration
+         * -ActivityCacheEnabled
+         * -DiagnosticsEnabled (if diagnostics experiment works out - needs new app.config attribute)
+         * -List of commands, whether they are enabled, and whether they are system commands or custom commands
+         * -List of activity monitors and whether they are enabled (they'll all be custom, since the built-in monitors are never added to this list, so need for a Custom/System enum for activity monitors)
+         * -Number of current active tasks along with whether or not cancellation is pending (assuming we can get the cancellation stuff working)
+         * -Maximum number of allowed active tasks (assuming we can get the cancellation stuff working, needs new app.config attribute)
+         *************************************************************************************************************************************/
+        
         // TODO: GetAllTasksForMessageGUID
         // TODO: GetConfig (returns the sliding expiration, whether the cache is enabled, and lists of commands and activity monitors and their enabled status, count of "back up references" list)
-        // TODO: UpdateActivityCacheSlidingExpiration
-        // TODO: Force-clear the cache
+        // TODO: SetActivityCacheDuration (input timespan)
+        // TODO: Force-clear the cache (for cache items that are currently being accessed, is there any way to keep those and add an activity item indicating that the cache was force-cleared? This might cut down on confusion later on when I'm watching a task and suddenly lose all my progress. It would be nice to be informed of where my progress went.
         // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. Can just add an additional activity item indicating how long it took, if it's enabled.)
 
         /*************************************************************************************************************************************
@@ -1083,15 +1097,15 @@ namespace Hyper.NodeServices
          * I'm considering creating new cancellation token sources as requests come in. There will be the top-level cancellation triggered
          * by a call to the HyperNode's Cancel() method, but there could also be task-level and message-level cancellation token sources.
          * 
-         * A task-level cancellation token source should trigger the cancellation of a single task, but any other tasks currently being
-         * processed should be left alone. Other HyperNodes processing the same message that spawned the cancelled task for one HyperNode
-         * should not be affected. In other words, if I ask Alice and Bob to process the same message, but then I send a task-level
-         * cancellation to Alice, Alice should cancel her task, but Bob should continue processing the message.
+         * A task-level cancellation token source should be created via CancellationTokenSource.CreateLinkedTokenSource(master)
+         * and should be passed into the child threads.
          * 
          * A message-level cancellation token source should trigger cancellation of all tasks spawned for that message GUID across all
          * HyperNodes in the network. In this case, if I ask Alice and Bob to process the same message, and then I send a message-level
          * cancellation to Alice, Alice should cancel her task and forward the cancellation request to all of her children, including Bob, who
-         * will do likewise. Bob will also cancel his task, and so will every other HyperNode in the network.
+         * will do likewise. Bob will also cancel his task, and so will every other HyperNode in the network. This can be accomplished
+         * by retrieving all the tasks with the specified Message GUID and loop through and cancelling all the tasks for that message in
+         * series.
          *************************************************************************************************************************************/
 
         /*************************************************************************************************************************************
@@ -1124,6 +1138,17 @@ namespace Hyper.NodeServices
          *    +---Etc.
          *************************************************************************************************************************************/
 
+        /*************************************************************************************************************************************
+         * Diagnostics
+         * 
+         * Dictionary keyed off of task id. Value would be an instance of TaskInfo. Is this basically the same thing as the cache? Should we
+         * use the cache for this instead? If we did, how could we support task cancellation while also disabling the cache?
+         * 
+         * TaskInfo class (need this anyway to store the cancellation tokens for our tasks)
+         * -StopWatch (if diagnostics are enabled, can be used to track how long stuff takes)
+         * -CancellationTokenSource (if task cancellation experiment works out, contains the cancellation token source associated with this token)
+         *************************************************************************************************************************************/
+        
         // TODO: Write helper for "CancelMessage" command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
         // TODO: Write helper for "CancelTask" command (input task id of task to cancel, DOES NOT forward command to children. Intended to target cancellation for a single task for a single node.)
 
