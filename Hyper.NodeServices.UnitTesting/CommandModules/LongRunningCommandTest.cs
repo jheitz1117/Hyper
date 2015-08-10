@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
+using System.Threading.Tasks;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Contracts.Serializers;
@@ -46,9 +46,8 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
 
             context.Activity.Track("Starting long-running command test.");
             stopwatch.Start();
-            while (stopwatch.ElapsedMilliseconds < totalRunTime.TotalMilliseconds)
+            while (stopwatch.ElapsedMilliseconds < totalRunTime.TotalMilliseconds && !context.Token.IsCancellationRequested)
             {
-                context.Token.ThrowIfCancellationRequested();
                 // Capture the remaining run time. Smart check for max size for an Int32.
                 var remainingMilliseconds = (int)Math.Min(int.MaxValue, totalRunTime.TotalMilliseconds - stopwatch.ElapsedMilliseconds);
 
@@ -58,7 +57,9 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
                     Math.Min(maxSleepMilliseconds, remainingMilliseconds)
                 );
 
-                Thread.Sleep(sleepMilliseconds);
+                Task.WaitAll(
+                    Task.Delay(sleepMilliseconds, context.Token)
+                );
 
                 // Avoid reporting more than 100% or reporting 100% multiple times
                 if (stopwatch.ElapsedMilliseconds < totalRunTime.TotalMilliseconds)
