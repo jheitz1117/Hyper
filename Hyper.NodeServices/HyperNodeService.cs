@@ -1070,14 +1070,12 @@ namespace Hyper.NodeServices
             return result;
         }
 
-        // TODO: Enable/Disable Activity cache (HyperNodeService.Instance.EnableActivityCache property)
-        // TODO: Update ActivityCacheSlidingExpiration
-        // TODO: Get ActivityMonitorConfig (behaves similar to GetCommandConfig)
-        // TODO: Update GetCommandConfig to return a description of the command. Can add a GetDescription() method to ICommandModule interface.
-        // TODO: Write helper for "GetSettings" command (returns the sliding expiration, whether the cache is enabled, and lists of commands and activity monitors and their enabled status, count of "back up references" list)
+        // TODO: GetActivityMonitorConfig (behaves similar to GetCommandConfig)
+        // TODO: GetAllTasksForMessageGUID
+        // TODO: GetConfig (returns the sliding expiration, whether the cache is enabled, and lists of commands and activity monitors and their enabled status, count of "back up references" list)
+        // TODO: UpdateActivityCacheSlidingExpiration
         // TODO: Force-clear the cache
         // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. Can just add an additional activity item indicating how long it took, if it's enabled.)
-        // TODO: Other command idea: GetAllTasksForMessageGUID
 
         /*************************************************************************************************************************************
          * Cancellation Notes
@@ -1094,6 +1092,36 @@ namespace Hyper.NodeServices
          * HyperNodes in the network. In this case, if I ask Alice and Bob to process the same message, and then I send a message-level
          * cancellation to Alice, Alice should cancel her task and forward the cancellation request to all of her children, including Bob, who
          * will do likewise. Bob will also cancel his task, and so will every other HyperNode in the network.
+         *************************************************************************************************************************************/
+
+        /*************************************************************************************************************************************
+         * Documentation Notes
+         * 
+         * Create a ICommandDocumenter interface that can be used to generate documentation for command modules.
+         * 
+         * Need to figure out what methods this should have. Should it just have a single void Document(StreamWriter writer) method? Or should
+         * it have Write() methods for each individual piece of information?
+         * 
+         * Also, I originally thought of this specifically for custom command modules, but it makes sense to do it for other extensibility
+         * points as well, especially activity monitors. If we just had a single Document() method, we could have a hierarchy of interfaces
+         * to support various kinds of documentation, such as:
+         * 
+         * IDocumenter
+         *    |
+         *    void WriteDocument(StreamWriter writer)
+         *    |
+         *    +---ICommandDocumenter
+         *    |       |
+         *    |       void WriteCommandSummaryDocument(StreamWriter writer)
+         *    |       void WriteCommandRequestDocument(StreamWriter writer)
+         *    |       void WriteCommandResponseDocument(StreamWriter writer)
+         *    |
+         *    +---IActivityMonitorDocumenter
+         *    |       |
+         *    |       void WriteShouldTrackCriteriaDocument(StreamWriter writer)
+         *    |       void WriteOnNextDocument(StreamWriter writer)
+         *    |
+         *    +---Etc.
          *************************************************************************************************************************************/
 
         // TODO: Write helper for "CancelMessage" command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
