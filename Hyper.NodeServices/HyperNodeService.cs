@@ -1142,12 +1142,11 @@ namespace Hyper.NodeServices
          * -DiagnosticsEnabled (if diagnostics experiment works out - needs new app.config attribute)
          * -List of commands, whether they are enabled, and whether they are system commands or custom commands
          * -List of activity monitors and whether they are enabled (they'll all be custom, since the built-in monitors are never added to this list, so need for a Custom/System enum for activity monitors)
-         * -Number of current active tasks along with whether or not cancellation is pending (assuming we can get the cancellation stuff working)
-         * -Maximum number of allowed active tasks (assuming we can get the cancellation stuff working, needs new app.config attribute)
+         * -Number of current active tasks along with whether or not cancellation is pending
+         * -Maximum number of allowed active tasks (needs new app.config attribute)
          *************************************************************************************************************************************/
 
-        // TODO: GetAllTasksForMessageGUID
-        // TODO: GetConfig (returns the sliding expiration, whether the cache is enabled, and lists of commands and activity monitors and their enabled status, count of "back up references" list)
+        // TODO: GetAllTasksForMessageGUID (only works with cache
         // TODO: SetActivityCacheDuration (input timespan)
         // TODO: Force-clear the cache (for cache items that are currently being accessed, is there any way to keep those and add an activity item indicating that the cache was force-cleared? This might cut down on confusion later on when I'm watching a task and suddenly lose all my progress. It would be nice to be informed of where my progress went.
         // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. Can just add an additional activity item indicating how long it took, if it's enabled.)
