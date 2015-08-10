@@ -14,6 +14,7 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
     {
         private static readonly TimeSpan DefaultTotalRunTime = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan DefaultMinimumSleepInterval = TimeSpan.FromSeconds(1);
+        private static readonly TimeSpan DefaultMaximumSleepInterval = TimeSpan.FromSeconds(5);
 
         public ICommandResponse Execute(ICommandExecutionContext context)
         {
@@ -43,6 +44,7 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
 
             var totalRunTime = request.TotalRunTime ?? DefaultTotalRunTime;
             var minSleepMilliseconds = (int)Math.Min(int.MaxValue, (request.MinimumSleepInterval ?? DefaultMinimumSleepInterval).TotalMilliseconds);
+            var maxSleepMilliseconds = (int)Math.Min(int.MaxValue, (request.MaximumSleepInterval ?? DefaultMaximumSleepInterval).TotalMilliseconds);
 
             var stopwatch = new Stopwatch();
             var rand = new Random();
@@ -55,8 +57,11 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
                 // Capture the remaining run time. Smart check for max size for an Int32.
                 var remainingMilliseconds = (int)Math.Min(int.MaxValue, totalRunTime.TotalMilliseconds - stopwatch.ElapsedMilliseconds);
 
-                // Try to sleep for at least the minimum time span unless there is less time remaining.
-                var sleepMilliseconds = rand.Next(Math.Min(minSleepMilliseconds, remainingMilliseconds), remainingMilliseconds);
+                // Try to sleep for at least the minimum time span unless there is less time remaining. Don't sleep for more than the maximum time span
+                var sleepMilliseconds = rand.Next(
+                    Math.Min(minSleepMilliseconds, remainingMilliseconds),
+                    Math.Min(maxSleepMilliseconds, remainingMilliseconds)
+                );
 
                 Thread.Sleep(sleepMilliseconds);
 

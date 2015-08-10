@@ -21,6 +21,12 @@ namespace Hyper.NodeServices.Contracts
         /// Indicates that the receiving <see cref="IHyperNodeService"/> disregarded the message for a valid and expected reason.
         /// </summary>
         [EnumMember]
-        Ignored = 2
+        Ignored = 2,
+
+        /// <summary>
+        /// Indicates that the receiving <see cref="IHyperNodeService"/> rejected the message because the message would have caused the service to enter an invalid state.
+        /// </summary>
+        [EnumMember]
+        Rejected = 3
     }
 }

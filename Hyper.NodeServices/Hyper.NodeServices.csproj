@@ -95,6 +95,7 @@
     </Compile>
     <Compile Include="GuidTaskIdProvider.cs" />
     <Compile Include="HyperNodeService.cs" />
+    <Compile Include="HyperNodeTaskInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CommandModules\SystemCommands\GetCachedTaskProgressInfoCommand.cs" />
     <Compile Include="ThreadingParameters\ChildThreadCleanupParameter.cs" />

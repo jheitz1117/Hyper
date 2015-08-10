@@ -12,5 +12,8 @@ namespace Hyper.NodeServices.UnitTesting.Contracts.CommandModules
 
         [DataMember]
         public TimeSpan? MinimumSleepInterval { get; set; }
+
+        [DataMember]
+        public TimeSpan? MaximumSleepInterval { get; set; }
     }
 }

@@ -33,6 +33,12 @@ namespace Hyper.NodeServices.Contracts
         /// Indicates that the receiving <see cref="IHyperNodeService"/> was an intended recipient.
         /// </summary>
         [EnumMember]
-        IntendedRecipient = 4
+        IntendedRecipient = 4,
+
+        /// <summary>
+        /// Indicates that the receiving <see cref="IHyperNodeService"/> generated a task ID for a task that was already running.
+        /// </summary>
+        [EnumMember]
+        DuplicateTaskId = 5
     }
 }

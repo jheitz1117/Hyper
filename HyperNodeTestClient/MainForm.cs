@@ -11,6 +11,7 @@ using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Contracts.Serializers;
 using Hyper.NodeServices.Contracts.SystemCommands;
+using Hyper.NodeServices.UnitTesting.Contracts.CommandModules;
 
 namespace HyperNodeTestClient
 {
@@ -118,11 +119,11 @@ namespace HyperNodeTestClient
                 ClearResponseData();
 
                 // Create our message request
-                var serializer = new NetDataContractRequestSerializer<EnableActivityCacheRequest>();
+                var serializer = new NetDataContractRequestSerializer<LongRunningCommandTestRequest>();
                 var commandRequestString = serializer.Serialize(
-                    new EnableActivityCacheRequest
+                    new LongRunningCommandTestRequest
                     {
-                        Enable = false
+                        TotalRunTime = TimeSpan.FromHours(1)
                     }
                 );
 

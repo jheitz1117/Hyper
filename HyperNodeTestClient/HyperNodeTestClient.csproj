@@ -93,6 +93,10 @@
       <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
       <Name>Hyper.NodeServices.Contracts</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Hyper.NodeServices.UnitTesting.Contracts\Hyper.NodeServices.UnitTesting.Contracts.csproj">
+      <Project>{43F73423-A2DD-4D58-B680-C64DFB948E78}</Project>
+      <Name>Hyper.NodeServices.UnitTesting.Contracts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\HyperNet.ExtensibilityTest.Shared\HyperNet.ExtensibilityTest.Shared.csproj">
       <Project>{E7B8DD6F-C275-462E-B260-6CB7F96476B7}</Project>
       <Name>HyperNet.ExtensibilityTest.Shared</Name>

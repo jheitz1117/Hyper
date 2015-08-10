@@ -68,7 +68,8 @@ namespace Hyper.NodeServices
         private readonly ProgressCacheItemCollector _activityCache = new ProgressCacheItemCollector();
         private readonly List<HyperNodeServiceActivityMonitor> _activityMonitors = new List<HyperNodeServiceActivityMonitor>();
         private readonly ConcurrentDictionary<string, CommandModuleConfiguration> _commandModuleConfigurations = new ConcurrentDictionary<string, CommandModuleConfiguration>();
-        private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _masterTokenSource = new CancellationTokenSource();
+        private readonly ConcurrentDictionary<string, HyperNodeTaskInfo>  _taskInfo =  new ConcurrentDictionary<string, HyperNodeTaskInfo>();
 
         /// <summary>
         /// This member is meant to store a backup of all of the <see cref="IDisposable" /> subscribers to our activity feed.
@@ -167,283 +168,304 @@ namespace Hyper.NodeServices
                 response.TaskTrace.Add(illBehavedTaskIdProviderActivityItem);
             }
 
-            // Finally, set our task ID
-            response.TaskId = taskId;
-
             #endregion Create Task ID
 
-            #region Activity Tracker Setup
-
-            var activityTracker = new HyperNodeServiceActivityTracker(
-                new HyperNodeActivityContext(
-                    this.HyperNodeName,
-                    message.MessageGuid,
-                    message.CommandName,
-                    response.TaskId
-                )
-            );
-
-            /*****************************************************************************************************************
-             * Setup our activity tracker
-             * 
-             * The activity tracker triggers activity tracking events for monitor objects that subscribe to the events. The
-             * subscribers are split into two groups: those that should stick around after the current method call to report
-             * on long-running child tasks, and those that should be disposed of at the end of this method call.
-             *****************************************************************************************************************/
-            var longLivedSubscribers = new CompositeDisposable(); // Container for subscribers that may need to live longer than this method call
-            var shortLivedSubscribers = new CompositeDisposable(); // Container for subscribers that will be disposed at the end of this method call
-
-            try
+            // Now that we have a valid task ID, try to add it to our dictionary
+            var currentTaskInfo = new HyperNodeTaskInfo(_masterTokenSource.Token);
+            if (_taskInfo.TryAdd(taskId, currentTaskInfo))
             {
-                // Create our activity feed by bridging the event tracker with reactive extensions
-                var liveEvents = Observable.FromEventPattern<TrackActivityEventHandler, TrackActivityEventArgs>(
-                    h => activityTracker.TrackActivityHandler += h,
-                    h => activityTracker.TrackActivityHandler -= h
-                ).Select(
-                    a => a.EventArgs.ActivityItem as IHyperNodeActivityEventItem // Cast all our activity items as IHyperNodeActivityEventItem
-                );
+                // In this case, we've confirmed that the new task was added, so we can set our response task ID
+                response.TaskId = taskId;
 
-                /*****************************************************************************************************************
-                 * Subscribe our progress cache to our event stream only if the client requested it and the feature is actually enabled. There is currently no built-in
-                 * functionality to support long-running task tracing other than the memory cache. If the client opts to disable the memory cache to save resources,
-                 * then they will need to setup a custom HyperNodeServiceActivityMonitor if they still want to be able to know what's going on in the server. Custom
-                 * HyperNodeServiceActivityMonitor objects can record activity to a database or some other data store, which the user can then query for the desired
-                 * activity.
-                 *****************************************************************************************************************/
-                if (this.EnableActivityCache && message.CacheProgressInfo)
-                {
-                    longLivedSubscribers.Add(
-                        liveEvents
-                            .Where(a => _activityCache.ShouldTrack(a))
-                            .Subscribe(_activityCache)
-                    );
-                }
+                #region Activity Tracker Setup
 
-                /*****************************************************************************************************************
-                 * If we want a task trace returned, that's fine, but the task trace in the real-time response would only ever contain events recorded during the current
-                 * call to ProcessMessage() as opposed to the entire lifetime of a task in general. This is because a task can be spawned in a child thread and can outlive
-                 * the original call to ProcessMessage(). This is the whole reason why we have a ProgressCacheItemCollector that is in charge of collecting trace information
-                 * for tasks that run concurrently. It should be noted that if the client elects to use caching AND return a task trace, then the events recorded in the
-                 * real-time task trace and those recorded in the cache will likely overlap for events which fired before ProcessMessage() returned. However, any events that
-                 * fired after ProcessMessage() returned would only be recorded in the cache. This may result in a task trace that looks incomplete since the "processing
-                 * complete" message would not have occured before the method returned.
-                 *****************************************************************************************************************/
-                if (message.ReturnTaskTrace)
-                {
-                    var taskTraceCollector = new HyperNodeTaskTraceCollector(response);
-                    longLivedSubscribers.Add(
-                        liveEvents
-                            .Where(a => taskTraceCollector.ShouldTrack(a))
-                            .Subscribe(taskTraceCollector)
-                    );
-                }
-
-                /*****************************************************************************************************************
-                 * Concurrent tasks cannot return anything meaningful in the real-time response because the main thread gets to the return statement long before the
-                 * child threads complete their processing. Any response that is returned by the main thread contains minimal information: perhaps an incomplete task
-                 * trace and some enum values, but that's it. Therefore, by design, clients who elect to run tasks concurrently inherently decide to disregard the
-                 * real-time response object in favor of a progress cache which can be queried after the initial call. This cache can either be the in-memory cache
-                 * of the hypernode, or it can be some other repository that the user sets up themselves via a custom monitor.
-                 * 
-                 * On the other hand, if the client elects to run non-concurrently (aka synchronously), then it expects to and should receive a complete response
-                 * object.
-                 * 
-                 * This response collector monitor's job is to collect response objects for child nodes to which the message is forwarded and add them to the target
-                 * response object. Responses compiled this way have a tree-like structure in which child node responses are referenced by their node name.
-                 * 
-                 * For synchronous operations, this results in a real-time response that contains all of the response information for this node and its decendants.
-                 * 
-                 * For asynchronous operations, the real-time response contains the task ID for the main thread executed on this node. The cached response for that
-                 * real-time task ID contains the task IDs of the main threads executed on the child nodes. The cached responses for those task IDs contain the
-                 * task IDs of the main threads executed on the grandchildren nodes, etc. Perhaps a new command can be written to automatically get a list of all
-                 * intended recipients and the corresponding "main" task IDs to use to request status updates. This would be exclusively for the cache. If the
-                 * user wanted to use something other than the cache, they would have to determine the task IDs their own way.
-                 *****************************************************************************************************************/
-                var responseCollector = new HyperNodeMessageResponseCollector(response);
-                longLivedSubscribers.Add(
-                    liveEvents
-                        .Where(a => responseCollector.ShouldTrack(a))
-                        .Subscribe(responseCollector)
-                );
-
-                /*****************************************************************************************************************
-                 * Subscribe our custom activity monitors to the event stream last, just in case any of them throw exceptions. If they do, we've already setup our
-                 * task trace and cache monitors at this point, so we can actually use the activity tracker to track the exceptions. This way, we can make sure that
-                 * any exceptions thrown by user code are available to be reported to the client
-                 *****************************************************************************************************************/
-                longLivedSubscribers.Add(
-                    new CompositeDisposable(
-                        from monitor in _activityMonitors
-                        where monitor.Enabled
-                        // Make sure the monitors are enabled
-                        select liveEvents
-                            .Where(
-                                e =>
-                                {
-                                    var shouldTrack = false;
-
-                                    try
-                                    {
-                                        // ...for activity items matching the specified criteria
-                                        shouldTrack = monitor.ShouldTrack(e);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        // This is legal at this point because we already setup our cache and task trace monitors earlier
-                                        activityTracker.TrackException(
-                                            new ActivityMonitorSubscriptionException(
-                                                string.Format(
-                                                    "Unable to subscribe monitor '{0}' because its ShouldTrack() method threw an exception.",
-                                                    monitor.Name
-                                                ),
-                                                ex
-                                            )
-                                        );
-                                    }
-
-                                    return shouldTrack;
-                                }
-                            )
-                            .ObserveOn(ThreadPoolScheduler.Instance) // Force custom activity monitors to run on the threadpool in case they are long-running and/or ill-behaved
-                            .Subscribe(monitor)
+                var activityTracker = new HyperNodeServiceActivityTracker(
+                    new HyperNodeActivityContext(
+                        this.HyperNodeName,
+                        message.MessageGuid,
+                        message.CommandName,
+                        response.TaskId
                     )
                 );
-            }
-            catch (Exception ex)
-            {
-                // This is a safe thing to do, it may just result in nothing being reported if Reactive Extensions wasn't setup properly
-                activityTracker.TrackException(
-                    new ActivityTrackerInitializationException(
-                        "An exception was thrown while initializing the activity tracker. See inner exception for details.",
-                        ex
-                    )
-                );
-            }
-            finally
-            {
-                // If we're running concurrently and we've successfully added some long-lived subscribers, be sure to backup the reference
-                if (message.RunConcurrently && longLivedSubscribers.Count > 0)
+
+                /*****************************************************************************************************************
+                 * Setup our activity tracker
+                 * 
+                 * The activity tracker triggers activity tracking events for monitor objects that subscribe to the events. The
+                 * subscribers are split into two groups: those that should stick around after the current method call to report
+                 * on long-running child tasks, and those that should be disposed of at the end of this method call.
+                 *****************************************************************************************************************/
+                var longLivedSubscribers = new CompositeDisposable(); // Container for subscribers that may need to live longer than this method call
+                var shortLivedSubscribers = new CompositeDisposable(); // Container for subscribers that will be disposed at the end of this method call
+
+                try
                 {
-                    lock (_lock)
+                    // Create our activity feed by bridging the event tracker with reactive extensions
+                    var liveEvents = Observable.FromEventPattern<TrackActivityEventHandler, TrackActivityEventArgs>(
+                        h => activityTracker.TrackActivityHandler += h,
+                        h => activityTracker.TrackActivityHandler -= h
+                    ).Select(
+                        a => a.EventArgs.ActivityItem as IHyperNodeActivityEventItem // Cast all our activity items as IHyperNodeActivityEventItem
+                    );
+
+                    /*****************************************************************************************************************
+                     * Subscribe our progress cache to our event stream only if the client requested it and the feature is actually enabled. There is currently no built-in
+                     * functionality to support long-running task tracing other than the memory cache. If the client opts to disable the memory cache to save resources,
+                     * then they will need to setup a custom HyperNodeServiceActivityMonitor if they still want to be able to know what's going on in the server. Custom
+                     * HyperNodeServiceActivityMonitor objects can record activity to a database or some other data store, which the user can then query for the desired
+                     * activity.
+                     *****************************************************************************************************************/
+                    if (this.EnableActivityCache && message.CacheProgressInfo)
                     {
-                        _backupSubscriberReference.Add(longLivedSubscribers);
+                        longLivedSubscribers.Add(
+                            liveEvents
+                                .Where(a => _activityCache.ShouldTrack(a))
+                                .Subscribe(_activityCache)
+                        );
+                    }
+
+                    /*****************************************************************************************************************
+                     * If we want a task trace returned, that's fine, but the task trace in the real-time response would only ever contain events recorded during the current
+                     * call to ProcessMessage() as opposed to the entire lifetime of a task in general. This is because a task can be spawned in a child thread and can outlive
+                     * the original call to ProcessMessage(). This is the whole reason why we have a ProgressCacheItemCollector that is in charge of collecting trace information
+                     * for tasks that run concurrently. It should be noted that if the client elects to use caching AND return a task trace, then the events recorded in the
+                     * real-time task trace and those recorded in the cache will likely overlap for events which fired before ProcessMessage() returned. However, any events that
+                     * fired after ProcessMessage() returned would only be recorded in the cache. This may result in a task trace that looks incomplete since the "processing
+                     * complete" message would not have occured before the method returned.
+                     *****************************************************************************************************************/
+                    if (message.ReturnTaskTrace)
+                    {
+                        var taskTraceCollector = new HyperNodeTaskTraceCollector(response);
+                        longLivedSubscribers.Add(
+                            liveEvents
+                                .Where(a => taskTraceCollector.ShouldTrack(a))
+                                .Subscribe(taskTraceCollector)
+                        );
+                    }
+
+                    /*****************************************************************************************************************
+                     * Concurrent tasks cannot return anything meaningful in the real-time response because the main thread gets to the return statement long before the
+                     * child threads complete their processing. Any response that is returned by the main thread contains minimal information: perhaps an incomplete task
+                     * trace and some enum values, but that's it. Therefore, by design, clients who elect to run tasks concurrently inherently decide to disregard the
+                     * real-time response object in favor of a progress cache which can be queried after the initial call. This cache can either be the in-memory cache
+                     * of the hypernode, or it can be some other repository that the user sets up themselves via a custom monitor.
+                     * 
+                     * On the other hand, if the client elects to run non-concurrently (aka synchronously), then it expects to and should receive a complete response
+                     * object.
+                     * 
+                     * This response collector monitor's job is to collect response objects for child nodes to which the message is forwarded and add them to the target
+                     * response object. Responses compiled this way have a tree-like structure in which child node responses are referenced by their node name.
+                     * 
+                     * For synchronous operations, this results in a real-time response that contains all of the response information for this node and its decendants.
+                     * 
+                     * For asynchronous operations, the real-time response contains the task ID for the main thread executed on this node. The cached response for that
+                     * real-time task ID contains the task IDs of the main threads executed on the child nodes. The cached responses for those task IDs contain the
+                     * task IDs of the main threads executed on the grandchildren nodes, etc. Perhaps a new command can be written to automatically get a list of all
+                     * intended recipients and the corresponding "main" task IDs to use to request status updates. This would be exclusively for the cache. If the
+                     * user wanted to use something other than the cache, they would have to determine the task IDs their own way.
+                     *****************************************************************************************************************/
+                    var responseCollector = new HyperNodeMessageResponseCollector(response);
+                    longLivedSubscribers.Add(
+                        liveEvents
+                            .Where(a => responseCollector.ShouldTrack(a))
+                            .Subscribe(responseCollector)
+                    );
+
+                    /*****************************************************************************************************************
+                     * Subscribe our custom activity monitors to the event stream last, just in case any of them throw exceptions. If they do, we've already setup our
+                     * task trace and cache monitors at this point, so we can actually use the activity tracker to track the exceptions. This way, we can make sure that
+                     * any exceptions thrown by user code are available to be reported to the client
+                     *****************************************************************************************************************/
+                    longLivedSubscribers.Add(
+                        new CompositeDisposable(
+                            from monitor in _activityMonitors
+                            where monitor.Enabled
+                            // Make sure the monitors are enabled
+                            select liveEvents
+                                .Where(
+                                    e =>
+                                    {
+                                        var shouldTrack = false;
+
+                                        try
+                                        {
+                                            // ...for activity items matching the specified criteria
+                                            shouldTrack = monitor.ShouldTrack(e);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            // This is legal at this point because we already setup our cache and task trace monitors earlier
+                                            activityTracker.TrackException(
+                                                new ActivityMonitorSubscriptionException(
+                                                    string.Format(
+                                                        "Unable to subscribe monitor '{0}' because its ShouldTrack() method threw an exception.",
+                                                        monitor.Name
+                                                    ),
+                                                    ex
+                                                )
+                                            );
+                                        }
+
+                                        return shouldTrack;
+                                    }
+                                )
+                                .ObserveOn(ThreadPoolScheduler.Instance) // Force custom activity monitors to run on the threadpool in case they are long-running and/or ill-behaved
+                                .Subscribe(monitor)
+                        )
+                    );
+                }
+                catch (Exception ex)
+                {
+                    // This is a safe thing to do, it may just result in nothing being reported if Reactive Extensions wasn't setup properly
+                    activityTracker.TrackException(
+                        new ActivityTrackerInitializationException(
+                            "An exception was thrown while initializing the activity tracker. See inner exception for details.",
+                            ex
+                        )
+                    );
+                }
+                finally
+                {
+                    // If we're running concurrently and we've successfully added some long-lived subscribers, be sure to backup the reference
+                    if (message.RunConcurrently && longLivedSubscribers.Count > 0)
+                    {
+                        lock (_lock)
+                        {
+                            _backupSubscriberReference.Add(longLivedSubscribers);
+                        }
                     }
                 }
-            }
 
-            #endregion Activity Tracker Setup
+                #endregion Activity Tracker Setup
 
-            #region Process Message
+                #region Process Message
 
-            try
-            {
-                var childTasks = new List<Task>();
-
-                // Confirm receipt of the message
-                activityTracker.TrackReceived();
-
-                if (message.ExpirationDateTime <= DateTime.Now)
+                try
                 {
-                    // Message has expired, so ignore it and do not forward it
-                    response.NodeAction = HyperNodeActionType.Ignored;
-                    response.NodeActionReason = HyperNodeActionReasonType.MessageExpired;
-                    activityTracker.TrackIgnored("Message expired on " + message.ExpirationDateTime.ToString("G") + ".");
-                }
-                else if (message.SeenByNodeNames.Contains(this.HyperNodeName))
-                {
-                    // Message was already processed by this node, so ignore it and do not forward it (since it would have been forwarded the first time)
-                    response.NodeAction = HyperNodeActionType.Ignored;
-                    response.NodeActionReason = HyperNodeActionReasonType.PreviouslySeen;
-                    activityTracker.TrackIgnored("Message previously seen.");
-                }
-                else
-                {
-                    // Add this node to the list of nodes who have seen this message
-                    message.SeenByNodeNames.Add(this.HyperNodeName);
-                    activityTracker.TrackSeen();
+                    var childTasks = new List<Task>();
 
-                    // Check if this message has a list of intended recipients, and if this node was one of them.
-                    // An empty recipients list means means the message is indended for all nodes in the forwarding path.
-                    if (message.IntendedRecipientNodeNames.Any() && !message.IntendedRecipientNodeNames.Contains(this.HyperNodeName))
+                    // Confirm receipt of the message
+                    activityTracker.TrackReceived();
+
+                    if (message.ExpirationDateTime <= DateTime.Now)
                     {
-                        // This node was not an intended recipient, so ignore the message, but still forward it if possible.
+                        // Message has expired, so ignore it and do not forward it
                         response.NodeAction = HyperNodeActionType.Ignored;
-                        response.NodeActionReason = HyperNodeActionReasonType.UnintendedRecipient;
-                        activityTracker.TrackIgnored("Message not intended for agent.");
+                        response.NodeActionReason = HyperNodeActionReasonType.MessageExpired;
+                        activityTracker.TrackIgnored("Message expired on " + message.ExpirationDateTime.ToString("G") + ".");
+                    }
+                    else if (message.SeenByNodeNames.Contains(this.HyperNodeName))
+                    {
+                        // Message was already processed by this node, so ignore it and do not forward it (since it would have been forwarded the first time)
+                        response.NodeAction = HyperNodeActionType.Ignored;
+                        response.NodeActionReason = HyperNodeActionReasonType.PreviouslySeen;
+                        activityTracker.TrackIgnored("Message previously seen.");
                     }
                     else
                     {
-                        // This node accepts responsibility for processing this message
-                        response.NodeAction = HyperNodeActionType.Accepted;
-                        response.NodeActionReason = HyperNodeActionReasonType.IntendedRecipient;
-                        activityTracker.Track("Attempting to process message...");
+                        // Add this node to the list of nodes who have seen this message
+                        message.SeenByNodeNames.Add(this.HyperNodeName);
+                        activityTracker.TrackSeen();
 
-                        // Define the method in a safe way (i.e. with a try/catch around it)
-                        var processMessageInternalSafe = new Action<ProcessMessageInternalParameter>(
-                            args =>
-                            {
-                                try
-                                {
-                                    ProcessMessageInternal(args);
-                                }
-                                catch (Exception ex)
-                                {
-                                    args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
-
-                                    if (ex is InvalidCommandRequestTypeException)
-                                        args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.InvalidCommandRequest;
-
-                                    args.ActivityTracker.TrackException(ex);
-                                }
-                                finally
-                                {
-                                    args.ActivityTracker.TrackProcessed();
-                                }
-                            }
-                        );
-
-                        var processMessageInternalArgs = new ProcessMessageInternalParameter(message, response, activityTracker, _tokenSource.Token);
-                        if (message.RunConcurrently)
+                        // Check if this message has a list of intended recipients, and if this node was one of them.
+                        // An empty recipients list means means the message is indended for all nodes in the forwarding path.
+                        if (message.IntendedRecipientNodeNames.Any() && !message.IntendedRecipientNodeNames.Contains(this.HyperNodeName))
                         {
-                            childTasks.Add(
-                                Task.Factory.StartNew(
-                                    args => processMessageInternalSafe(args as ProcessMessageInternalParameter),
-                                    processMessageInternalArgs,
-                                    _tokenSource.Token
-                                )
-                            );
+                            // This node was not an intended recipient, so ignore the message, but still forward it if possible.
+                            response.NodeAction = HyperNodeActionType.Ignored;
+                            response.NodeActionReason = HyperNodeActionReasonType.UnintendedRecipient;
+                            activityTracker.TrackIgnored("Message not intended for agent.");
                         }
                         else
                         {
-                            processMessageInternalSafe(processMessageInternalArgs);
+                            // This node accepts responsibility for processing this message
+                            response.NodeAction = HyperNodeActionType.Accepted;
+                            response.NodeActionReason = HyperNodeActionReasonType.IntendedRecipient;
+                            activityTracker.Track("Attempting to process message...");
+
+                            // Define the method in a safe way (i.e. with a try/catch around it)
+                            var processMessageInternalSafe = new Action<ProcessMessageInternalParameter>(
+                                args =>
+                                {
+                                    try
+                                    {
+                                        ProcessMessageInternal(args);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        args.Response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
+
+                                        if (ex is InvalidCommandRequestTypeException)
+                                            args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.InvalidCommandRequest;
+
+                                        args.ActivityTracker.TrackException(ex);
+                                    }
+                                    finally
+                                    {
+                                        args.ActivityTracker.TrackProcessed();
+                                    }
+                                }
+                            );
+
+                            var processMessageInternalArgs = new ProcessMessageInternalParameter(message, response, activityTracker, currentTaskInfo.Token);
+                            if (message.RunConcurrently)
+                            {
+                                childTasks.Add(
+                                    Task.Factory.StartNew(
+                                        args => processMessageInternalSafe(args as ProcessMessageInternalParameter),
+                                        processMessageInternalArgs,
+                                        currentTaskInfo.Token
+                                    )
+                                );
+                            }
+                            else
+                            {
+                                processMessageInternalSafe(processMessageInternalArgs);
+                            }
                         }
+
+                        childTasks.AddRange(
+                            ForwardMessage(message, activityTracker, currentTaskInfo.Token)
+                        );
                     }
 
-                    childTasks.AddRange(
-                        ForwardMessage(message, activityTracker)
+                    // Now that we have all of our tasks doing stuff, we want to add a final continuation when everything is finished to dispose of our subscribers
+                    Task.WhenAll(
+                        childTasks.ToArray()
+                    ).ContinueWith(
+                        (t, param) => ChildThreadCleanup(param as ChildThreadCleanupParameter),
+                        new ChildThreadCleanupParameter(longLivedSubscribers, activityTracker, response)
                     );
                 }
+                catch (Exception ex)
+                {
+                    response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
+                    activityTracker.TrackException(ex);
+                }
+                finally
+                {
+                    // Dispose of our short lived subscribers
+                    shortLivedSubscribers.Dispose();
+                }
 
-                // Now that we have all of our tasks doing stuff, we want to add a final continuation when everything is finished to dispose of our subscribers
-                Task.WhenAll(
-                    childTasks.ToArray()
-                ).ContinueWith(
-                    (t, param) => ChildThreadCleanup(param as ChildThreadCleanupParameter),
-                    new ChildThreadCleanupParameter(longLivedSubscribers, activityTracker, response)
+                #endregion Process Message
+            }
+            else
+            {
+                // If it couldn't be added, it's because we already have a task running with the specified task ID.
+                response.TaskTrace.Add(
+                    new HyperNodeActivityItem(this.HyperNodeName)
+                    {
+                        EventDescription = string.Format("A task with ID '{0}' is already running.", taskId),
+                        EventDetail = "A duplicate task ID was generated. This can occur when a new instance of singleton task is started while an existing instance of that task is running. If you know the task will complete, please try again after the task is finished. You may also consider cancelling the task and then restarting it."
+                    }
                 );
-            }
-            catch (Exception ex)
-            {
-                response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
-                activityTracker.TrackException(ex);
-            }
-            finally
-            {
-                // Dispose of our short lived subscribers
-                shortLivedSubscribers.Dispose();
-            }
 
-            #endregion Process Message
+                response.NodeAction = HyperNodeActionType.Rejected;
+                response.NodeActionReason = HyperNodeActionReasonType.DuplicateTaskId;
+                response.ProcessStatusFlags = MessageProcessStatusFlags.Cancelled;
+                response.TaskId = null;
+            }
 
             return response;
         }
@@ -453,7 +475,7 @@ namespace Hyper.NodeServices
         /// </summary>
         public void Cancel()
         {
-            _tokenSource.Cancel();
+            _masterTokenSource.Cancel();
         }
 
         /// <summary>
@@ -489,9 +511,15 @@ namespace Hyper.NodeServices
             if (_activityCache != null)
                 _activityCache.Dispose();
 
-            // Dispose of our cancellation source
-            if (_tokenSource != null)
-                _tokenSource.Dispose();
+            // Dispose of our task info objects
+            foreach (var taskInfo in _taskInfo.Values.Where(ti => ti != null))
+            {
+                taskInfo.Dispose();
+            }
+
+            // Dispose of our master cancellation token source
+            if (_masterTokenSource != null)
+                _masterTokenSource.Dispose();
         }
 
         #endregion Public Methods
@@ -514,7 +542,7 @@ namespace Hyper.NodeServices
         /// <param name="message">The <see cref="HyperNodeMessageRequest"/> object to forward.</param>
         /// <param name="activityTracker">The <see cref="HyperNodeServiceActivityTracker"/> object to use to track activity.</param>
         /// <returns></returns>
-        private IEnumerable<Task> ForwardMessage(HyperNodeMessageRequest message, HyperNodeServiceActivityTracker activityTracker)
+        private IEnumerable<Task> ForwardMessage(HyperNodeMessageRequest message, HyperNodeServiceActivityTracker activityTracker, CancellationToken token)
         {
             Task[] forwardingTasks = { };
 
@@ -558,7 +586,7 @@ namespace Hyper.NodeServices
                             return response;
                         },
                         childForwardingParam,
-                        _tokenSource.Token
+                        token
                     ).ContinueWith(
                         (forwardingTask, param) =>
                         {
@@ -590,7 +618,7 @@ namespace Hyper.NodeServices
                             }
                         },
                         childForwardingParam,
-                        _tokenSource.Token
+                        token
                     )
                 ).ToArray();
 
@@ -605,7 +633,7 @@ namespace Hyper.NodeServices
                         Task.WaitAll(
                             forwardingTasks,
                             (int)Math.Min(message.ForwardingTimeout.TotalMilliseconds, int.MaxValue), // Make sure we don't accidentally cast more milliseconds than can fit in an instance of System.Int32
-                            _tokenSource.Token
+                            token
                         );
                     }
                     catch (Exception ex)
@@ -763,7 +791,12 @@ namespace Hyper.NodeServices
                 }
             }
 
-            // Finally, dispose the subscribers and we're home free!
+            // Remove our task info and dispose of it
+            HyperNodeTaskInfo taskInfo;
+            if (_taskInfo.TryRemove(args.Response.TaskId, out taskInfo) && taskInfo != null)
+                taskInfo.Dispose();
+
+            // Finally, dispose of the subscribers and we're home free!
             if (args.ToDispose != null)
                 args.ToDispose.Dispose();
         }
@@ -1084,7 +1117,7 @@ namespace Hyper.NodeServices
          * -Number of current active tasks along with whether or not cancellation is pending (assuming we can get the cancellation stuff working)
          * -Maximum number of allowed active tasks (assuming we can get the cancellation stuff working, needs new app.config attribute)
          *************************************************************************************************************************************/
-        
+
         // TODO: GetAllTasksForMessageGUID
         // TODO: GetConfig (returns the sliding expiration, whether the cache is enabled, and lists of commands and activity monitors and their enabled status, count of "back up references" list)
         // TODO: SetActivityCacheDuration (input timespan)
@@ -1148,7 +1181,7 @@ namespace Hyper.NodeServices
          * -StopWatch (if diagnostics are enabled, can be used to track how long stuff takes)
          * -CancellationTokenSource (if task cancellation experiment works out, contains the cancellation token source associated with this token)
          *************************************************************************************************************************************/
-        
+
         // TODO: Write helper for "CancelMessage" command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
         // TODO: Write helper for "CancelTask" command (input task id of task to cancel, DOES NOT forward command to children. Intended to target cancellation for a single task for a single node.)
 
