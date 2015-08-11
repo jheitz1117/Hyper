@@ -1,12 +1,11 @@
 ﻿using System;
-using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility;
 
-namespace Hyper.NodeServices
+namespace Hyper.NodeServices.TaskIdProviders
 {
     internal sealed class GuidTaskIdProvider : TaskIdProviderBase
     {
-        public override string CreateTaskId(HyperNodeMessageRequest message)
+        public override string CreateTaskId(IHyperNodeMessageContext context)
         {
             return Guid.NewGuid().ToString();
         }

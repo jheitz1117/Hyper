@@ -50,6 +50,7 @@
     <Compile Include="CommandModules\ICommandResponseSerializerFactory.cs" />
     <Compile Include="ActivityTracking\IHyperNodeActivityEventItem.cs" />
     <Compile Include="ActivityTracking\ITaskActivityTracker.cs" />
+    <Compile Include="IHyperNodeMessageContext.cs" />
     <Compile Include="TaskIdProviderBase.cs" />
     <Compile Include="ITaskIdProvider.cs" />
     <Compile Include="CommandModules\PassThroughSerializer.cs" />

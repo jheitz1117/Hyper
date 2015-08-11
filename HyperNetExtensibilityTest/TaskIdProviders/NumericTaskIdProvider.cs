@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility;
 
 namespace HyperNetExtensibilityTest.TaskIdProviders
@@ -10,7 +9,7 @@ namespace HyperNetExtensibilityTest.TaskIdProviders
         private static long _counter;
         private static readonly object Lock = new object();
 
-        public override string CreateTaskId(HyperNodeMessageRequest message)
+        public override string CreateTaskId(IHyperNodeMessageContext context)
         {
             lock (Lock)
             {

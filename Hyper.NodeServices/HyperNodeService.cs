@@ -23,6 +23,7 @@ using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Exceptions;
+using Hyper.NodeServices.TaskIdProviders;
 using HyperNetExtensibilityTest.CommandModules;
 
 namespace Hyper.NodeServices
@@ -131,11 +132,19 @@ namespace Hyper.NodeServices
 
             var taskId = "";
             HyperNodeActivityItem illBehavedTaskIdProviderActivityItem = null;
+            var taskIdCreationContext = new TaskIdCreationContext(message.IntendedRecipientNodeNames, message.SeenByNodeNames)
+            {
+                CommandName = message.CommandName,
+                CreatedByAgentName = message.CreatedByAgentName,
+                CreationDateTime = message.CreationDateTime,
+                MessageGuid = message.MessageGuid,
+                ProcessOptionFlags = message.ProcessOptionFlags
+            };
 
             try
             {
                 // Try to use our custom task ID provider
-                taskId = this.TaskIdProvider.CreateTaskId(message);
+                taskId = this.TaskIdProvider.CreateTaskId(taskIdCreationContext);
 
                 // Check for a blank task ID
                 if (string.IsNullOrWhiteSpace(taskId))
@@ -162,7 +171,7 @@ namespace Hyper.NodeServices
             // Check if we had an ill-behaved task ID provider. If so, use our default task ID provider instead.
             if (illBehavedTaskIdProviderActivityItem != null)
             {
-                taskId = DefaultTaskIdProvider.CreateTaskId(message);
+                taskId = DefaultTaskIdProvider.CreateTaskId(taskIdCreationContext);
 
                 illBehavedTaskIdProviderActivityItem.EventDescription += " The default task ID provider was used to generate a non-blank task ID instead.";
                 response.TaskTrace.Add(illBehavedTaskIdProviderActivityItem);
@@ -1131,8 +1140,8 @@ namespace Hyper.NodeServices
             return result;
         }
 
+        // TODO: SetActivityCacheDuration (input timespan)
         // TODO: Update GetCommandConfig command to be GetStatus command (see comments below)
-
         /*************************************************************************************************************************************
          * GetStatus
          * 
@@ -1146,16 +1155,23 @@ namespace Hyper.NodeServices
          * -Maximum number of allowed active tasks (needs new app.config attribute)
          *************************************************************************************************************************************/
 
-        // TODO: GetAllTasksForMessageGUID (only works with cache
-        // TODO: SetActivityCacheDuration (input timespan)
-        // TODO: Force-clear the cache (for cache items that are currently being accessed, is there any way to keep those and add an activity item indicating that the cache was force-cleared? This might cut down on confusion later on when I'm watching a task and suddenly lose all my progress. It would be nice to be informed of where my progress went.
-        // TODO: Other command idea: enable/disable diagnostics (such as activity tracking level, i.e. diagnostic, debug, verbose, quiet, etc., or possibly can mimic log4net) (stopwatch, for instance. Can just add an additional activity item indicating how long it took, if it's enabled.)
+        // TODO: Update HyperNodeTaskInfo class as follows
+        /*************************************************************************************************************************************
+         * Diagnostics (new app.config attribute to enable/disable this feature, plus new command to enable/disable the feature in real-time)
+         * 
+         * Need to add a StopWatch property to HyperNodeTaskInfo class for diagnostics. Stopwatch would track the lifetime of the task.
+         * Should have a list of diagnostic-specific activity items? Not sure how this would work or if it would be useful...But it
+         * would be nice to grab the elapsed milliseconds in the activity tracker somehow so that activity events can be timestamped relative
+         * to the beginning of the request.
+         *************************************************************************************************************************************/
 
+        // TODO: GetAllTasksForMessageGUID (only works with cache. need to notify caller if cache is disabled, or we need to restructure our HyperNodeInfo dictionary to use the message GUID as well as the task id)
+        //       Should we just have a 2-dimensional dictionary?
+        // TODO: Force-clear the cache (for cache items that are currently being accessed, is there any way to keep those and add an activity item indicating that the cache was force-cleared? This might cut down on confusion later on when I'm watching a task and suddenly lose all my progress. It would be nice to be informed of where my progress went.
+
+        // TODO: Write helper for "CancelMessage" command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
         /*************************************************************************************************************************************
          * Cancellation Notes
-         * 
-         * I'm considering creating new cancellation token sources as requests come in. There will be the top-level cancellation triggered
-         * by a call to the HyperNode's Cancel() method, but there could also be task-level and message-level cancellation token sources.
          * 
          * A message-level cancellation token source should trigger cancellation of all tasks spawned for that message GUID across all
          * HyperNodes in the network. In this case, if I ask Alice and Bob to process the same message, and then I send a message-level
@@ -1194,19 +1210,6 @@ namespace Hyper.NodeServices
          *    |
          *    +---Etc.
          *************************************************************************************************************************************/
-
-        /*************************************************************************************************************************************
-         * Diagnostics
-         * 
-         * Dictionary keyed off of task id. Value would be an instance of TaskInfo. Is this basically the same thing as the cache? Should we
-         * use the cache for this instead? If we did, how could we support task cancellation while also disabling the cache?
-         * 
-         * TaskInfo class (need this anyway to store the cancellation tokens for our tasks)
-         * -StopWatch (if diagnostics are enabled, can be used to track how long stuff takes)
-         * -CancellationTokenSource (if task cancellation experiment works out, contains the cancellation token source associated with this token)
-         *************************************************************************************************************************************/
-
-        // TODO: Write helper for "CancelMessage" command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
 
         #endregion Internal Helper Methods
     }
