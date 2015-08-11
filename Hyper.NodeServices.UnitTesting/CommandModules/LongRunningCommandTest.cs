@@ -57,18 +57,29 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
                     Math.Min(maxSleepMilliseconds, remainingMilliseconds)
                 );
 
-                Task.WaitAll(
-                    Task.Delay(sleepMilliseconds, context.Token)
-                );
-
-                // Avoid reporting more than 100% or reporting 100% multiple times
-                if (stopwatch.ElapsedMilliseconds < totalRunTime.TotalMilliseconds)
+                try
                 {
-                    context.Activity.Track(
-                        string.Format("Progress update {0}.", ++progressReportCount),
-                        stopwatch.ElapsedMilliseconds, 
-                        totalRunTime.TotalMilliseconds
+                    Task.WaitAll(
+                        new []
+                        {
+                            Task.Delay(sleepMilliseconds, context.Token)
+                        },
+                        context.Token
                     );
+
+                    // Avoid reporting more than 100% or reporting 100% multiple times
+                    if (stopwatch.ElapsedMilliseconds < totalRunTime.TotalMilliseconds)
+                    {
+                        context.Activity.Track(
+                            string.Format("Progress update {0}.", ++progressReportCount),
+                            stopwatch.ElapsedMilliseconds,
+                            totalRunTime.TotalMilliseconds
+                        );
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    break; // break on cancel
                 }
             }
 
@@ -80,6 +91,7 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
             }
             else
             {
+                // Otherwise, we completed successfully, so show 100%
                 context.Activity.Track(
                     string.Format("Progress update {0}.", ++progressReportCount),
                     totalRunTime.TotalMilliseconds,

@@ -363,8 +363,29 @@ namespace HyperNodeTestClient
             return (
                 from a in activity
                 orderby a.EventDateTime
-                select string.Format("{0:G} {1} ({2:P}) - {3}", a.EventDateTime, a.Agent, a.ProgressPercentage, a.EventDescription)
+                select string.Format(
+                    "{0:G} {1}{2} - {3}",
+                    a.EventDateTime,
+                    a.Agent,
+                    (a.ProgressPercentage.HasValue || a.Elapsed.HasValue
+                     ? string.Format(
+                        " ({0}{1}{2:P})",
+                        a.Elapsed,
+                        (a.Elapsed.HasValue && a.ProgressPercentage.HasValue ? " " : ""),
+                        a.ProgressPercentage
+                       )
+                     : ""
+                    ),
+                    a.EventDescription
+                )
             ).ToArray();
+
+            //return (
+            //    from a in activity
+            //    orderby a.EventDateTime
+            //    select string.Format("{0:G} {1} ({2:P}) - {3}", a.EventDateTime, a.Agent, a.ProgressPercentage, a.EventDescription)
+            //).ToArray();
+
         }
 
         private void StartAliceProgressTracking(Guid messageGuid, string taskId)

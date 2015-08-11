@@ -862,6 +862,12 @@ namespace Hyper.NodeServices
                 },
                 new CommandModuleConfiguration
                 {
+                    CommandName = SystemCommandNames.EnableDiagnostics,
+                    Enabled = actualDefaultEnabled,
+                    CommandModuleType = typeof(EnableDiagnosticsCommand)
+                },
+                new CommandModuleConfiguration
+                {
                     CommandName = SystemCommandNames.CancelTask,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(CancelTaskCommand)
@@ -1103,20 +1109,11 @@ namespace Hyper.NodeServices
          * Returns the following:
          * -Current value of activity cache sliding expiration
          * -ActivityCacheEnabled
-         * -DiagnosticsEnabled (if diagnostics experiment works out - needs new app.config attribute)
+         * -DiagnosticsEnabled
          * -List of commands, whether they are enabled, and whether they are system commands or custom commands
          * -List of activity monitors and whether they are enabled (they'll all be custom, since the built-in monitors are never added to this list, so need for a Custom/System enum for activity monitors)
-         * -Number of current active tasks along with whether or not cancellation is pending
+         * -Number of current active tasks along with whether or not cancellation is pending and the total elapsed time on the task
          * -Maximum number of allowed active tasks (needs new app.config attribute)
-         *************************************************************************************************************************************/
-
-        // TODO: Update HyperNodeTaskInfo class as follows
-        /*************************************************************************************************************************************
-         * Diagnostics
-         * 
-         * new app.config attribute to enable/disable this feature server-side
-         * new command to enable/disable the feature in real-time (server-side)
-         * also enabled when message requests a task trace
          *************************************************************************************************************************************/
 
         // TODO: GetAllTasksForMessageGUID (only works with cache. need to notify caller if cache is disabled, or we need to restructure our HyperNodeInfo dictionary to use the message GUID as well as the task id)
@@ -1136,7 +1133,7 @@ namespace Hyper.NodeServices
          *************************************************************************************************************************************/
 
         /*************************************************************************************************************************************
-         * Documentation Notes
+         * Documentation Notes (Phase 2)
          * 
          * Create a ICommandDocumenter interface that can be used to generate documentation for command modules.
          * 

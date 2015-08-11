@@ -13,6 +13,9 @@ namespace Hyper.NodeServices.Contracts
         public string Agent { get; set; }
 
         [DataMember]
+        public TimeSpan? Elapsed { get; set; }
+
+        [DataMember]
         public string EventDescription { get; set; }
 
         [DataMember]

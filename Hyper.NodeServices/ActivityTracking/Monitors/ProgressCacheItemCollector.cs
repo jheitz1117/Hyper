@@ -48,7 +48,8 @@ namespace Hyper.NodeServices.ActivityTracking
                         EventDescription = activity.EventDescription,
                         EventDetail = activity.EventDetail,
                         ProgressPart = activity.ProgressPart,
-                        ProgressTotal = activity.ProgressTotal
+                        ProgressTotal = activity.ProgressTotal,
+                        Elapsed = activity.Elapsed
                     }
                 );
             }
