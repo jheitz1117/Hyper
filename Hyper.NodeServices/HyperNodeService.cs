@@ -1119,8 +1119,7 @@ namespace Hyper.NodeServices
         // TODO: GetAllTasksForMessageGUID (only works with cache. need to notify caller if cache is disabled, or we need to restructure our HyperNodeInfo dictionary to use the message GUID as well as the task id)
         //       Should we just have a 2-dimensional dictionary?
         // TODO: Force-clear the cache (for cache items that are currently being accessed, is there any way to keep those and add an activity item indicating that the cache was force-cleared? This might cut down on confusion later on when I'm watching a task and suddenly lose all my progress. It would be nice to be informed of where my progress went.
-
-        // TODO: Write helper for "CancelMessage" command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
+        // TODO: CancelMessage command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
         /*************************************************************************************************************************************
          * Cancellation Notes
          * 

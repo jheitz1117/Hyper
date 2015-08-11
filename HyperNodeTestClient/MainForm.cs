@@ -152,7 +152,7 @@ namespace HyperNodeTestClient
                 PopulateResponseSummary(lstRealTimeResponse, response);
                 PopulateTaskTrace(tvwRealTimeTaskTrace, response);
 
-                if (msg.CacheProgressInfo)
+                if (response.NodeAction != HyperNodeActionType.Rejected && msg.CacheProgressInfo)
                     StartAliceProgressTracking(msg.MessageGuid, response.TaskId);
             }
             catch (Exception ex)
