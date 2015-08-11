@@ -72,6 +72,7 @@
     <Compile Include="CommandModules\SystemCommands\EchoCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\GetChildNodesCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\GetCommandConfigCommand.cs" />
+    <Compile Include="CommandModules\SystemCommands\SetActivityCacheDurationCommand.cs" />
     <Compile Include="Configuration\SystemCommandElement.cs" />
     <Compile Include="Configuration\SystemCommandElementCollection.cs" />
     <Compile Include="Exceptions\ActivityMonitorSubscriptionException.cs">

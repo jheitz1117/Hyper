@@ -91,8 +91,9 @@ namespace Hyper.NodeServices
 
         internal bool EnableDiagnostics { get; set; }
 
-        private TimeSpan ActivityCacheSlidingExpiration
+        internal TimeSpan ActivityCacheSlidingExpiration
         {
+            get { return _activityCache.CacheDuration; }
             set { _activityCache.CacheDuration = value; }
         }
 
@@ -712,13 +713,29 @@ namespace Hyper.NodeServices
                 requestSerializer = requestSerializer ?? commandModuleConfig.RequestSerializer ?? DefaultRequestSerializer;
                 responseSerializer = responseSerializer ?? commandModuleConfig.ResponseSerializer ?? DefaultResponseSerializer;
 
+                ICommandRequest commandRequest = null;
                 try
                 {
                     // Deserialize the request string
-                    var commandRequest = requestSerializer.Deserialize(args.Message.CommandRequestString);
+                    commandRequest = requestSerializer.Deserialize(args.Message.CommandRequestString);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidCommandRequestTypeException(
+                        string.Format(
+                            "Command '{0}' expected a request type of '{1}', but the command request string could not be deserialized into that type. See inner exception for details.",
+                            args.Message.CommandName,
+                            requestSerializer.GetType().FullName
+                        ),
+                        ex
+                    );
+                }
 
+                try
+                {
                     // Create the execution context to pass into our module
-                    var context = new CommandExecutionContext(args.Message.IntendedRecipientNodeNames, args.Message.SeenByNodeNames)
+                    var context = new CommandExecutionContext(args.Message.IntendedRecipientNodeNames,
+                        args.Message.SeenByNodeNames)
                     {
                         TaskId = args.Response.TaskId,
                         MessageGuid = args.Message.MessageGuid,
@@ -871,6 +888,12 @@ namespace Hyper.NodeServices
                     CommandName = SystemCommandNames.CancelTask,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(CancelTaskCommand)
+                },
+                new CommandModuleConfiguration
+                {
+                    CommandName = SystemCommandNames.SetActivityCacheDuration,
+                    Enabled = actualDefaultEnabled,
+                    CommandModuleType = typeof(SetActivityCacheDurationCommand)
                 }
             };
 
@@ -1101,7 +1124,6 @@ namespace Hyper.NodeServices
             return result;
         }
 
-        // TODO: SetActivityCacheDuration (input timespan, warn if cache is disabled)
         // TODO: Update GetCommandConfig command to be GetStatus command (see comments below)
         /*************************************************************************************************************************************
          * GetStatus
@@ -1116,9 +1138,7 @@ namespace Hyper.NodeServices
          * -Maximum number of allowed active tasks (needs new app.config attribute)
          *************************************************************************************************************************************/
 
-        // TODO: GetAllTasksForMessageGUID (only works with cache. need to notify caller if cache is disabled, or we need to restructure our HyperNodeInfo dictionary to use the message GUID as well as the task id)
-        //       Should we just have a 2-dimensional dictionary?
-        // TODO: Force-clear the cache (for cache items that are currently being accessed, is there any way to keep those and add an activity item indicating that the cache was force-cleared? This might cut down on confusion later on when I'm watching a task and suddenly lose all my progress. It would be nice to be informed of where my progress went.
+        // TODO: GetAllTasksForMessageGUID (only works with cache. need to notify caller if cache is disabled, or we need to restructure our HyperNodeInfo dictionary to use the message GUID as well as the task id) Should we just have a 2-dimensional dictionary?
         // TODO: CancelMessage command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
         /*************************************************************************************************************************************
          * Cancellation Notes
@@ -1129,6 +1149,22 @@ namespace Hyper.NodeServices
          * will do likewise. Bob will also cancel his task, and so will every other HyperNode in the network. This can be accomplished
          * by retrieving all the tasks with the specified Message GUID and loop through and cancelling all the tasks for that message in
          * series.
+         *************************************************************************************************************************************/
+
+        // TODO: ClearActivityCache (Phase 2 - see comments below)
+        /*************************************************************************************************************************************
+         * ClearActivityCache
+         * 
+         * Everyone on StackOverflow seems to think this is impossible. Best option is to use the workaround posted by Thomas F. Abraham at
+         * the following link: http://stackoverflow.com/questions/4183270/how-to-clear-the-net-4-memorycache/22388943#comment34789210_22388943
+         * 
+         * If we do clear the cache, then for cache items that are currently being accessed, is there any way to keep those and add an
+         * activity item indicating that the cache was cleared? This might cut down on confusion later on when I'm watching a task and
+         * suddenly lose all my progress. It would be nice to be informed that my progress disappeared because the cache was cleared.
+         * 
+         * Alternatively, I can implement my own ObjectCache (by implementing the .NET base class), or I can just roll my own
+         * caching without using the .NET 4 base class. But not without an epic experiment to confirm it works. If we do this, would
+         * probably need to go into its own DLL: Hyper.Caching.
          *************************************************************************************************************************************/
 
         /*************************************************************************************************************************************

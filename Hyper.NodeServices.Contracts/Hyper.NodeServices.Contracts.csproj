@@ -52,6 +52,8 @@
     <Compile Include="HyperNodeMessageResponse.cs" />
     <Compile Include="HyperNodePath.cs" />
     <Compile Include="SystemCommandNames.cs" />
+    <Compile Include="SystemCommands\SetActivityCacheDurationResponse.cs" />
+    <Compile Include="SystemCommands\SetActivityCacheDurationRequest.cs" />
     <Compile Include="SystemCommands\EnableDiagnosticsRequest.cs" />
     <Compile Include="SystemCommands\EnableActivityCacheRequest.cs" />
     <Compile Include="SystemCommands\GetCachedTaskProgressInfoResponse.cs" />

@@ -1,4 +1,5 @@
-﻿using Hyper.NodeServices.Contracts.Extensibility;
+﻿using System;
+using Hyper.NodeServices.Contracts.Extensibility;
 
 namespace Hyper.NodeServices.Contracts.Serializers
 {
@@ -39,6 +40,16 @@ namespace Hyper.NodeServices.Contracts.Serializers
         ICommandResponse ICommandResponseSerializer.Deserialize(string responseString)
         {
             return ((ICommandResponseSerializer)this.ResponseSerializer).Deserialize(responseString);
+        }
+
+        public virtual Type GetRequestType()
+        {
+            return typeof(TRequest);
+        }
+
+        public virtual Type GetResponseType()
+        {
+            return typeof(TResponse);
         }
     }
 }

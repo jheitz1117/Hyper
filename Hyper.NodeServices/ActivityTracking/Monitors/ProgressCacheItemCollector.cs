@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.Caching;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.SystemCommands;

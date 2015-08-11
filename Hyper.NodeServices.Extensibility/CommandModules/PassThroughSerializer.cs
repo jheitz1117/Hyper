@@ -1,4 +1,5 @@
-﻿using Hyper.NodeServices.Contracts;
+﻿using System;
+using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility;
 
 namespace Hyper.NodeServices.Extensibility.CommandModules
@@ -23,6 +24,16 @@ namespace Hyper.NodeServices.Extensibility.CommandModules
         ICommandRequest ICommandRequestSerializer.Deserialize(string requestString)
         {
             return new CommandRequestString(requestString);
+        }
+
+        public Type GetRequestType()
+        {
+            return typeof(CommandRequestString);
+        }
+
+        public Type GetResponseType()
+        {
+            return typeof(CommandResponseString);
         }
     }
 }
