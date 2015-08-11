@@ -1,19 +1,14 @@
-﻿using Hyper.NodeServices.ActivityTracking;
-using Hyper.NodeServices.Contracts;
-
-namespace Hyper.NodeServices
+﻿namespace Hyper.NodeServices
 {
     internal class ForwardingTaskParameter
     {
-        public string HyperNodeName { get; private set; }
-        public HyperNodeServiceActivityTracker ActivityTracker { get; private set; }
-        public HyperNodeMessageRequest Message { get; private set; }
+        public string ChildNodeName { get; private set; }
+        public HyperNodeTaskInfo TaskInfo { get; private set; }
 
-        public ForwardingTaskParameter(string hyperNodeName, HyperNodeServiceActivityTracker activityTracker, HyperNodeMessageRequest message)
+        public ForwardingTaskParameter(string childNodeName, HyperNodeTaskInfo taskInfo)
         {
-            this.HyperNodeName = hyperNodeName;
-            this.ActivityTracker = activityTracker;
-            this.Message = message;
+            this.ChildNodeName = childNodeName;
+            this.TaskInfo = taskInfo;
         }
     }
 }

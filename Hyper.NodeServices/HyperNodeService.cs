@@ -72,16 +72,6 @@ namespace Hyper.NodeServices
         private readonly CancellationTokenSource _masterTokenSource = new CancellationTokenSource();
         private readonly ConcurrentDictionary<string, HyperNodeTaskInfo>  _taskInfo =  new ConcurrentDictionary<string, HyperNodeTaskInfo>();
 
-        /// <summary>
-        /// This member is meant to store a backup of all of the <see cref="IDisposable" /> subscribers to our activity feed.
-        /// If the <see cref="HyperNodeService"/> object is forced to be disposed while it still has child threads processing,
-        /// the <see cref="ChildThreadCleanup" /> method may not be called properly. In this case, we would lose our only
-        /// reference to the <see cref="IDisposable" /> subscribers waiting to be disposed, resulting in a memory leak. To
-        /// mitigate this possibility, this backup reference is stored so that we have one last chance to clean up when the
-        /// <see cref="HyperNodeService" /> object is disposed.
-        /// </summary>
-        private readonly List<IDisposable> _backupSubscriberReference = new List<IDisposable>();
-
         #endregion Private Members
 
         #region Properties
@@ -186,9 +176,13 @@ namespace Hyper.NodeServices
                 // In this case, we've confirmed that the new task was added, so we can set our response task ID
                 response.TaskId = taskId;
 
+                // Allows the task info to track the message and response
+                currentTaskInfo.Message = message;
+                currentTaskInfo.Response = response;
+
                 #region Activity Tracker Setup
 
-                var activityTracker = new HyperNodeServiceActivityTracker(
+                currentTaskInfo.Activity = new HyperNodeServiceActivityTracker(
                     new HyperNodeActivityContext(
                         this.HyperNodeName,
                         message.MessageGuid,
@@ -197,22 +191,12 @@ namespace Hyper.NodeServices
                     )
                 );
 
-                /*****************************************************************************************************************
-                 * Setup our activity tracker
-                 * 
-                 * The activity tracker triggers activity tracking events for monitor objects that subscribe to the events. The
-                 * subscribers are split into two groups: those that should stick around after the current method call to report
-                 * on long-running child tasks, and those that should be disposed of at the end of this method call.
-                 *****************************************************************************************************************/
-                var longLivedSubscribers = new CompositeDisposable(); // Container for subscribers that may need to live longer than this method call
-                var shortLivedSubscribers = new CompositeDisposable(); // Container for subscribers that will be disposed at the end of this method call
-
                 try
                 {
                     // Create our activity feed by bridging the event tracker with reactive extensions
                     var liveEvents = Observable.FromEventPattern<TrackActivityEventHandler, TrackActivityEventArgs>(
-                        h => activityTracker.TrackActivityHandler += h,
-                        h => activityTracker.TrackActivityHandler -= h
+                        h => currentTaskInfo.Activity.TrackActivityHandler += h,
+                        h => currentTaskInfo.Activity.TrackActivityHandler -= h
                     ).Select(
                         a => a.EventArgs.ActivityItem as IHyperNodeActivityEventItem // Cast all our activity items as IHyperNodeActivityEventItem
                     );
@@ -226,7 +210,7 @@ namespace Hyper.NodeServices
                      *****************************************************************************************************************/
                     if (this.EnableActivityCache && message.CacheProgressInfo)
                     {
-                        longLivedSubscribers.Add(
+                        currentTaskInfo.ActivitySubscribers.Add(
                             liveEvents
                                 .Where(a => _activityCache.ShouldTrack(a))
                                 .Subscribe(_activityCache)
@@ -245,7 +229,7 @@ namespace Hyper.NodeServices
                     if (message.ReturnTaskTrace)
                     {
                         var taskTraceCollector = new HyperNodeTaskTraceCollector(response);
-                        longLivedSubscribers.Add(
+                        currentTaskInfo.ActivitySubscribers.Add(
                             liveEvents
                                 .Where(a => taskTraceCollector.ShouldTrack(a))
                                 .Subscribe(taskTraceCollector)
@@ -256,8 +240,8 @@ namespace Hyper.NodeServices
                      * Concurrent tasks cannot return anything meaningful in the real-time response because the main thread gets to the return statement long before the
                      * child threads complete their processing. Any response that is returned by the main thread contains minimal information: perhaps an incomplete task
                      * trace and some enum values, but that's it. Therefore, by design, clients who elect to run tasks concurrently inherently decide to disregard the
-                     * real-time response object in favor of a progress cache which can be queried after the initial call. This cache can either be the in-memory cache
-                     * of the hypernode, or it can be some other repository that the user sets up themselves via a custom monitor.
+                     * real-time response object except for the task ID, which it must use to query a progress cache after the initial call. This cache can either be the
+                     * in-memory cache of the hypernode, or it can be some other repository that the user sets up themselves via a custom monitor.
                      * 
                      * On the other hand, if the client elects to run non-concurrently (aka synchronously), then it expects to and should receive a complete response
                      * object.
@@ -274,7 +258,7 @@ namespace Hyper.NodeServices
                      * user wanted to use something other than the cache, they would have to determine the task IDs their own way.
                      *****************************************************************************************************************/
                     var responseCollector = new HyperNodeMessageResponseCollector(response);
-                    longLivedSubscribers.Add(
+                    currentTaskInfo.ActivitySubscribers.Add(
                         liveEvents
                             .Where(a => responseCollector.ShouldTrack(a))
                             .Subscribe(responseCollector)
@@ -285,7 +269,7 @@ namespace Hyper.NodeServices
                      * task trace and cache monitors at this point, so we can actually use the activity tracker to track the exceptions. This way, we can make sure that
                      * any exceptions thrown by user code are available to be reported to the client
                      *****************************************************************************************************************/
-                    longLivedSubscribers.Add(
+                    currentTaskInfo.ActivitySubscribers.Add(
                         new CompositeDisposable(
                             from monitor in _activityMonitors
                             where monitor.Enabled
@@ -304,7 +288,7 @@ namespace Hyper.NodeServices
                                         catch (Exception ex)
                                         {
                                             // This is legal at this point because we already setup our cache and task trace monitors earlier
-                                            activityTracker.TrackException(
+                                            currentTaskInfo.Activity.TrackException(
                                                 new ActivityMonitorSubscriptionException(
                                                     string.Format(
                                                         "Unable to subscribe monitor '{0}' because its ShouldTrack() method threw an exception.",
@@ -326,23 +310,12 @@ namespace Hyper.NodeServices
                 catch (Exception ex)
                 {
                     // This is a safe thing to do, it may just result in nothing being reported if Reactive Extensions wasn't setup properly
-                    activityTracker.TrackException(
+                    currentTaskInfo.Activity.TrackException(
                         new ActivityTrackerInitializationException(
                             "An exception was thrown while initializing the activity tracker. See inner exception for details.",
                             ex
                         )
                     );
-                }
-                finally
-                {
-                    // If we're running concurrently and we've successfully added some long-lived subscribers, be sure to backup the reference
-                    if (message.RunConcurrently && longLivedSubscribers.Count > 0)
-                    {
-                        lock (_lock)
-                        {
-                            _backupSubscriberReference.Add(longLivedSubscribers);
-                        }
-                    }
                 }
 
                 #endregion Activity Tracker Setup
@@ -354,27 +327,27 @@ namespace Hyper.NodeServices
                     var childTasks = new List<Task>();
 
                     // Confirm receipt of the message
-                    activityTracker.TrackReceived();
+                    currentTaskInfo.Activity.TrackReceived();
 
                     if (message.ExpirationDateTime <= DateTime.Now)
                     {
                         // Message has expired, so ignore it and do not forward it
                         response.NodeAction = HyperNodeActionType.Ignored;
                         response.NodeActionReason = HyperNodeActionReasonType.MessageExpired;
-                        activityTracker.TrackIgnored("Message expired on " + message.ExpirationDateTime.ToString("G") + ".");
+                        currentTaskInfo.Activity.TrackIgnored("Message expired on " + message.ExpirationDateTime.ToString("G") + ".");
                     }
                     else if (message.SeenByNodeNames.Contains(this.HyperNodeName))
                     {
                         // Message was already processed by this node, so ignore it and do not forward it (since it would have been forwarded the first time)
                         response.NodeAction = HyperNodeActionType.Ignored;
                         response.NodeActionReason = HyperNodeActionReasonType.PreviouslySeen;
-                        activityTracker.TrackIgnored("Message previously seen.");
+                        currentTaskInfo.Activity.TrackIgnored("Message previously seen.");
                     }
                     else
                     {
                         // Add this node to the list of nodes who have seen this message
                         message.SeenByNodeNames.Add(this.HyperNodeName);
-                        activityTracker.TrackSeen();
+                        currentTaskInfo.Activity.TrackSeen();
 
                         // Check if this message has a list of intended recipients, and if this node was one of them.
                         // An empty recipients list means means the message is indended for all nodes in the forwarding path.
@@ -383,17 +356,17 @@ namespace Hyper.NodeServices
                             // This node was not an intended recipient, so ignore the message, but still forward it if possible.
                             response.NodeAction = HyperNodeActionType.Ignored;
                             response.NodeActionReason = HyperNodeActionReasonType.UnintendedRecipient;
-                            activityTracker.TrackIgnored("Message not intended for agent.");
+                            currentTaskInfo.Activity.TrackIgnored("Message not intended for agent.");
                         }
                         else
                         {
                             // This node accepts responsibility for processing this message
                             response.NodeAction = HyperNodeActionType.Accepted;
                             response.NodeActionReason = HyperNodeActionReasonType.IntendedRecipient;
-                            activityTracker.Track("Attempting to process message...");
+                            currentTaskInfo.Activity.Track("Attempting to process message...");
 
                             // Define the method in a safe way (i.e. with a try/catch around it)
-                            var processMessageInternalSafe = new Action<ProcessMessageInternalParameter>(
+                            var processMessageInternalSafe = new Action<HyperNodeTaskInfo>(
                                 args =>
                                 {
                                     try
@@ -410,54 +383,60 @@ namespace Hyper.NodeServices
                                         if (ex is InvalidCommandRequestTypeException)
                                             args.Response.ProcessStatusFlags |= MessageProcessStatusFlags.InvalidCommandRequest;
 
-                                        args.ActivityTracker.TrackException(ex);
+                                        args.Activity.TrackException(ex);
                                     }
                                     finally
                                     {
-                                        args.ActivityTracker.TrackProcessed();
+                                        args.Activity.TrackProcessed();
                                     }
                                 }
                             );
 
-                            var processMessageInternalArgs = new ProcessMessageInternalParameter(message, response, activityTracker, currentTaskInfo.Token);
                             if (message.RunConcurrently)
                             {
                                 childTasks.Add(
                                     Task.Factory.StartNew(
-                                        args => processMessageInternalSafe(args as ProcessMessageInternalParameter),
-                                        processMessageInternalArgs,
+                                        args => processMessageInternalSafe(args as HyperNodeTaskInfo),
+                                        currentTaskInfo,
                                         currentTaskInfo.Token
                                     )
                                 );
                             }
                             else
                             {
-                                processMessageInternalSafe(processMessageInternalArgs);
+                                processMessageInternalSafe(currentTaskInfo);
                             }
                         }
 
                         childTasks.AddRange(
-                            ForwardMessage(message, activityTracker, currentTaskInfo.Token)
+                            ForwardMessage(currentTaskInfo)
                         );
                     }
 
-                    // Now that we have all of our tasks doing stuff, we want to add a final continuation when everything is finished to dispose of our subscribers
-                    Task.WhenAll(
-                        childTasks.ToArray()
-                    ).ContinueWith(
-                        (t, param) => ChildThreadCleanup(param as ChildThreadCleanupParameter),
-                        new ChildThreadCleanupParameter(longLivedSubscribers, activityTracker, response)
-                    );
+                    // Now that we have all of our tasks doing stuff, we need to make sure we clean up after ourselves.
+                    if (message.RunConcurrently)
+                    {
+                        // If we're running concurrently, we want to return immediately and allow the clean up to occur as a continuation after the tasks are finished.
+                        Task.WhenAll(
+                            childTasks.ToArray()
+                        ).ContinueWith(
+                            t => TaskCleanUp(taskId)
+                        );
+                    }
+                    else
+                    {
+                        // Otherwise, if we're running synchronously, we want to block until all our child threads are done, then clean up.
+                        Task.WaitAll(
+                            childTasks.ToArray()
+                        );
+
+                        TaskCleanUp(taskId);
+                    }
                 }
                 catch (Exception ex)
                 {
                     response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
-                    activityTracker.TrackException(ex);
-                }
-                finally
-                {
-                    // Dispose of our short lived subscribers
-                    shortLivedSubscribers.Dispose();
+                    currentTaskInfo.Activity.TrackException(ex);
                 }
 
                 #endregion Process Message
@@ -496,16 +475,10 @@ namespace Hyper.NodeServices
         /// </summary>
         public void Dispose()
         {
-            // Dispose of any leftover subscribers
-            if (_backupSubscriberReference != null && _backupSubscriberReference.Any())
+            // Dispose of our task info objects
+            foreach (var taskInfo in _taskInfo.Values.Where(ti => ti != null))
             {
-                lock (_lock)
-                {
-                    foreach (var subscriber in _backupSubscriberReference.Where(s => s != null))
-                    {
-                        subscriber.Dispose();
-                    }
-                }
+                taskInfo.Dispose();
             }
 
             // Dispose of any of our activity monitors that implement IDisposable
@@ -522,12 +495,6 @@ namespace Hyper.NodeServices
             // Dispose of our activity cache
             if (_activityCache != null)
                 _activityCache.Dispose();
-
-            // Dispose of our task info objects
-            foreach (var taskInfo in _taskInfo.Values.Where(ti => ti != null))
-            {
-                taskInfo.Dispose();
-            }
 
             // Dispose of our master cancellation token source
             if (_masterTokenSource != null)
@@ -549,26 +516,23 @@ namespace Hyper.NodeServices
         }
 
         /// <summary>
-        /// Forwards the specified <see cref="HyperNodeMessageRequest"/> object using the specified <see cref="HyperNodeServiceActivityTracker"/> object to track activity.
+        /// Forwards the specified <see cref="HyperNodeMessageRequest"/> object using the specified <see cref="HyperNodeTaskInfo"/> object.
         /// </summary>
-        /// <param name="message">The <see cref="HyperNodeMessageRequest"/> object to forward.</param>
-        /// <param name="activityTracker">The <see cref="HyperNodeServiceActivityTracker"/> object to use to track activity.</param>
-        /// <param name="token">The <see cref="CancellationToken"/> to use to cancel the <see cref="Task"/> objects created by this method.</param>
         /// <returns></returns>
-        private IEnumerable<Task> ForwardMessage(HyperNodeMessageRequest message, HyperNodeServiceActivityTracker activityTracker, CancellationToken token)
+        private IEnumerable<Task> ForwardMessage(HyperNodeTaskInfo taskInfo)
         {
             Task[] forwardingTasks = { };
 
             // Allow a null path to be passed. We can just treat it as an empty path and not forward the message to anyone
             var children = GetConnectedHyperNodeChildren(
-                (message.ForwardingPath ?? new HyperNodePath()).GetChildren(this.HyperNodeName).ToList(),
-                activityTracker
+                (taskInfo.Message.ForwardingPath ?? new HyperNodePath()).GetChildren(this.HyperNodeName).ToList(),
+                taskInfo.Activity
             );
 
             if (children != null)
             {
                 forwardingTasks = children.Select(
-                    child => new ForwardingTaskParameter(child.Key, activityTracker, message)
+                    child => new ForwardingTaskParameter(child.Key, taskInfo)
                 ).Select(
                     childForwardingParam => Task.Factory.StartNew(
                         param =>
@@ -579,11 +543,11 @@ namespace Hyper.NodeServices
                             try
                             {
                                 // By the time we get here, we must have guaranteed that a client endpoint exists with the specified name.
-                                forwardingParam.ActivityTracker.TrackForwarding(forwardingParam.HyperNodeName);
+                                forwardingParam.TaskInfo.Activity.TrackForwarding(forwardingParam.ChildNodeName);
                                 response = new HyperNodeClient(
-                                    forwardingParam.HyperNodeName
+                                    forwardingParam.ChildNodeName
                                 ).ProcessMessage(
-                                    forwardingParam.Message
+                                    forwardingParam.TaskInfo.Message
                                 );
                             }
                             catch (FaultException)
@@ -593,13 +557,13 @@ namespace Hyper.NodeServices
                             }
                             catch (Exception ex)
                             {
-                                forwardingParam.ActivityTracker.TrackException(ex);
+                                forwardingParam.TaskInfo.Activity.TrackException(ex);
                             }
 
                             return response;
                         },
                         childForwardingParam,
-                        token
+                        taskInfo.Token
                     ).ContinueWith(
                         (forwardingTask, param) =>
                         {
@@ -611,32 +575,32 @@ namespace Hyper.NodeServices
                                 case TaskStatus.RanToCompletion:
                                     if (forwardingTask.Result != null)
                                     {
-                                        forwardingParam.ActivityTracker.TrackHyperNodeResponded(forwardingParam.HyperNodeName, forwardingTask.Result);
+                                        forwardingParam.TaskInfo.Activity.TrackHyperNodeResponded(forwardingParam.ChildNodeName, forwardingTask.Result);
                                     }
                                     break;
                                 case TaskStatus.Faulted:
-                                    forwardingParam.ActivityTracker.Track(
-                                        string.Format("An unhandled exception was thrown by HyperNode '{0}' as a fault.", forwardingParam.HyperNodeName),
+                                    forwardingParam.TaskInfo.Activity.Track(
+                                        string.Format("An unhandled exception was thrown by HyperNode '{0}' as a fault.", forwardingParam.ChildNodeName),
                                         "This is normally caused by an error thrown in the ProcessMessage() method, but could also be caused by an extension or plugin. Exception detail follows:\r\n" +
                                         forwardingTask.Exception
                                     );
                                     break;
                                 default:
-                                    forwardingParam.ActivityTracker.TrackFormat(
+                                    forwardingParam.TaskInfo.Activity.TrackFormat(
                                         "Child task to forward message to HyperNode '{0}' completed with status '{1}'.",
-                                        forwardingParam.HyperNodeName,
+                                        forwardingParam.ChildNodeName,
                                         forwardingTask.Status.ToString()
                                     );
                                     break;
                             }
                         },
                         childForwardingParam,
-                        token
+                        taskInfo.Token
                     )
                 ).ToArray();
 
                 // If we're not running concurrently, then we are running synchronously, which means we need to wait for all the child nodes to return
-                if (!message.RunConcurrently)
+                if (!taskInfo.Message.RunConcurrently)
                 {
                     try
                     {
@@ -645,22 +609,22 @@ namespace Hyper.NodeServices
                         // cancellation is requested
                         Task.WaitAll(
                             forwardingTasks,
-                            (int)Math.Min(message.ForwardingTimeout.TotalMilliseconds, int.MaxValue), // Make sure we don't accidentally cast more milliseconds than can fit in an instance of System.Int32
-                            token
+                            (int)Math.Min(taskInfo.Message.ForwardingTimeout.TotalMilliseconds, int.MaxValue), // Make sure we don't accidentally cast more milliseconds than can fit in an instance of System.Int32
+                            taskInfo.Token
                         );
                     }
                     catch (Exception ex)
                     {
-                        activityTracker.TrackException(ex);
+                        taskInfo.Activity.TrackException(ex);
                     }
 
                     // Track any HyperNodes that didn't return before the forwarding timeout
                     foreach (var forwardingArgs in forwardingTasks.Where(t => !t.IsCompleted).Select(t => t.AsyncState as ForwardingTaskParameter))
                     {
-                        activityTracker.Track(
+                        taskInfo.Activity.Track(
                             string.Format("HyperNode '{0}' timed out at {1}.",
-                                forwardingArgs.HyperNodeName,
-                                message.ForwardingTimeout
+                                forwardingArgs.ChildNodeName,
+                                taskInfo.Message.ForwardingTimeout
                             ),
                             string.Format(
                                 "HyperNode '{0}' did not return a response before the specified timeout of {1}. This is usually caused by a long-running task in the " +
@@ -668,9 +632,9 @@ namespace Hyper.NodeServices
                                 "the message timeout attributes in your WCF configuration. If caching was enabled for this message, additional trace logs may be obtained " +
                                 "by querying the intended recipients directly using the message guid '{2}'. Additional trace logs may also be obtained by querying the " +
                                 "data stores for any custom activity monitors that may be attached to the intended recipients.",
-                                forwardingArgs.HyperNodeName,
-                                message.ForwardingTimeout,
-                                message.MessageGuid
+                                forwardingArgs.ChildNodeName,
+                                taskInfo.Message.ForwardingTimeout,
+                                taskInfo.Message.MessageGuid
                             )
                         );
                     }
@@ -715,7 +679,7 @@ namespace Hyper.NodeServices
             return vertices;
         }
 
-        private void ProcessMessageInternal(ProcessMessageInternalParameter args)
+        private void ProcessMessageInternal(HyperNodeTaskInfo args)
         {
             ICommandResponse commandResponse;
 
@@ -760,7 +724,7 @@ namespace Hyper.NodeServices
                         CreationDateTime = args.Message.CreationDateTime,
                         ProcessOptionFlags = args.Message.ProcessOptionFlags,
                         Request = commandRequest,
-                        Activity = args.ActivityTracker,
+                        Activity = args.Activity,
                         Token = args.Token
                     };
 
@@ -782,7 +746,7 @@ namespace Hyper.NodeServices
             {
                 // Unrecognized command
                 commandResponse = new CommandResponse(MessageProcessStatusFlags.Failure | MessageProcessStatusFlags.InvalidCommand);
-                args.ActivityTracker.TrackFormat("Fatal error: Invalid command '{0}'.", args.Message.CommandName);
+                args.Activity.TrackFormat("Fatal error: Invalid command '{0}'.", args.Message.CommandName);
             }
 
             // Make sure we report cancellation if it was requested
@@ -792,30 +756,16 @@ namespace Hyper.NodeServices
             args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
         }
 
-        private void ChildThreadCleanup(ChildThreadCleanupParameter args)
+        /// <summary>
+        /// Removes the task with the specified <paramref name="taskId"/> from the internal dictionary of tasks and calls Dispose() on it.
+        /// </summary>
+        /// <param name="taskId">The ID of the task to clean up.</param>
+        private void TaskCleanUp(string taskId)
         {
-            /* Signal completion before we dispose our subscribers. This is necessary because clients who are polling the service for progress
-             * updates must know when the service is done sending updates. Make sure we pass the final, completed response object in case we have
-             * any monitors that are watching for it. */
-            args.ActivityTracker.TrackFinished(args.Response);
-
-            // We're about to dispose of these subscribers, so we no longer need the backup reference
-            if (_backupSubscriberReference != null)
-            {
-                lock (_lock)
-                {
-                    _backupSubscriberReference.Remove(args.ToDispose);
-                }
-            }
-
             // Remove our task info and dispose of it
             HyperNodeTaskInfo taskInfo;
-            if (_taskInfo.TryRemove(args.Response.TaskId, out taskInfo) && taskInfo != null)
+            if (_taskInfo.TryRemove(taskId, out taskInfo) && taskInfo != null)
                 taskInfo.Dispose();
-
-            // Finally, dispose of the subscribers and we're home free!
-            if (args.ToDispose != null)
-                args.ToDispose.Dispose();
         }
 
         #region Configuration
@@ -1140,7 +1090,7 @@ namespace Hyper.NodeServices
             return result;
         }
 
-        // TODO: SetActivityCacheDuration (input timespan)
+        // TODO: SetActivityCacheDuration (input timespan, warn if cache is disabled)
         // TODO: Update GetCommandConfig command to be GetStatus command (see comments below)
         /*************************************************************************************************************************************
          * GetStatus
