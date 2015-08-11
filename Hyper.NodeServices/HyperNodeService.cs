@@ -89,6 +89,8 @@ namespace Hyper.NodeServices
             set { _activityCache.Enabled = value; }
         }
 
+        internal bool EnableDiagnostics { get; set; }
+
         private TimeSpan ActivityCacheSlidingExpiration
         {
             set { _activityCache.CacheDuration = value; }
@@ -187,7 +189,8 @@ namespace Hyper.NodeServices
                         this.HyperNodeName,
                         message.MessageGuid,
                         message.CommandName,
-                        response.TaskId
+                        response.TaskId,
+                        (message.ReturnTaskTrace || this.EnableDiagnostics)
                     )
                 );
 
@@ -518,6 +521,7 @@ namespace Hyper.NodeServices
         /// <summary>
         /// Forwards the specified <see cref="HyperNodeMessageRequest"/> object using the specified <see cref="HyperNodeTaskInfo"/> object.
         /// </summary>
+        /// <param name="taskInfo">The <see cref="HyperNodeTaskInfo"/> object containing the information to forward.</param>
         /// <returns></returns>
         private IEnumerable<Task> ForwardMessage(HyperNodeTaskInfo taskInfo)
         {
@@ -777,6 +781,7 @@ namespace Hyper.NodeServices
             var service = new HyperNodeService(config.HyperNodeName)
             {
                 EnableActivityCache = config.EnableActivityCache,
+                EnableDiagnostics = config.EnableDiagnostics,
                 ActivityCacheSlidingExpiration = TimeSpan.FromMinutes(config.ActivityCacheSlidingExpirationMinutes)
             };
 
@@ -1107,12 +1112,11 @@ namespace Hyper.NodeServices
 
         // TODO: Update HyperNodeTaskInfo class as follows
         /*************************************************************************************************************************************
-         * Diagnostics (new app.config attribute to enable/disable this feature, plus new command to enable/disable the feature in real-time)
+         * Diagnostics
          * 
-         * Need to add a StopWatch property to HyperNodeTaskInfo class for diagnostics. Stopwatch would track the lifetime of the task.
-         * Should have a list of diagnostic-specific activity items? Not sure how this would work or if it would be useful...But it
-         * would be nice to grab the elapsed milliseconds in the activity tracker somehow so that activity events can be timestamped relative
-         * to the beginning of the request.
+         * new app.config attribute to enable/disable this feature server-side
+         * new command to enable/disable the feature in real-time (server-side)
+         * also enabled when message requests a task trace
          *************************************************************************************************************************************/
 
         // TODO: GetAllTasksForMessageGUID (only works with cache. need to notify caller if cache is disabled, or we need to restructure our HyperNodeInfo dictionary to use the message GUID as well as the task id)

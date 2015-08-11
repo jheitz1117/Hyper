@@ -9,6 +9,7 @@ namespace Hyper.NodeServices.ActivityTracking
         public Guid MessageGuid { get; internal set; }
         public string TaskId { get; internal set; }
         public string CommandName { get; internal set; }
+        public TimeSpan? Elapsed { get; internal set; }
 
         // These properties are free to be modified by the user if they wish
         public DateTime EventDateTime { get; set; }

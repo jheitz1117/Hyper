@@ -18,6 +18,13 @@ namespace Hyper.NodeServices.Configuration
             set { this["enableActivityCache"] = value; }
         }
 
+        [ConfigurationProperty("enableDiagnostics", DefaultValue = false, IsRequired = false)]
+        public bool EnableDiagnostics
+        {
+            get { return (bool)this["enableDiagnostics"]; }
+            set { this["enableDiagnostics"] = value; }
+        }
+
         [ConfigurationProperty("activityCacheSlidingExpiration", DefaultValue = 60, IsRequired = false)]
         public int ActivityCacheSlidingExpirationMinutes
         {

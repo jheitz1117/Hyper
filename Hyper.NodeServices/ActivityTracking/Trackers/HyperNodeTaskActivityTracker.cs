@@ -44,11 +44,12 @@ namespace Hyper.NodeServices.ActivityTracking
                 new TrackActivityEventArgs(
                     new HyperNodeActivityEventItem
                     {
+                        Agent = _context.HyperNodeName,
                         MessageGuid = _context.MessageGuid,
                         TaskId = _context.TaskId,
                         CommandName = _context.CommandName,
+                        Elapsed = _context.Elapsed,
                         EventDateTime = DateTime.Now,
-                        Agent = _context.HyperNodeName,
                         EventDescription = eventDescription,
                         EventDetail = eventDetail,
                         EventData = eventData,

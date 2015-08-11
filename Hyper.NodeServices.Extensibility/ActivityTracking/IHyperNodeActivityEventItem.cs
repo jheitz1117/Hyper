@@ -8,6 +8,7 @@ namespace Hyper.NodeServices.Extensibility.ActivityTracking
         Guid MessageGuid { get; }
         string TaskId { get; }
         string CommandName { get; }
+        TimeSpan? Elapsed { get; }
         object EventData { get; set; }
         double? ProgressPart { get; set; }
         double? ProgressTotal { get; set; }
