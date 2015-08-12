@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
@@ -12,6 +13,9 @@ namespace Hyper.NodeServices.Contracts
 
         [DataMember]
         public string RespondingNodeName { get; set; }
+
+        [DataMember]
+        public TimeSpan? TotalRunTime { get; set; }
 
         [DataMember]
         public HyperNodeActionType NodeAction { get; set; }

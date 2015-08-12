@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Threading;
 using Hyper.NodeServices.ActivityTracking;
@@ -8,6 +9,7 @@ namespace Hyper.NodeServices
 {
     internal sealed class HyperNodeTaskInfo : IDisposable
     {
+        private readonly Stopwatch _stopwatch = new Stopwatch();
         private readonly CancellationToken _masterToken;
         private CancellationTokenSource _taskTokenSource;
 
@@ -33,7 +35,13 @@ namespace Hyper.NodeServices
         }
 
         public HyperNodeMessageRequest Message { get; set; }
+        
         public HyperNodeMessageResponse Response { get; set; }
+
+        public TimeSpan Elapsed
+        {
+            get { return _stopwatch.Elapsed; }
+        }
 
         #endregion Properties
 
@@ -42,6 +50,12 @@ namespace Hyper.NodeServices
         public HyperNodeTaskInfo(CancellationToken masterToken)
         {
             _masterToken = masterToken;
+        }
+
+        public void StartStopwatch()
+        {
+            if (!_stopwatch.IsRunning)
+                _stopwatch.Start();
         }
 
         public void Cancel()
@@ -62,6 +76,10 @@ namespace Hyper.NodeServices
         {
             if (disposing)
             {
+                // First, stop our stopwatch so we can record the total elapsed time for this task
+                _stopwatch.Stop();
+                this.Response.TotalRunTime = _stopwatch.Elapsed;
+
                 /* Signal completion before we dispose our subscribers. This is necessary because clients who are polling the service for progress
                  * updates must know when the service is done sending updates. Make sure we pass the final, completed response object in case we have
                  * any monitors that are watching for it. */

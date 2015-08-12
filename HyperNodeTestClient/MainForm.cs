@@ -76,10 +76,10 @@ namespace HyperNodeTestClient
             {
                 cboCommandNames.DataSource = null;
 
-                var serializer = new NetDataContractResponseSerializer<GetCommandConfigResponse>();
+                var serializer = new NetDataContractResponseSerializer<GetNodeStatusResponse>();
                 var msg = new HyperNodeMessageRequest(ClientAgentName)
                 {
-                    CommandName = SystemCommandNames.GetCommandConfig,
+                    CommandName = SystemCommandNames.GetNodeStatus,
                     IntendedRecipientNodeNames = new List<string>
                     {
                         cboHyperNodeNames.Text
@@ -95,10 +95,10 @@ namespace HyperNodeTestClient
                 {
                     var commandResponse =
                         ((ICommandResponseSerializer)serializer).Deserialize(response.CommandResponseString) as
-                            GetCommandConfigResponse;
+                            GetNodeStatusResponse;
                     if (commandResponse != null)
                         cboCommandNames.DataSource =
-                            commandResponse.CommandConfigurations.Select(c => c.CommandName).OrderBy(cn => cn).ToList();
+                            commandResponse.Commands.Select(c => c.CommandName).OrderBy(cn => cn).ToList();
                 }
                 else
                 {
@@ -460,6 +460,7 @@ namespace HyperNodeTestClient
             {
                 "Task ID: " + response.TaskId,
                 "Responding Node Name:" + response.RespondingNodeName,
+                "Total Run Time: " + response.TotalRunTime,
                 "Node Action: " + response.NodeAction,
                 "Node Action Reason: " + response.NodeActionReason,
                 "Process Status Flags: " + response.ProcessStatusFlags,

@@ -32,6 +32,16 @@ namespace Hyper.NodeServices.Configuration
             set { this["taskProgressCacheDuration"] = value; }
         }
 
+        /// <summary>
+        /// Specifies an upper bound on the number of tasks that can run concurrently. A value of -1 means there is no upper bound.
+        /// </summary>
+        [ConfigurationProperty("maxConcurrentTasks", DefaultValue = -1, IsRequired = false)]
+        public int MaxConcurrentTasks
+        {
+            get { return (int)this["maxConcurrentTasks"]; }
+            set { this["maxConcurrentTasks"] = value; }
+        }
+
         [ConfigurationProperty("taskIdProviderType", IsRequired = false)]
         public string TaskIdProviderType
         {

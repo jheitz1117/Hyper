@@ -7,7 +7,7 @@ namespace Hyper.NodeServices.Contracts
         public const string Discover                      = "Discover";
         public const string GetCachedTaskProgressInfo     = "GetCachedTaskProgressInfo";
         public const string GetChildNodes                 = "GetChildNodes";
-        public const string GetCommandConfig              = "GetCommandConfig";
+        public const string GetNodeStatus                 = "GetNodeStatus";
         public const string Echo                          = "Echo";
         public const string EnableCommand                 = "EnableCommand";
         public const string EnableActivityMonitor         = "EnableActivityMonitor";
@@ -17,12 +17,12 @@ namespace Hyper.NodeServices.Contracts
         public const string CancelTask                    = "CancelTask";
         public const string SetTaskProgressCacheDuration  = "SetTaskProgressCacheDuration";
 
-        private static readonly string[] SystemCommands   =
+        private static readonly string[] SystemCommands =
         {
             Discover,
             GetCachedTaskProgressInfo,
             GetChildNodes,
-            GetCommandConfig,
+            GetNodeStatus,
             Echo,
             EnableCommand,
             EnableActivityMonitor,

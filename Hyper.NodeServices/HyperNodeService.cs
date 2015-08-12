@@ -97,6 +97,8 @@ namespace Hyper.NodeServices
             set { _taskProgressCacheMonitor.CacheDuration = value; }
         }
 
+        internal int MaxConcurrentTasks { get; set; }
+
         private static HyperNodeService _instance;
         public static HyperNodeService Instance
         {
@@ -173,9 +175,15 @@ namespace Hyper.NodeServices
 
             // Now that we have a valid task ID, try to add it to our dictionary
             var currentTaskInfo = new HyperNodeTaskInfo(_masterTokenSource.Token);
-            if (_liveTasks.TryAdd(taskId, currentTaskInfo))
+
+            // Capture the task count at this moment in time since _liveTasks.Count may have changed by the time we get to the else block
+            var liveTaskCount = _liveTasks.Count;
+
+            // If MaxConcurrentTasks is set to -1 (or less), that is assumed to mean there is no upper bound defined
+            if ((liveTaskCount < this.MaxConcurrentTasks || this.MaxConcurrentTasks < 0) && _liveTasks.TryAdd(taskId, currentTaskInfo))
             {
-                // In this case, we've confirmed that the new task was added, so we can set our response task ID
+                // In this case, we've confirmed that the new task was added, so start our task-level stopwatch and set our response task ID
+                currentTaskInfo.StartStopwatch();
                 response.TaskId = taskId;
 
                 // Allows the task info to track the message and response
@@ -445,19 +453,36 @@ namespace Hyper.NodeServices
             }
             else
             {
-                // If it couldn't be added, it's because we already have a task running with the specified task ID.
-                response.TaskTrace.Add(
-                    new HyperNodeActivityItem(this.HyperNodeName)
-                    {
-                        EventDescription = string.Format("A task with ID '{0}' is already running.", taskId),
-                        EventDetail = "A duplicate task ID was generated. This can occur when a new instance of singleton task is started while an existing instance of that task is running. If you know the task will complete, please try again after the task is finished. You may also consider cancelling the task and then restarting it."
-                    }
-                );
-
                 response.NodeAction = HyperNodeActionType.Rejected;
-                response.NodeActionReason = HyperNodeActionReasonType.DuplicateTaskId;
                 response.ProcessStatusFlags = MessageProcessStatusFlags.Cancelled;
                 response.TaskId = null;
+
+                // Check the reason why we are rejecting
+                if (liveTaskCount >= this.MaxConcurrentTasks)
+                {
+                    // In this case, it's because our concurrent task count is already maxed out
+                    response.NodeActionReason = HyperNodeActionReasonType.MaxConcurrentTaskCountReached;
+                    response.TaskTrace.Add(
+                        new HyperNodeActivityItem(this.HyperNodeName)
+                        {
+                            EventDescription = string.Format("The maximum number of concurrent tasks ({0}) has been reached.", this.MaxConcurrentTasks),
+                            EventDetail = "An attempted was made to start a new task when the maximum number of concurrent tasks were already running. Consider increasing the value of MaxConcurrentTasks or setting it to -1 (unlimited)."
+                        }
+                    );
+                }
+                else
+                {
+                    // Otherwise, it's because we already have a task running with the specified task ID.
+                    response.NodeActionReason = HyperNodeActionReasonType.DuplicateTaskId;
+                    response.TaskTrace.Add(
+                        new HyperNodeActivityItem(this.HyperNodeName)
+                        {
+                            EventDescription = string.Format("A task with ID '{0}' is already running.", taskId),
+                            EventDetail =
+                                "A duplicate task ID was generated. This can occur when a new instance of singleton task is started while an existing instance of that task is running. If you know the task will complete, please try again after the task is finished. You may also consider cancelling the task and then restarting it."
+                        }
+                    );
+                }
             }
 
             return response;
@@ -795,7 +820,8 @@ namespace Hyper.NodeServices
             {
                 EnableTaskProgressCache = config.EnableTaskProgressCache,
                 EnableDiagnostics = config.EnableDiagnostics,
-                TaskProgressCacheDuration = TimeSpan.FromMinutes(config.TaskProgressCacheDurationMinutes)
+                TaskProgressCacheDuration = TimeSpan.FromMinutes(config.TaskProgressCacheDurationMinutes),
+                MaxConcurrentTasks = config.MaxConcurrentTasks
             };
 
             ConfigureSystemCommands(service, config);
@@ -827,9 +853,9 @@ namespace Hyper.NodeServices
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.GetCommandConfig,
+                    CommandName = SystemCommandNames.GetNodeStatus,
                     Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(GetCommandConfigCommand)
+                    CommandModuleType = typeof(GetNodeStatusCommand)
                 },
                 new CommandModuleConfiguration
                 {
@@ -1022,10 +1048,10 @@ namespace Hyper.NodeServices
             return _taskProgressCacheMonitor.GetTaskProgressInfo(taskId);
         }
 
-        internal IEnumerable<CommandConfiguration> GetCommandConfig()
+        internal IEnumerable<CommandStatus> GetCommandStatuses()
         {
             return _commandModuleConfigurations.Keys.Select(
-                commandName => new CommandConfiguration
+                commandName => new CommandStatus
                 {
                     CommandName = commandName,
                     CommandType = (SystemCommandNames.IsSystemCommand(commandName) ? HyperNodeCommandType.SystemCommand : HyperNodeCommandType.CustomCommand),
@@ -1033,6 +1059,33 @@ namespace Hyper.NodeServices
                 }
             );
         }
+
+        internal IEnumerable<ActivityMonitorStatus> GetActivityMonitorStatuses()
+        {
+            lock (_lock)
+            {
+                return _customActivityMonitors.Select(
+                    m => new ActivityMonitorStatus
+                    {
+                        Name = m.Name,
+                        Enabled = m.Enabled
+                    }
+                );
+            }
+        }
+
+        internal IEnumerable<LiveTaskStatus> GetLiveTaskStatuses()
+        {
+            return _liveTasks.Keys.Select(
+                taskId => new LiveTaskStatus
+                {
+                    TaskID = taskId,
+                    CommandName = _liveTasks[taskId].Message.CommandName,
+                    IsCancellationRequested = _liveTasks[taskId].Token.IsCancellationRequested,
+                    Elapsed = _liveTasks[taskId].Elapsed
+                }
+            );
+        } 
 
         internal IEnumerable<string> GetChildNodes()
         {
@@ -1120,21 +1173,7 @@ namespace Hyper.NodeServices
             return result;
         }
 
-        // TODO: Update GetCommandConfig command to be GetStatus command (see comments below)
-        /*************************************************************************************************************************************
-         * GetStatus
-         * 
-         * Returns the following:
-         * -Current value of activity cache sliding expiration
-         * -ActivityCacheEnabled
-         * -DiagnosticsEnabled
-         * -List of commands, whether they are enabled, and whether they are system commands or custom commands
-         * -List of activity monitors and whether they are enabled (they'll all be custom, since the built-in monitors are never added to this list, so need for a Custom/System enum for activity monitors)
-         * -Number of current active tasks along with whether or not cancellation is pending and the total elapsed time on the task
-         * -Maximum number of allowed active tasks (needs new app.config attribute)
-         *************************************************************************************************************************************/
-        
-        // TODO: ClearActivityCache (Phase 2 - see comments below)
+        // TODO: (Phase 2 - see comments below) ClearActivityCache 
         /*************************************************************************************************************************************
          * ClearActivityCache
          * 
@@ -1150,7 +1189,7 @@ namespace Hyper.NodeServices
          * probably need to go into its own DLL: Hyper.Caching.
          *************************************************************************************************************************************/
 
-        // TODO: Self-documenting command modules and other user code (Phase 2 - see comments below)
+        // TODO: (Phase 2 - see comments below) Self-documenting command modules and other user code
         /*************************************************************************************************************************************
          * Documentation Notes (Phase 2)
          * 

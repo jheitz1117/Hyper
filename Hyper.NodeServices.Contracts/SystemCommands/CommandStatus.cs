@@ -3,7 +3,7 @@
 namespace Hyper.NodeServices.Contracts.SystemCommands
 {
     [DataContract]
-    public class CommandConfiguration
+    public class CommandStatus
     {
         [DataMember]
         public string CommandName { get; set; }

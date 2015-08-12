@@ -39,6 +39,12 @@ namespace Hyper.NodeServices.Contracts
         /// Indicates that the receiving <see cref="IHyperNodeService"/> generated a task ID for a task that was already running.
         /// </summary>
         [EnumMember]
-        DuplicateTaskId = 5
+        DuplicateTaskId = 5,
+
+        /// <summary>
+        /// Indicates that the receiving <see cref="IHyperNodeService"/> has already reached its maximum number of concurrent tasks.
+        /// </summary>
+        [EnumMember]
+        MaxConcurrentTaskCountReached = 6
     }
 }
