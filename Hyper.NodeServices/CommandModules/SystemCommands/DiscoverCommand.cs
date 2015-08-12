@@ -28,8 +28,8 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                 };
 
                 // Enable caching if the caller originally requested it
-                if ((context.ProcessOptionFlags & MessageProcessOptionFlags.CacheProgressInfo) == MessageProcessOptionFlags.CacheProgressInfo)
-                    discoverRequest.ProcessOptionFlags |= MessageProcessOptionFlags.CacheProgressInfo;
+                if ((context.ProcessOptionFlags & MessageProcessOptionFlags.CacheTaskProgress) == MessageProcessOptionFlags.CacheTaskProgress)
+                    discoverRequest.ProcessOptionFlags |= MessageProcessOptionFlags.CacheTaskProgress;
 
                 // Enable task trace if the caller originally requested it
                 if ((context.ProcessOptionFlags & MessageProcessOptionFlags.ReturnTaskTrace) == MessageProcessOptionFlags.ReturnTaskTrace)

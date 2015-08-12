@@ -56,11 +56,11 @@ namespace Hyper.NodeServices.Contracts
             }
         }
 
-        public bool CacheProgressInfo
+        public bool CacheTaskProgress
         {
             get
             {
-                return IsProcessOptionSet(MessageProcessOptionFlags.CacheProgressInfo);
+                return IsProcessOptionSet(MessageProcessOptionFlags.CacheTaskProgress);
             }
         }
 

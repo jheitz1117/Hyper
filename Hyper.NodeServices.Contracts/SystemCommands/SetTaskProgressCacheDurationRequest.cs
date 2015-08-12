@@ -5,7 +5,7 @@ using Hyper.NodeServices.Contracts.Extensibility;
 namespace Hyper.NodeServices.Contracts.SystemCommands
 {
     [DataContract]
-    public class SetActivityCacheDurationRequest : ICommandRequest
+    public class SetTaskProgressCacheDurationRequest : ICommandRequest
     {
         [DataMember]
         public TimeSpan CacheDuration { get; set; }

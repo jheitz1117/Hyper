@@ -57,7 +57,7 @@ namespace Hyper.NodeServices
         private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
         private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
-        private static readonly TimeSpan DefaultActivityCacheSlidingExpiration = TimeSpan.FromHours(1);
+        private static readonly TimeSpan DefaultTaskProgressCacheDuration = TimeSpan.FromHours(1);
         private const bool DefaultSystemCommandsEnabled = true;
 
         #endregion Defaults
@@ -66,11 +66,11 @@ namespace Hyper.NodeServices
 
         private readonly string _hyperNodeName;
         private readonly object _lock = new object();
-        private readonly ProgressCacheItemCollector _activityCache = new ProgressCacheItemCollector();
-        private readonly List<HyperNodeServiceActivityMonitor> _activityMonitors = new List<HyperNodeServiceActivityMonitor>();
+        private readonly TaskProgressCacheMonitor _taskProgressCacheMonitor = new TaskProgressCacheMonitor();
+        private readonly List<HyperNodeServiceActivityMonitor> _customActivityMonitors = new List<HyperNodeServiceActivityMonitor>();
         private readonly ConcurrentDictionary<string, CommandModuleConfiguration> _commandModuleConfigurations = new ConcurrentDictionary<string, CommandModuleConfiguration>();
         private readonly CancellationTokenSource _masterTokenSource = new CancellationTokenSource();
-        private readonly ConcurrentDictionary<string, HyperNodeTaskInfo>  _taskInfo =  new ConcurrentDictionary<string, HyperNodeTaskInfo>();
+        private readonly ConcurrentDictionary<string, HyperNodeTaskInfo> _liveTasks = new ConcurrentDictionary<string, HyperNodeTaskInfo>();
 
         #endregion Private Members
 
@@ -83,18 +83,18 @@ namespace Hyper.NodeServices
 
         private ITaskIdProvider TaskIdProvider { get; set; }
 
-        internal bool EnableActivityCache
+        internal bool EnableTaskProgressCache
         {
-            get { return _activityCache.Enabled; }
-            set { _activityCache.Enabled = value; }
+            get { return _taskProgressCacheMonitor.Enabled; }
+            set { _taskProgressCacheMonitor.Enabled = value; }
         }
 
         internal bool EnableDiagnostics { get; set; }
 
-        internal TimeSpan ActivityCacheSlidingExpiration
+        internal TimeSpan TaskProgressCacheDuration
         {
-            get { return _activityCache.CacheDuration; }
-            set { _activityCache.CacheDuration = value; }
+            get { return _taskProgressCacheMonitor.CacheDuration; }
+            set { _taskProgressCacheMonitor.CacheDuration = value; }
         }
 
         private static HyperNodeService _instance;
@@ -173,7 +173,7 @@ namespace Hyper.NodeServices
 
             // Now that we have a valid task ID, try to add it to our dictionary
             var currentTaskInfo = new HyperNodeTaskInfo(_masterTokenSource.Token);
-            if (_taskInfo.TryAdd(taskId, currentTaskInfo))
+            if (_liveTasks.TryAdd(taskId, currentTaskInfo))
             {
                 // In this case, we've confirmed that the new task was added, so we can set our response task ID
                 response.TaskId = taskId;
@@ -204,25 +204,25 @@ namespace Hyper.NodeServices
                     );
 
                     /*****************************************************************************************************************
-                     * Subscribe our progress cache to our event stream only if the client requested it and the feature is actually enabled. There is currently no built-in
+                     * Subscribe our task progress cache monitor to our event stream only if the client requested it and the feature is actually enabled. There is currently no built-in
                      * functionality to support long-running task tracing other than the memory cache. If the client opts to disable the memory cache to save resources,
                      * then they will need to setup a custom HyperNodeServiceActivityMonitor if they still want to be able to know what's going on in the server. Custom
                      * HyperNodeServiceActivityMonitor objects can record activity to a database or some other data store, which the user can then query for the desired
                      * activity.
                      *****************************************************************************************************************/
-                    if (this.EnableActivityCache && message.CacheProgressInfo)
+                    if (this.EnableTaskProgressCache && message.CacheTaskProgress)
                     {
                         currentTaskInfo.ActivitySubscribers.Add(
                             liveEvents
-                                .Where(a => _activityCache.ShouldTrack(a))
-                                .Subscribe(_activityCache)
+                                .Where(a => _taskProgressCacheMonitor.ShouldTrack(a))
+                                .Subscribe(_taskProgressCacheMonitor)
                         );
                     }
 
                     /*****************************************************************************************************************
                      * If we want a task trace returned, that's fine, but the task trace in the real-time response would only ever contain events recorded during the current
                      * call to ProcessMessage() as opposed to the entire lifetime of a task in general. This is because a task can be spawned in a child thread and can outlive
-                     * the original call to ProcessMessage(). This is the whole reason why we have a ProgressCacheItemCollector that is in charge of collecting trace information
+                     * the original call to ProcessMessage(). This is the whole reason why we have a TaskProgressCacheMonitor that is in charge of collecting trace information
                      * for tasks that run concurrently. It should be noted that if the client elects to use caching AND return a task trace, then the events recorded in the
                      * real-time task trace and those recorded in the cache will likely overlap for events which fired before ProcessMessage() returned. However, any events that
                      * fired after ProcessMessage() returned would only be recorded in the cache. This may result in a task trace that looks incomplete since the "processing
@@ -230,11 +230,11 @@ namespace Hyper.NodeServices
                      *****************************************************************************************************************/
                     if (message.ReturnTaskTrace)
                     {
-                        var taskTraceCollector = new HyperNodeTaskTraceCollector(response);
+                        var responseTaskTraceMonitor = new ResponseTaskTraceMonitor(response);
                         currentTaskInfo.ActivitySubscribers.Add(
                             liveEvents
-                                .Where(a => taskTraceCollector.ShouldTrack(a))
-                                .Subscribe(taskTraceCollector)
+                                .Where(a => responseTaskTraceMonitor.ShouldTrack(a))
+                                .Subscribe(responseTaskTraceMonitor)
                         );
                     }
 
@@ -259,11 +259,11 @@ namespace Hyper.NodeServices
                      * intended recipients and the corresponding "main" task IDs to use to request status updates. This would be exclusively for the cache. If the
                      * user wanted to use something other than the cache, they would have to determine the task IDs their own way.
                      *****************************************************************************************************************/
-                    var responseCollector = new HyperNodeMessageResponseCollector(response);
+                    var childNodeResponseMonitor = new ChildNodeResponseMonitor(response);
                     currentTaskInfo.ActivitySubscribers.Add(
                         liveEvents
-                            .Where(a => responseCollector.ShouldTrack(a))
-                            .Subscribe(responseCollector)
+                            .Where(a => childNodeResponseMonitor.ShouldTrack(a))
+                            .Subscribe(childNodeResponseMonitor)
                     );
 
                     /*****************************************************************************************************************
@@ -273,7 +273,7 @@ namespace Hyper.NodeServices
                      *****************************************************************************************************************/
                     currentTaskInfo.ActivitySubscribers.Add(
                         new CompositeDisposable(
-                            from monitor in _activityMonitors
+                            from monitor in _customActivityMonitors
                             where monitor.Enabled
                             // Make sure the monitors are enabled
                             select liveEvents
@@ -478,13 +478,13 @@ namespace Hyper.NodeServices
         public void Dispose()
         {
             // Dispose of our task info objects
-            foreach (var taskInfo in _taskInfo.Values.Where(ti => ti != null))
+            foreach (var taskInfo in _liveTasks.Values.Where(ti => ti != null))
             {
                 taskInfo.Dispose();
             }
 
             // Dispose of any of our activity monitors that implement IDisposable
-            foreach (var disposableMonitor in _activityMonitors.OfType<IDisposable>())
+            foreach (var disposableMonitor in _customActivityMonitors.OfType<IDisposable>())
             {
                 disposableMonitor.Dispose();
             }
@@ -494,9 +494,9 @@ namespace Hyper.NodeServices
             if (disposableTaskIdProvider != null)
                 disposableTaskIdProvider.Dispose();
 
-            // Dispose of our activity cache
-            if (_activityCache != null)
-                _activityCache.Dispose();
+            // Dispose of our task progress cache monitor
+            if (_taskProgressCacheMonitor != null)
+                _taskProgressCacheMonitor.Dispose();
 
             // Dispose of our master cancellation token source
             if (_masterTokenSource != null)
@@ -514,7 +514,7 @@ namespace Hyper.NodeServices
         private HyperNodeService(string hyperNodeName)
         {
             _hyperNodeName = hyperNodeName;
-            this.ActivityCacheSlidingExpiration = DefaultActivityCacheSlidingExpiration;
+            this.TaskProgressCacheDuration = DefaultTaskProgressCacheDuration;
         }
 
         /// <summary>
@@ -710,7 +710,7 @@ namespace Hyper.NodeServices
                 requestSerializer = requestSerializer ?? commandModuleConfig.RequestSerializer ?? DefaultRequestSerializer;
                 responseSerializer = responseSerializer ?? commandModuleConfig.ResponseSerializer ?? DefaultResponseSerializer;
 
-                ICommandRequest commandRequest = null;
+                ICommandRequest commandRequest;
                 try
                 {
                     // Deserialize the request string
@@ -781,7 +781,7 @@ namespace Hyper.NodeServices
         {
             // Remove our task info and dispose of it
             HyperNodeTaskInfo taskInfo;
-            if (_taskInfo.TryRemove(taskId, out taskInfo) && taskInfo != null)
+            if (_liveTasks.TryRemove(taskId, out taskInfo) && taskInfo != null)
                 taskInfo.Dispose();
         }
 
@@ -793,9 +793,9 @@ namespace Hyper.NodeServices
 
             var service = new HyperNodeService(config.HyperNodeName)
             {
-                EnableActivityCache = config.EnableActivityCache,
+                EnableTaskProgressCache = config.EnableTaskProgressCache,
                 EnableDiagnostics = config.EnableDiagnostics,
-                ActivityCacheSlidingExpiration = TimeSpan.FromMinutes(config.ActivityCacheSlidingExpirationMinutes)
+                TaskProgressCacheDuration = TimeSpan.FromMinutes(config.TaskProgressCacheDurationMinutes)
             };
 
             ConfigureSystemCommands(service, config);
@@ -869,9 +869,9 @@ namespace Hyper.NodeServices
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.EnableActivityCache,
+                    CommandName = SystemCommandNames.EnableTaskProgressCache,
                     Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(EnableActivityCacheCommand)
+                    CommandModuleType = typeof(EnableTaskProgressCacheCommand)
                 },
                 new CommandModuleConfiguration
                 {
@@ -887,9 +887,9 @@ namespace Hyper.NodeServices
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.SetActivityCacheDuration,
+                    CommandName = SystemCommandNames.SetTaskProgressCacheDuration,
                     Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(SetActivityCacheDurationCommand)
+                    CommandModuleType = typeof(SetTaskProgressCacheDurationCommand)
                 }
             };
 
@@ -939,14 +939,14 @@ namespace Hyper.NodeServices
 
                     lock (service._lock)
                     {
-                        if (service._activityMonitors.Any(m => m.Name == monitorConfig.Name))
+                        if (service._customActivityMonitors.Any(m => m.Name == monitorConfig.Name))
                         {
                             throw new DuplicateActivityMonitorException(
                                 string.Format("An activity monitor already exists with the name '{0}'.", monitorConfig.Name)
                             );
                         }
 
-                        service._activityMonitors.Add(monitor);
+                        service._customActivityMonitors.Add(monitor);
                     }
                 }
             }
@@ -1019,7 +1019,7 @@ namespace Hyper.NodeServices
 
         internal HyperNodeTaskProgressInfo GetCachedTaskProgressInfo(string taskId)
         {
-            return _activityCache.GetTaskProgressInfo(taskId);
+            return _taskProgressCacheMonitor.GetTaskProgressInfo(taskId);
         }
 
         internal IEnumerable<CommandConfiguration> GetCommandConfig()
@@ -1061,7 +1061,7 @@ namespace Hyper.NodeServices
 
         internal bool IsKnownActivityMonitor(string activityMonitorName)
         {
-            return _activityMonitors.Any(a => a.Name == activityMonitorName);
+            return _customActivityMonitors.Any(a => a.Name == activityMonitorName);
         }
 
         internal bool EnableCommandModule(string commandName, bool enable)
@@ -1082,7 +1082,7 @@ namespace Hyper.NodeServices
         {
             var result = false;
 
-            var activityMonitor = _activityMonitors.FirstOrDefault(a => a.Name == activityMonitorName);
+            var activityMonitor = _customActivityMonitors.FirstOrDefault(a => a.Name == activityMonitorName);
             if (activityMonitor != null)
             {
                 activityMonitor.Enabled = enable;
@@ -1096,7 +1096,7 @@ namespace Hyper.NodeServices
         {
             var result = false;
 
-            var activityMonitor = _activityMonitors.FirstOrDefault(a => a.Name == oldName);
+            var activityMonitor = _customActivityMonitors.FirstOrDefault(a => a.Name == oldName);
             if (activityMonitor != null)
             {
                 activityMonitor.Name = newName;
@@ -1111,7 +1111,7 @@ namespace Hyper.NodeServices
             var result = false;
 
             HyperNodeTaskInfo taskInfo;
-            if (_taskInfo.TryGetValue(taskId, out taskInfo) && taskInfo != null)
+            if (_liveTasks.TryGetValue(taskId, out taskInfo) && taskInfo != null)
             {
                 taskInfo.Cancel();
                 result = true;
@@ -1133,20 +1133,7 @@ namespace Hyper.NodeServices
          * -Number of current active tasks along with whether or not cancellation is pending and the total elapsed time on the task
          * -Maximum number of allowed active tasks (needs new app.config attribute)
          *************************************************************************************************************************************/
-
-        // TODO: GetAllTasksForMessageGUID (only works with cache. need to notify caller if cache is disabled, or we need to restructure our HyperNodeInfo dictionary to use the message GUID as well as the task id) Should we just have a 2-dimensional dictionary?
-        // TODO: CancelMessage command (input message GUID of message to cancel, forwards command to all children. Intended to cancel an entire message, which could have gone to any number of nodes.)
-        /*************************************************************************************************************************************
-         * Cancellation Notes
-         * 
-         * A message-level cancellation token source should trigger cancellation of all tasks spawned for that message GUID across all
-         * HyperNodes in the network. In this case, if I ask Alice and Bob to process the same message, and then I send a message-level
-         * cancellation to Alice, Alice should cancel her task and forward the cancellation request to all of her children, including Bob, who
-         * will do likewise. Bob will also cancel his task, and so will every other HyperNode in the network. This can be accomplished
-         * by retrieving all the tasks with the specified Message GUID and loop through and cancelling all the tasks for that message in
-         * series.
-         *************************************************************************************************************************************/
-
+        
         // TODO: ClearActivityCache (Phase 2 - see comments below)
         /*************************************************************************************************************************************
          * ClearActivityCache
@@ -1163,6 +1150,7 @@ namespace Hyper.NodeServices
          * probably need to go into its own DLL: Hyper.Caching.
          *************************************************************************************************************************************/
 
+        // TODO: Self-documenting command modules and other user code (Phase 2 - see comments below)
         /*************************************************************************************************************************************
          * Documentation Notes (Phase 2)
          * 

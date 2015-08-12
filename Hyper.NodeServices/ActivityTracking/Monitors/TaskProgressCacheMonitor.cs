@@ -7,12 +7,9 @@ using Hyper.NodeServices.Extensibility.ActivityTracking;
 namespace Hyper.NodeServices.ActivityTracking
 {
     /// <summary>
-    /// This class is responsible for collecting <see cref="HyperNodeProgressCacheItem"/> objects and grouping them by Message GUID.
-    /// This provides a way to view a full history of everything that a given HyperNode did with a message, including any
-    /// instances where the message returned to the node after having been forwarded, which just results in the node noting
-    /// in the history that it received it a second time and is ignoring it
+    /// Collects <see cref="HyperNodeTaskProgressInfo"/> objects based on task ID.
     /// </summary>
-    internal sealed class ProgressCacheItemCollector : HyperNodeServiceActivityMonitor, IDisposable
+    internal sealed class TaskProgressCacheMonitor : HyperNodeServiceActivityMonitor, IDisposable
     {
         private static readonly object Lock = new object();
         private static readonly MemoryCache Cache = MemoryCache.Default;
@@ -24,7 +21,7 @@ namespace Hyper.NodeServices.ActivityTracking
             set { CachePolicy.SlidingExpiration = value; }
         }
 
-        public ProgressCacheItemCollector()
+        public TaskProgressCacheMonitor()
         {
             this.Name = GetType().Name;
         }

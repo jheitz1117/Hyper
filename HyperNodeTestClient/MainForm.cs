@@ -139,7 +139,7 @@ namespace HyperNodeTestClient
                     },
                     ProcessOptionFlags = (chkReturnTaskTrace.Checked ? MessageProcessOptionFlags.ReturnTaskTrace : MessageProcessOptionFlags.None) |
                                          (chkRunConcurrently.Checked ? MessageProcessOptionFlags.RunConcurrently : MessageProcessOptionFlags.None) |
-                                         (chkCacheProgressInfo.Checked ? MessageProcessOptionFlags.CacheProgressInfo : MessageProcessOptionFlags.None)
+                                         (chkCacheProgressInfo.Checked ? MessageProcessOptionFlags.CacheTaskProgress : MessageProcessOptionFlags.None)
                 };
 
                 if (cboHyperNodeNames.Text == "Bob")
@@ -150,7 +150,7 @@ namespace HyperNodeTestClient
                 PopulateResponseSummary(lstRealTimeResponse, response);
                 PopulateTaskTrace(tvwRealTimeTaskTrace, response);
 
-                if (response.NodeAction != HyperNodeActionType.Rejected && msg.CacheProgressInfo)
+                if (response.NodeAction != HyperNodeActionType.Rejected && msg.CacheTaskProgress)
                     StartAliceProgressTracking(response.TaskId);
             }
             catch (Exception ex)
@@ -181,12 +181,12 @@ namespace HyperNodeTestClient
 
                 var commandResponse = (GetCachedTaskProgressInfoResponse)serializer.Deserialize(targetResponse.CommandResponseString);
                 taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo();
-                if (!commandResponse.ActivityCacheIsEnabled)
+                if (!commandResponse.TaskProgressCacheEnabled)
                 {
                     taskProgressInfo.Activity.Add(
                         new HyperNodeActivityItem(ClientAgentName)
                         {
-                            EventDescription = string.Format("Warning: Activity cache is not enabled for HyperNode 'Alice'.")
+                            EventDescription = string.Format("Warning: Task progress cache is not enabled for HyperNode 'Alice'.")
                         }
                     );
 
@@ -252,12 +252,12 @@ namespace HyperNodeTestClient
 
                 var commandResponse = (GetCachedTaskProgressInfoResponse)serializer.Deserialize(targetResponse.CommandResponseString);
                 taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo();
-                if (!commandResponse.ActivityCacheIsEnabled)
+                if (!commandResponse.TaskProgressCacheEnabled)
                 {
                     taskProgressInfo.Activity.Add(
                         new HyperNodeActivityItem(ClientAgentName)
                         {
-                            EventDescription = string.Format("Warning: Activity cache is not enabled for HyperNode 'Bob'.")
+                            EventDescription = string.Format("Warning: Task progress cache is not enabled for HyperNode 'Bob'.")
                         }
                     );
 

@@ -52,10 +52,10 @@
     <Compile Include="HyperNodeMessageResponse.cs" />
     <Compile Include="HyperNodePath.cs" />
     <Compile Include="SystemCommandNames.cs" />
-    <Compile Include="SystemCommands\SetActivityCacheDurationResponse.cs" />
-    <Compile Include="SystemCommands\SetActivityCacheDurationRequest.cs" />
+    <Compile Include="SystemCommands\SetTaskProgressCacheDurationResponse.cs" />
+    <Compile Include="SystemCommands\SetTaskProgressCacheDurationRequest.cs" />
     <Compile Include="SystemCommands\EnableDiagnosticsRequest.cs" />
-    <Compile Include="SystemCommands\EnableActivityCacheRequest.cs" />
+    <Compile Include="SystemCommands\EnableTaskProgressCacheRequest.cs" />
     <Compile Include="SystemCommands\GetCachedTaskProgressInfoResponse.cs" />
     <Compile Include="SystemCommands\RenameActivityMonitorRequest.cs" />
     <Compile Include="SystemCommands\EnableActivityMonitorRequest.cs" />

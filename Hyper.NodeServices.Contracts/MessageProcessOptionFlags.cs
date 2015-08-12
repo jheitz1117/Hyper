@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Hyper.NodeServices.Contracts
 {
@@ -35,9 +31,9 @@ namespace Hyper.NodeServices.Contracts
         RunConcurrently = 1 << 1,
 
         /// <summary>
-        /// Specifies that the recipient node should cache activity events for this message.
+        /// Specifies that the recipient node should cache task progress for this message.
         /// </summary>
         [EnumMember]
-        CacheProgressInfo = 1 << 2,
+        CacheTaskProgress = 1 << 2,
     }
 }

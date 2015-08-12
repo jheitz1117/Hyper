@@ -8,17 +8,17 @@ using Hyper.NodeServices.Extensibility.Exceptions;
 
 namespace HyperNetExtensibilityTest.CommandModules
 {
-    internal class EnableActivityCacheCommand : ICommandModule, ICommandRequestSerializerFactory
+    internal class EnableTaskProgressCacheCommand : ICommandModule, ICommandRequestSerializerFactory
     {
         public ICommandResponse Execute(ICommandExecutionContext context)
         {
-            var request = context.Request as EnableActivityCacheRequest;
+            var request = context.Request as EnableTaskProgressCacheRequest;
             if (request == null)
-                throw new InvalidCommandRequestTypeException(typeof(EnableActivityCacheRequest), context.Request.GetType());
+                throw new InvalidCommandRequestTypeException(typeof(EnableTaskProgressCacheRequest), context.Request.GetType());
 
-            HyperNodeService.Instance.EnableActivityCache = request.Enable;
+            HyperNodeService.Instance.EnableTaskProgressCache = request.Enable;
             context.Activity.TrackFormat(
-                "The activity cache is now {0}.",
+                "The task progress cache is now {0}.",
                 (request.Enable ? "enabled" : "disabled")
             );
 
@@ -27,7 +27,7 @@ namespace HyperNetExtensibilityTest.CommandModules
 
         public ICommandRequestSerializer Create()
         {
-            return new NetDataContractRequestSerializer<EnableActivityCacheRequest>();
+            return new NetDataContractRequestSerializer<EnableTaskProgressCacheRequest>();
         }
     }
 }

@@ -19,12 +19,12 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
 
             var response = new GetCachedTaskProgressInfoResponse
             {
-                ActivityCacheIsEnabled = HyperNodeService.Instance.EnableActivityCache
+                TaskProgressCacheEnabled = HyperNodeService.Instance.EnableTaskProgressCache
             };
 
-            if (!response.ActivityCacheIsEnabled)
+            if (!response.TaskProgressCacheEnabled)
             {
-                context.Activity.Track("Warning: The activity cache is disabled.");
+                context.Activity.Track("Warning: The task progress cache is disabled.");
                 response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
             }
 

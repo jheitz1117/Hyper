@@ -7,34 +7,34 @@ using Hyper.NodeServices.Extensibility.Exceptions;
 
 namespace Hyper.NodeServices.CommandModules.SystemCommands
 {
-    internal class SetActivityCacheDurationCommand : ICommandModule, ICommandRequestSerializerFactory, ICommandResponseSerializerFactory
+    internal class SetTaskProgressCacheDurationCommand : ICommandModule, ICommandRequestSerializerFactory, ICommandResponseSerializerFactory
     {
         private readonly object _serializer;
 
-        public SetActivityCacheDurationCommand()
+        public SetTaskProgressCacheDurationCommand()
         {
-            _serializer = new NetDataContractCommandSerializer<SetActivityCacheDurationRequest, SetActivityCacheDurationResponse>();
+            _serializer = new NetDataContractCommandSerializer<SetTaskProgressCacheDurationRequest, SetTaskProgressCacheDurationResponse>();
         }
 
         public ICommandResponse Execute(ICommandExecutionContext context)
         {
-            var request = context.Request as SetActivityCacheDurationRequest;
+            var request = context.Request as SetTaskProgressCacheDurationRequest;
             if (request == null)
-                throw new InvalidCommandRequestTypeException(typeof(SetActivityCacheDurationRequest), context.Request.GetType());
+                throw new InvalidCommandRequestTypeException(typeof(SetTaskProgressCacheDurationRequest), context.Request.GetType());
 
-            var response = new SetActivityCacheDurationResponse
+            var response = new SetTaskProgressCacheDurationResponse
             {
-                ActivityCacheIsEnabled = HyperNodeService.Instance.EnableActivityCache
+                TaskProgressCacheEnabled = HyperNodeService.Instance.EnableTaskProgressCache
             };
 
-            if (!response.ActivityCacheIsEnabled)
+            if (!response.TaskProgressCacheEnabled)
             {
-                context.Activity.Track("Warning: The activity cache is disabled.");
+                context.Activity.Track("Warning: The task progress cache is disabled.");
                 response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
             }
 
-            HyperNodeService.Instance.ActivityCacheSlidingExpiration = request.CacheDuration;
-            context.Activity.TrackFormat("The activity cache duration is now {0}.", request.CacheDuration);
+            HyperNodeService.Instance.TaskProgressCacheDuration = request.CacheDuration;
+            context.Activity.TrackFormat("The task progress cache duration is now {0}.", request.CacheDuration);
 
             response.ProcessStatusFlags |= MessageProcessStatusFlags.Success;
 

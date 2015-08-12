@@ -3,12 +3,12 @@ using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.ActivityTracking
 {
-    internal sealed class HyperNodeTaskTraceCollector : HyperNodeServiceActivityMonitor
+    internal sealed class ResponseTaskTraceMonitor : HyperNodeServiceActivityMonitor
     {
         private static readonly object Lock = new object();
         private readonly HyperNodeMessageResponse _target;
 
-        public HyperNodeTaskTraceCollector(HyperNodeMessageResponse target)
+        public ResponseTaskTraceMonitor(HyperNodeMessageResponse target)
         {
             this.Name = GetType().Name;
             _target = target;
@@ -23,7 +23,10 @@ namespace Hyper.NodeServices.ActivityTracking
                     {
                         EventDateTime = activity.EventDateTime,
                         EventDescription = activity.EventDescription,
-                        EventDetail = activity.EventDetail
+                        EventDetail = activity.EventDetail,
+                        ProgressPart = activity.ProgressPart,
+                        ProgressTotal = activity.ProgressTotal,
+                        Elapsed = activity.Elapsed
                     }
                 );
             }

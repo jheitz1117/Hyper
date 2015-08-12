@@ -3,11 +3,11 @@ using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.ActivityTracking
 {
-    internal sealed class HyperNodeMessageResponseCollector : HyperNodeServiceActivityMonitor
+    internal sealed class ChildNodeResponseMonitor : HyperNodeServiceActivityMonitor
     {
         private readonly HyperNodeMessageResponse _target;
         
-        public HyperNodeMessageResponseCollector(HyperNodeMessageResponse target)
+        public ChildNodeResponseMonitor(HyperNodeMessageResponse target)
         {
             this.Name = GetType().Name;
             _target = target;

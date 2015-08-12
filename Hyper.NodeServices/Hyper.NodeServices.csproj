@@ -65,14 +65,14 @@
     <Compile Include="CommandModules\SystemCommands\CancelTaskCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\DiscoverCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\EnableDiagnosticsCommand.cs" />
-    <Compile Include="CommandModules\SystemCommands\EnableActivityCacheCommand.cs" />
+    <Compile Include="CommandModules\SystemCommands\EnableTaskProgressCacheCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\RenameActivityMonitorCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\EnableActivityMonitorCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\EnableCommandModuleCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\EchoCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\GetChildNodesCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\GetCommandConfigCommand.cs" />
-    <Compile Include="CommandModules\SystemCommands\SetActivityCacheDurationCommand.cs" />
+    <Compile Include="CommandModules\SystemCommands\SetTaskProgressCacheDurationCommand.cs" />
     <Compile Include="Configuration\SystemCommandElement.cs" />
     <Compile Include="Configuration\SystemCommandElementCollection.cs" />
     <Compile Include="Exceptions\ActivityMonitorSubscriptionException.cs">
@@ -80,9 +80,9 @@
     </Compile>
     <Compile Include="Exceptions\ActivityTrackerInitializationException.cs" />
     <Compile Include="ActivityTracking\HyperNodeActivityEventItem.cs" />
-    <Compile Include="ActivityTracking\Monitors\ProgressCacheItemCollector.cs" />
-    <Compile Include="ActivityTracking\Monitors\HyperNodeMessageResponseCollector.cs" />
-    <Compile Include="ActivityTracking\Monitors\HyperNodeTaskTraceCollector.cs" />
+    <Compile Include="ActivityTracking\Monitors\TaskProgressCacheMonitor.cs" />
+    <Compile Include="ActivityTracking\Monitors\ChildNodeResponseMonitor.cs" />
+    <Compile Include="ActivityTracking\Monitors\ResponseTaskTraceMonitor.cs" />
     <Compile Include="ActivityTracking\Trackers\HyperNodeServiceActivityTracker.cs" />
     <Compile Include="ActivityTracking\Trackers\HyperNodeTaskActivityTracker.cs" />
     <Compile Include="CommandModules\CommandExecutionContext.cs" />

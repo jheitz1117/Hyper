@@ -11,11 +11,11 @@ namespace Hyper.NodeServices.Configuration
             set { this["name"] = value; }
         }
 
-        [ConfigurationProperty("enableActivityCache", DefaultValue = false, IsRequired = false)]
-        public bool EnableActivityCache
+        [ConfigurationProperty("enableTaskProgressCache", DefaultValue = false, IsRequired = false)]
+        public bool EnableTaskProgressCache
         {
-            get { return (bool)this["enableActivityCache"]; }
-            set { this["enableActivityCache"] = value; }
+            get { return (bool)this["enableTaskProgressCache"]; }
+            set { this["enableTaskProgressCache"] = value; }
         }
 
         [ConfigurationProperty("enableDiagnostics", DefaultValue = false, IsRequired = false)]
@@ -25,11 +25,11 @@ namespace Hyper.NodeServices.Configuration
             set { this["enableDiagnostics"] = value; }
         }
 
-        [ConfigurationProperty("activityCacheSlidingExpiration", DefaultValue = 60, IsRequired = false)]
-        public int ActivityCacheSlidingExpirationMinutes
+        [ConfigurationProperty("taskProgressCacheDuration", DefaultValue = 60, IsRequired = false)]
+        public int TaskProgressCacheDurationMinutes
         {
-            get { return (int)this["activityCacheSlidingExpiration"]; }
-            set { this["activityCacheSlidingExpiration"] = value; }
+            get { return (int)this["taskProgressCacheDuration"]; }
+            set { this["taskProgressCacheDuration"] = value; }
         }
 
         [ConfigurationProperty("taskIdProviderType", IsRequired = false)]

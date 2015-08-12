@@ -7,7 +7,7 @@ namespace Hyper.NodeServices.Contracts.SystemCommands
     public class GetCachedTaskProgressInfoResponse : ICommandResponse
     {
         [DataMember]
-        public bool ActivityCacheIsEnabled { get; set; }
+        public bool TaskProgressCacheEnabled { get; set; }
 
         [DataMember]
         public HyperNodeTaskProgressInfo TaskProgressInfo { get; set; }

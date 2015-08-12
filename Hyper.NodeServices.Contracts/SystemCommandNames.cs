@@ -4,20 +4,20 @@ namespace Hyper.NodeServices.Contracts
 {
     public static class SystemCommandNames
     {
-        public const string Discover                  = "Discover";
-        public const string GetCachedTaskProgressInfo = "GetCachedTaskProgressInfo";
-        public const string GetChildNodes             = "GetChildNodes";
-        public const string GetCommandConfig          = "GetCommandConfig";
-        public const string Echo                      = "Echo";
-        public const string EnableCommand             = "EnableCommand";
-        public const string EnableActivityMonitor     = "EnableActivityMonitor";
-        public const string RenameActivityMonitor     = "RenameActivityMonitor";
-        public const string EnableActivityCache       = "EnableActivityCache";
-        public const string EnableDiagnostics         = "EnableDiagnostics";
-        public const string CancelTask                = "CancelTask";
-        public const string SetActivityCacheDuration  = "SetActivityCacheDuration";
+        public const string Discover                      = "Discover";
+        public const string GetCachedTaskProgressInfo     = "GetCachedTaskProgressInfo";
+        public const string GetChildNodes                 = "GetChildNodes";
+        public const string GetCommandConfig              = "GetCommandConfig";
+        public const string Echo                          = "Echo";
+        public const string EnableCommand                 = "EnableCommand";
+        public const string EnableActivityMonitor         = "EnableActivityMonitor";
+        public const string RenameActivityMonitor         = "RenameActivityMonitor";
+        public const string EnableTaskProgressCache       = "EnableTaskProgressCache";
+        public const string EnableDiagnostics             = "EnableDiagnostics";
+        public const string CancelTask                    = "CancelTask";
+        public const string SetTaskProgressCacheDuration  = "SetTaskProgressCacheDuration";
 
-        private static readonly string[] SystemCommands =
+        private static readonly string[] SystemCommands   =
         {
             Discover,
             GetCachedTaskProgressInfo,
@@ -27,10 +27,10 @@ namespace Hyper.NodeServices.Contracts
             EnableCommand,
             EnableActivityMonitor,
             RenameActivityMonitor,
-            EnableActivityCache,
+            EnableTaskProgressCache,
             EnableDiagnostics,
             CancelTask,
-            SetActivityCacheDuration
+            SetTaskProgressCacheDuration
         };
 
         public static bool IsSystemCommand(string commandName)
