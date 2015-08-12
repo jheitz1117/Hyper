@@ -9,9 +9,6 @@ namespace Hyper.NodeServices.Contracts.SystemCommands
     public class HyperNodeTaskProgressInfo
     {
         [DataMember]
-        public Guid ParentMessageGuid { get; set; }
-
-        [DataMember]
         public List<HyperNodeActivityItem> Activity { get; set; }
 
         [DataMember]
@@ -46,11 +43,6 @@ namespace Hyper.NodeServices.Contracts.SystemCommands
         {
             this.Activity = new List<HyperNodeActivityItem>();
             this.ChildTaskIds = new ConcurrentDictionary<string, string>();
-        }
-
-        public HyperNodeTaskProgressInfo(Guid parentMessageGuid) : this()
-        {
-            this.ParentMessageGuid = parentMessageGuid;
         }
     }
 }

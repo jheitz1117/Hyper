@@ -130,7 +130,6 @@ namespace Hyper.NodeServices
                 CommandName = message.CommandName,
                 CreatedByAgentName = message.CreatedByAgentName,
                 CreationDateTime = message.CreationDateTime,
-                MessageGuid = message.MessageGuid,
                 ProcessOptionFlags = message.ProcessOptionFlags
             };
 
@@ -188,7 +187,6 @@ namespace Hyper.NodeServices
                 currentTaskInfo.Activity = new HyperNodeServiceActivityTracker(
                     new HyperNodeActivityContext(
                         this.HyperNodeName,
-                        message.MessageGuid,
                         message.CommandName,
                         response.TaskId,
                         (message.ReturnTaskTrace || this.EnableDiagnostics)
@@ -635,11 +633,10 @@ namespace Hyper.NodeServices
                                 "HyperNode '{0}' did not return a response before the specified timeout of {1}. This is usually caused by a long-running task in the " +
                                 "recipient node or one of its descendants. Consider increasing the value of the ForwardingTimeout property in the message or lengthening " +
                                 "the message timeout attributes in your WCF configuration. If caching was enabled for this message, additional trace logs may be obtained " +
-                                "by querying the intended recipients directly using the message guid '{2}'. Additional trace logs may also be obtained by querying the " +
-                                "data stores for any custom activity monitors that may be attached to the intended recipients.",
+                                "by querying the intended recipients directly. Additional trace logs may also be obtained by querying the data stores for any custom " +
+                                "activity monitors that may be attached to the intended recipients.",
                                 forwardingArgs.ChildNodeName,
-                                taskInfo.Message.ForwardingTimeout,
-                                taskInfo.Message.MessageGuid
+                                taskInfo.Message.ForwardingTimeout
                             )
                         );
                     }
@@ -738,7 +735,6 @@ namespace Hyper.NodeServices
                         args.Message.SeenByNodeNames)
                     {
                         TaskId = args.Response.TaskId,
-                        MessageGuid = args.Message.MessageGuid,
                         ExecutingNodeName = this.HyperNodeName,
                         CommandName = args.Message.CommandName,
                         CreatedByAgentName = args.Message.CreatedByAgentName,
@@ -1021,9 +1017,9 @@ namespace Hyper.NodeServices
 
         #region Internal Helper Methods
 
-        internal HyperNodeTaskProgressInfo GetCachedTaskProgressInfo(Guid messageGuid, string taskId)
+        internal HyperNodeTaskProgressInfo GetCachedTaskProgressInfo(string taskId)
         {
-            return _activityCache.GetTaskProgressInfo(messageGuid, taskId);
+            return _activityCache.GetTaskProgressInfo(taskId);
         }
 
         internal IEnumerable<CommandConfiguration> GetCommandConfig()

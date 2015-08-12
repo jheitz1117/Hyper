@@ -6,7 +6,6 @@ namespace Hyper.NodeServices.Extensibility
 {
     public interface IHyperNodeMessageContext
     {
-        Guid MessageGuid { get; }
         string CommandName { get; }
         string CreatedByAgentName { get; }
         DateTime CreationDateTime { get; }

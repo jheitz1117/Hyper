@@ -19,8 +19,7 @@ namespace HyperNetExtensibilityTest.ActivityMonitors
         public override void OnNext(IHyperNodeActivityEventItem activity)
         {
             Trace.WriteLine(
-                string.Format("{0}\r\n{1}\r\n    {2:G} {3}\r\n    {4}\r\n    {5}",
-                    activity.MessageGuid,
+                string.Format("{0}\r\n    {1:G} {2}\r\n    {3}\r\n    {4}",
                     activity.TaskId,
                     activity.EventDateTime,
                     activity.Agent,

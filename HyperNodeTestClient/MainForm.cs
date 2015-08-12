@@ -145,15 +145,13 @@ namespace HyperNodeTestClient
                 if (cboHyperNodeNames.Text == "Bob")
                     msg.ForwardingPath = GetForwardingPathFromAliceToBob();
 
-                txtMessageId.Text = msg.MessageGuid.ToString();
-
                 var response = new HyperNodeClient("Alice").ProcessMessage(msg);
 
                 PopulateResponseSummary(lstRealTimeResponse, response);
                 PopulateTaskTrace(tvwRealTimeTaskTrace, response);
 
                 if (response.NodeAction != HyperNodeActionType.Rejected && msg.CacheProgressInfo)
-                    StartAliceProgressTracking(msg.MessageGuid, response.TaskId);
+                    StartAliceProgressTracking(response.TaskId);
             }
             catch (Exception ex)
             {
@@ -182,7 +180,7 @@ namespace HyperNodeTestClient
                     break;
 
                 var commandResponse = (GetCachedTaskProgressInfoResponse)serializer.Deserialize(targetResponse.CommandResponseString);
-                taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo(request.MessageGuid);
+                taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo();
                 if (!commandResponse.ActivityCacheIsEnabled)
                 {
                     taskProgressInfo.Activity.Add(
@@ -213,7 +211,7 @@ namespace HyperNodeTestClient
             lstAliceActivityItems.DataSource = GetActivityStrings(taskProgressInfo.Activity);
 
             if (taskProgressInfo.ChildTaskIds.ContainsKey("Bob") && !_bobIsProgressTracking && cboHyperNodeNames.Text == "Bob")
-                StartBobProgressTracking(taskProgressInfo.ParentMessageGuid, taskProgressInfo.ChildTaskIds["Bob"]);
+                StartBobProgressTracking(taskProgressInfo.ChildTaskIds["Bob"]);
         }
 
         private void aliceProgressWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -253,7 +251,7 @@ namespace HyperNodeTestClient
                     break;
 
                 var commandResponse = (GetCachedTaskProgressInfoResponse)serializer.Deserialize(targetResponse.CommandResponseString);
-                taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo(request.MessageGuid);
+                taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo();
                 if (!commandResponse.ActivityCacheIsEnabled)
                 {
                     taskProgressInfo.Activity.Add(
@@ -379,16 +377,9 @@ namespace HyperNodeTestClient
                     a.EventDescription
                 )
             ).ToArray();
-
-            //return (
-            //    from a in activity
-            //    orderby a.EventDateTime
-            //    select string.Format("{0:G} {1} ({2:P}) - {3}", a.EventDateTime, a.Agent, a.ProgressPercentage, a.EventDescription)
-            //).ToArray();
-
         }
 
-        private void StartAliceProgressTracking(Guid messageGuid, string taskId)
+        private void StartAliceProgressTracking(string taskId)
         {
             if (_aliceIsProgressTracking)
             {
@@ -400,17 +391,10 @@ namespace HyperNodeTestClient
 
             txtAliceTaskId.Text = taskId;
 
-            var serializer = new NetDataContractRequestSerializer<GetCachedTaskProgressInfoRequest>();
             var progressRequest = new HyperNodeMessageRequest("HyperNodeTestClient")
             {
                 CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
-                CommandRequestString = serializer.Serialize(
-                    new GetCachedTaskProgressInfoRequest
-                    {
-                        MessageGuid = messageGuid,
-                        TaskId = taskId
-                    }
-                )
+                CommandRequestString = taskId
             };
 
             var progressWorker = new BackgroundWorker
@@ -425,7 +409,7 @@ namespace HyperNodeTestClient
             progressWorker.RunWorkerAsync(progressRequest);
         }
 
-        private void StartBobProgressTracking(Guid messageGuid, string taskId)
+        private void StartBobProgressTracking(string taskId)
         {
             if (_bobIsProgressTracking)
             {
@@ -437,17 +421,10 @@ namespace HyperNodeTestClient
 
             txtBobTaskId.Text = taskId;
 
-            var serializer = new NetDataContractRequestSerializer<GetCachedTaskProgressInfoRequest>();
             var progressRequest = new HyperNodeMessageRequest("HyperNodeTestClient")
             {
                 CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
-                CommandRequestString = serializer.Serialize(
-                    new GetCachedTaskProgressInfoRequest
-                    {
-                        MessageGuid = messageGuid,
-                        TaskId = taskId
-                    }
-                ),
+                CommandRequestString = taskId,
                 IntendedRecipientNodeNames = new List<string>
                 {
                     "Bob"

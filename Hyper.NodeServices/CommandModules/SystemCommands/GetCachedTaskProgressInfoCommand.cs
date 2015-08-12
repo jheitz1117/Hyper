@@ -9,20 +9,13 @@ using Hyper.NodeServices.Extensibility.Exceptions;
 
 namespace Hyper.NodeServices.CommandModules.SystemCommands
 {
-    internal class GetCachedTaskProgressInfoCommand : ICommandModule, ICommandRequestSerializerFactory, ICommandResponseSerializerFactory
+    internal class GetCachedTaskProgressInfoCommand : ICommandModule, ICommandResponseSerializerFactory
     {
-        private readonly object _serializer;
-
-        public GetCachedTaskProgressInfoCommand()
-        {
-            _serializer = new NetDataContractCommandSerializer<GetCachedTaskProgressInfoRequest, GetCachedTaskProgressInfoResponse>();
-        }
-
         public ICommandResponse Execute(ICommandExecutionContext context)
         {
-            var request = context.Request as GetCachedTaskProgressInfoRequest;
+            var request = context.Request as CommandRequestString;
             if (request == null)
-                throw new InvalidCommandRequestTypeException(typeof(GetCachedTaskProgressInfoRequest), context.Request.GetType());
+                throw new InvalidCommandRequestTypeException(typeof(CommandRequestString), context.Request.GetType());
 
             var response = new GetCachedTaskProgressInfoResponse
             {
@@ -35,8 +28,8 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                 response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
             }
 
-            context.Activity.TrackFormat("Retrieving cached task progress info for Message Guid '{0}', Task ID '{1}'.", request.MessageGuid, request.TaskId);
-            response.TaskProgressInfo = HyperNodeService.Instance.GetCachedTaskProgressInfo(request.MessageGuid, request.TaskId);
+            context.Activity.TrackFormat("Retrieving cached task progress info for Task ID '{0}'.", request.RequestString);
+            response.TaskProgressInfo = HyperNodeService.Instance.GetCachedTaskProgressInfo(request.RequestString);
 
             // If we can't find any task progress info for the specified Task ID, we'll return a placeholder object in Completed status that informs the caller that no progress
             // information exists for this task ID. This will prevent the caller from sitting in an infinite loop waiting for IsComplete to be true when there may not be a cache
@@ -49,7 +42,7 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                     new HyperNodeActivityItem
                     {
                         EventDateTime = DateTime.Now,
-                        EventDescription = string.Format("No task progress information exists for message Guid '{0}' and task ID '{1}'.", request.MessageGuid, request.TaskId),
+                        EventDescription = string.Format("No task progress information exists for Task ID '{0}'.", request.RequestString),
                         Agent = context.ExecutingNodeName
                     }
                 }
@@ -60,14 +53,9 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
             return response;
         }
 
-        ICommandRequestSerializer ICommandRequestSerializerFactory.Create()
-        {
-            return _serializer as ICommandRequestSerializer;
-        }
-
         ICommandResponseSerializer ICommandResponseSerializerFactory.Create()
         {
-            return _serializer as ICommandResponseSerializer;
+            return new NetDataContractResponseSerializer<GetCachedTaskProgressInfoResponse>();
         }
     }
 }

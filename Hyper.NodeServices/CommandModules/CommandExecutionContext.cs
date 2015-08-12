@@ -12,7 +12,6 @@ namespace Hyper.NodeServices.CommandModules
     internal class CommandExecutionContext : ICommandExecutionContext
     {
         public string TaskId { get; set; }
-        public Guid MessageGuid { get; set; }
         public string ExecutingNodeName { get; set; }
         public string CommandName { get; set; }
         public string CreatedByAgentName { get; set; }

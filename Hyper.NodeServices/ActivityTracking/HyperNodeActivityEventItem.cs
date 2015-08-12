@@ -6,7 +6,6 @@ namespace Hyper.NodeServices.ActivityTracking
     internal sealed class HyperNodeActivityEventItem : IHyperNodeActivityEventItem
     {
         // These properties have an internal setter because they are hard-set by the activity tracker
-        public Guid MessageGuid { get; internal set; }
         public string TaskId { get; internal set; }
         public string CommandName { get; internal set; }
         public TimeSpan? Elapsed { get; internal set; }

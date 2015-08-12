@@ -11,9 +11,6 @@ namespace Hyper.NodeServices.Contracts
         private readonly TimeSpan _defaultForwardingTimeout = TimeSpan.FromSeconds(5);
 
         [DataMember]
-        public Guid MessageGuid { get; set; }
-
-        [DataMember]
         public string CreatedByAgentName { get; set; }
 
         [DataMember]
@@ -74,7 +71,6 @@ namespace Hyper.NodeServices.Contracts
 
         public HyperNodeMessageRequest()
         {
-            this.MessageGuid = Guid.NewGuid();
             this.CreationDateTime = DateTime.Now;
             this.MessageLifeSpan = _defaultMessageLifeSpan;
             this.ForwardingTimeout = _defaultForwardingTimeout;

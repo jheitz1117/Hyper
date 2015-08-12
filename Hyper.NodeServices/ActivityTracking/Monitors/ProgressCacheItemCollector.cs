@@ -32,10 +32,7 @@ namespace Hyper.NodeServices.ActivityTracking
         public override void OnNext(IHyperNodeActivityEventItem activity)
         {
             // First add a new cache item or get the existing cache item with the specified key
-            var cacheItem = AddOrGetExisting(activity.MessageGuid.ToString(), () => new HyperNodeProgressCacheItem());
-
-            // Now get or add a task progress info object for this task ID
-            var taskProgressInfo = cacheItem.TaskProgress.GetOrAdd(activity.TaskId, s => new HyperNodeTaskProgressInfo(activity.MessageGuid));
+            var taskProgressInfo = AddOrGetExisting(activity.TaskId, () => new HyperNodeTaskProgressInfo());
 
             // Now add our specific item to our list of activity items. Need lock because list is not thread-safe
             lock (Lock)
@@ -77,24 +74,16 @@ namespace Hyper.NodeServices.ActivityTracking
             taskProgressInfo.ProgressTotal = activity.ProgressTotal ?? taskProgressInfo.ProgressTotal;
         }
 
-        public HyperNodeTaskProgressInfo GetTaskProgressInfo(Guid messageGuid, string taskId)
-        {
-            HyperNodeTaskProgressInfo taskProgressInfo;
-            GetProgressCacheItem(messageGuid).TaskProgress.TryGetValue(taskId, out taskProgressInfo);
-            
-            return taskProgressInfo;
-        }
-
         /// <summary>
-        /// Gets the <see cref="HyperNodeProgressCacheItem"/> object from the cache with the specified message GUID. If no such item exists, return a new, empty cache item.
+        /// Gets the <see cref="HyperNodeTaskProgressInfo"/> object from the cache with the specified task ID. If no cache item exists with the specified task ID, return null.
         /// </summary>
-        /// <param name="messageGuid">The <see cref="Guid"/> of the message to look for.</param>
+        /// <param name="taskId">The task ID to look for.</param>
         /// <returns></returns>
-        public HyperNodeProgressCacheItem GetProgressCacheItem(Guid messageGuid)
+        public HyperNodeTaskProgressInfo GetTaskProgressInfo(string taskId)
         {
             return (
-                Cache[messageGuid.ToString()] as Lazy<HyperNodeProgressCacheItem> ?? new Lazy<HyperNodeProgressCacheItem>(
-                    () => new HyperNodeProgressCacheItem()
+                Cache[taskId] as Lazy<HyperNodeTaskProgressInfo> ?? new Lazy<HyperNodeTaskProgressInfo>(
+                    () => null // If we don't have any task progress for the specified task ID, just return null
                 )
             ).Value;
         }

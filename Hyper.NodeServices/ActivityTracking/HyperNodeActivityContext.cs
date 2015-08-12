@@ -6,13 +6,11 @@ namespace Hyper.NodeServices.ActivityTracking
     internal class HyperNodeActivityContext
     {
         private readonly string _hyperNodeName;
-        private readonly Guid _messageGuid;
         private readonly string _commandName;
         private readonly string _taskId;
         private readonly Stopwatch _stopwatch;
 
         public string HyperNodeName { get { return _hyperNodeName; } }
-        public Guid MessageGuid { get { return _messageGuid; } }
         public string CommandName { get { return _commandName; } }
         public string TaskId { get { return _taskId; } }
 
@@ -36,10 +34,9 @@ namespace Hyper.NodeServices.ActivityTracking
             }
         }
 
-        public HyperNodeActivityContext(string hyperNodeName, Guid messageGuid, string commandName, string taskId, bool enableDiagnostics)
+        public HyperNodeActivityContext(string hyperNodeName, string commandName, string taskId, bool enableDiagnostics)
         {
             _hyperNodeName = hyperNodeName;
-            _messageGuid = messageGuid;
             _commandName = commandName;
             _taskId = taskId;
 

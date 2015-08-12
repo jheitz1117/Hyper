@@ -5,7 +5,6 @@ namespace Hyper.NodeServices.Extensibility.ActivityTracking
 {
     public interface IHyperNodeActivityEventItem : IActivityItem
     {
-        Guid MessageGuid { get; }
         string TaskId { get; }
         string CommandName { get; }
         TimeSpan? Elapsed { get; }

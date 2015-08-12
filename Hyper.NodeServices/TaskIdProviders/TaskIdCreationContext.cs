@@ -11,7 +11,6 @@ namespace Hyper.NodeServices.TaskIdProviders
     /// </summary>
     internal class TaskIdCreationContext : IHyperNodeMessageContext
     {
-        public Guid MessageGuid { get; set; }
         public string CommandName { get; set; }
         public string CreatedByAgentName { get; set; }
         public DateTime CreationDateTime { get; set; }
