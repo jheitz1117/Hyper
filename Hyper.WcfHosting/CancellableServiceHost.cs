@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ServiceModel;
 using System.Threading;
 
 namespace Hyper.WcfHosting
 {
+    /// <summary>
+    /// <see cref="ServiceHost"/> implementation that supports cancellation.
+    /// </summary>
     public sealed class CancellableServiceHost : ServiceHost
     {
         private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
+        private readonly List<CancellationTokenRegistration> _cancellationCallbackRegistrations = new List<CancellationTokenRegistration>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CancellableServiceHost"/> class with the type of service and its base addresses specified.
@@ -30,8 +35,9 @@ namespace Hyper.WcfHosting
         /// <param name="callback">The delegate to be executed when the <see cref="CancellationToken"/> is canceled.</param>
         public void RegisterCancellationDelegate(Action callback)
         {
-            // TODO: Need to store these cancellation registration objects in a list of IDisposable. Then need to implement IDisposable for this class to ensure they are disposed.
-            _tokenSource.Token.Register(callback);
+            _cancellationCallbackRegistrations.Add(
+                _tokenSource.Token.Register(callback)
+            );
         }
 
         /// <summary>
@@ -41,7 +47,9 @@ namespace Hyper.WcfHosting
         /// <param name="useSynchronizationContext">A Boolean value that indicates whether to capture the current <see cref="SynchronizationContext"/> and use it when invoking the <paramref name="callback"/>.</param>
         public void RegisterCancellationDelegate(Action callback, bool useSynchronizationContext)
         {
-            _tokenSource.Token.Register(callback, useSynchronizationContext);
+            _cancellationCallbackRegistrations.Add(
+                _tokenSource.Token.Register(callback, useSynchronizationContext)
+            );
         }
 
         /// <summary>
@@ -51,7 +59,9 @@ namespace Hyper.WcfHosting
         /// <param name="state">The state to pass to the <paramref name="callback"/> when the delegate is invoked. This may be null.</param>
         public void RegisterCancellationDelegate(Action<object> callback, object state)
         {
-            _tokenSource.Token.Register(callback, state);
+            _cancellationCallbackRegistrations.Add(
+                _tokenSource.Token.Register(callback, state)
+            );
         }
 
         /// <summary>
@@ -62,11 +72,13 @@ namespace Hyper.WcfHosting
         /// <param name="useSynchronizationContext">A Boolean value that indicates whether to capture the current <see cref="SynchronizationContext"/> and use it when invoking the <paramref name="callback"/>.</param>
         public void RegisterCancellationDelegate(Action<object> callback, object state, bool useSynchronizationContext)
         {
-            _tokenSource.Token.Register(callback, state, useSynchronizationContext);
+            _cancellationCallbackRegistrations.Add(
+                _tokenSource.Token.Register(callback, state, useSynchronizationContext)
+            );
         }
 
         /// <summary>
-        /// Aborts the service
+        /// Aborts the service.
         /// </summary>
         protected override void OnAbort()
         {
@@ -92,6 +104,13 @@ namespace Hyper.WcfHosting
         {
             try
             {
+                // Dispose all of our callback registrations first
+                foreach (var registration in _cancellationCallbackRegistrations)
+                {
+                    registration.Dispose();
+                }
+
+                // Now finally dipose our token source
                 _tokenSource.Dispose();
             }
             finally

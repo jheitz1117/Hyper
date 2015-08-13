@@ -118,7 +118,6 @@ namespace Hyper.WcfHosting
         /// <summary>
         /// Calls the <see cref="ServiceHost.Abort()"/> method if it is in the <see cref="CommunicationState.Faulted"/> state.
         /// Otherwise, calls the <see cref="ServiceHost.Close()"/> method instead.
-        /// Calls <see cref="IDisposable.Dispose()"/> on the <see cref="ServiceHost"/> if it implements <see cref="IDisposable"/>.
         /// Calls <see cref="IDisposable.Dispose()"/> on the hosted service if it implements <see cref="IDisposable"/>.
         /// Exception handling is delegated to the <see cref="IServiceHostExceptionHandler"/> implementations specified in the constructor.
         /// </summary>
@@ -136,11 +135,6 @@ namespace Hyper.WcfHosting
                     else
                         _host.Close();
 
-                    // Dispose of our host if applicable
-                    var disposableHost = _host as IDisposable;
-                    if (disposableHost != null)
-                        disposableHost.Dispose();
-                    
                     _host = null;
                 }
             }
