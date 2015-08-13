@@ -51,6 +51,7 @@ namespace Hyper.NodeServices
 
         #region Private Members
 
+        private const string HyperNodeConfigurationSectionName = "hyperNet/hyperNode";
         private readonly string _hyperNodeName;
         private readonly object _lock = new object();
         private readonly TaskProgressCacheMonitor _taskProgressCacheMonitor = new TaskProgressCacheMonitor();
@@ -853,10 +854,9 @@ namespace Hyper.NodeServices
 
         private static HyperNodeService Create()
         {
-            const string sectionName = "hyperNet/hyperNode";
-            var config = (HyperNodeConfigurationSection)ConfigurationManager.GetSection(sectionName);
+            var config = (HyperNodeConfigurationSection)ConfigurationManager.GetSection(HyperNodeConfigurationSectionName);
             if (config == null)
-                throw new HyperNodeConfigurationException(string.Format("The configuration does not contain a {0} section.", sectionName));
+                throw new HyperNodeConfigurationException(string.Format("The configuration does not contain a {0} section.", HyperNodeConfigurationSectionName));
             
             var service = new HyperNodeService(config.HyperNodeName)
             {
