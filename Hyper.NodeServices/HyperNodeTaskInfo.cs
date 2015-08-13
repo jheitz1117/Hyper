@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Threading;
+using System.Threading.Tasks;
 using Hyper.NodeServices.ActivityTracking;
 using Hyper.NodeServices.Contracts;
 
@@ -12,6 +14,7 @@ namespace Hyper.NodeServices
         private readonly Stopwatch _stopwatch = new Stopwatch();
         private readonly CancellationToken _masterToken;
         private CancellationTokenSource _taskTokenSource;
+        private readonly List<Task> _childTasks = new List<Task>();
 
         #region Properties
 
@@ -56,6 +59,39 @@ namespace Hyper.NodeServices
         {
             if (!_stopwatch.IsRunning)
                 _stopwatch.Start();
+        }
+
+        /// <summary>
+        /// Adds an object to the end of the <see cref="List{T}"/>.
+        /// </summary>
+        /// <param name="childTask">The object to be added to the end of the <see cref="List{T}"/>. The value can be null.</param>
+        public void AddChildTask(Task childTask)
+        {
+            _childTasks.Add(childTask);
+        }
+
+        /// <summary>
+        /// Adds the elements of the specified collection to the end of the <see cref="List{T}"/>.
+        /// </summary>
+        /// <param name="collection">The collection whose elements should be added to the end of the <see cref="List{T}"/>. The collection itself cannot be null, but it can contain elements that are null.</param>
+        public void AddChildTasks(IEnumerable<Task> collection)
+        {
+            _childTasks.AddRange(collection);
+        }
+
+        public Task WhenChildTasks()
+        {
+            return Task.WhenAll(_childTasks);
+        }
+
+        /// <summary>
+        /// Waits for all of the child <see cref="Task"/> objects to complete execution.
+        /// </summary>
+        /// <param name="token">A <see cref="CancellationToken"/> to observe while waiting for the tasks to complete.</param>
+        /// <returns></returns>
+        public void WaitChildTasks(CancellationToken token)
+        {
+            Task.WaitAll(_childTasks.ToArray(), token);
         }
 
         public void Cancel()

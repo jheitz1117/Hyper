@@ -5,6 +5,10 @@ using Hyper.Extensibility.WcfHosting;
 
 namespace Hyper.WcfHosting
 {
+    /// <summary>
+    /// Simplifies self-hosting for <see cref="ServiceHost"/> objects.
+    /// Supports singleton service contract implementations that implement <see cref="IDisposable"/>.
+    /// </summary>
     public sealed class HyperServiceHostContainer
     {
         private ServiceHost _host;
@@ -14,6 +18,11 @@ namespace Hyper.WcfHosting
         private readonly IServiceHostExceptionHandler _communicationExceptionHandler;
         private readonly IServiceHostExceptionHandler _genericExceptionHandler;
 
+        /// <summary>
+        /// Initializes an instance of <see cref="HyperServiceHostContainer"/> with the specified factory method and <see cref="IServiceHostExceptionHandler"/> implementation.
+        /// </summary>
+        /// <param name="factory">The </param>
+        /// <param name="exceptionHandler"></param>
         public HyperServiceHostContainer(Func<ServiceHost> factory, IServiceHostExceptionHandler exceptionHandler)
             : this(new ServiceHostFactoryMethodWrapper(factory), exceptionHandler, exceptionHandler, exceptionHandler)
         { }

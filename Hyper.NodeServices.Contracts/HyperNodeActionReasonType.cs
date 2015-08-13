@@ -45,6 +45,12 @@ namespace Hyper.NodeServices.Contracts
         /// Indicates that the receiving <see cref="IHyperNodeService"/> has already reached its maximum number of concurrent tasks.
         /// </summary>
         [EnumMember]
-        MaxConcurrentTaskCountReached = 6
+        MaxConcurrentTaskCountReached = 6,
+
+        /// <summary>
+        /// Indicates that the Cancel() method has been called on the receiving <see cref="IHyperNodeService"/> and no new tasks are being started.
+        /// </summary>
+        [EnumMember]
+        CancellationRequested = 7
     }
 }
