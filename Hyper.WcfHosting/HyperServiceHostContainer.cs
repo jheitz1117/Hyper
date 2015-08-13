@@ -21,16 +21,42 @@ namespace Hyper.WcfHosting
         /// <summary>
         /// Initializes an instance of <see cref="HyperServiceHostContainer"/> with the specified factory method and <see cref="IServiceHostExceptionHandler"/> implementation.
         /// </summary>
-        /// <param name="factory">The </param>
-        /// <param name="exceptionHandler"></param>
+        /// <param name="factory">The delegate that is invoked to create the <see cref="ServiceHost"/> object to wrap.</param>
+        /// <param name="exceptionHandler">The <see cref="IServiceHostExceptionHandler"/> implementation to use when any is thrown.</param>
         public HyperServiceHostContainer(Func<ServiceHost> factory, IServiceHostExceptionHandler exceptionHandler)
-            : this(new ServiceHostFactoryMethodWrapper(factory), exceptionHandler, exceptionHandler, exceptionHandler)
+            : this(factory, exceptionHandler, exceptionHandler, exceptionHandler)
         { }
 
+        /// <summary>
+        /// Initializes an instance of <see cref="HyperServiceHostContainer"/> with the specified factory method and <see cref="IServiceHostExceptionHandler"/> implementations.
+        /// </summary>
+        /// <param name="factory">The delegate that is invoked to create the <see cref="ServiceHost"/> object to wrap.</param>
+        /// <param name="timeoutExceptionHandler">The <see cref="IServiceHostExceptionHandler"/> implementation to use when a <see cref="TimeoutException"/> is thrown.</param>
+        /// <param name="communicationExceptionHandler">The <see cref="IServiceHostExceptionHandler"/> implementation to use when a <see cref="CommunicationException"/> is thrown.</param>
+        /// <param name="genericExceptionHandler">The <see cref="IServiceHostExceptionHandler"/> implementation to use when an <see cref="Exception"/> is thrown that is not a <see cref="TimeoutException"/> or a <see cref="CommunicationException"/>.</param>
+        public HyperServiceHostContainer(Func<ServiceHost> factory,
+                           IServiceHostExceptionHandler timeoutExceptionHandler,
+                           IServiceHostExceptionHandler communicationExceptionHandler,
+                           IServiceHostExceptionHandler genericExceptionHandler)
+            : this(new ServiceHostFactoryMethodWrapper(factory), timeoutExceptionHandler, communicationExceptionHandler, genericExceptionHandler)
+        { }
+
+        /// <summary>
+        /// Initializes an instance of <see cref="HyperServiceHostContainer"/> with the specified <see cref="IServiceHostFactory"/> and <see cref="IServiceHostExceptionHandler"/> implementations.
+        /// </summary>
+        /// <param name="hostFactory">The <see cref="IServiceHostFactory"/> that is used to create the <see cref="ServiceHost"/> object to wrap.</param>
+        /// <param name="exceptionHandler">The <see cref="IServiceHostExceptionHandler"/> implementation to use when any is thrown.</param>
         public HyperServiceHostContainer(IServiceHostFactory hostFactory, IServiceHostExceptionHandler exceptionHandler)
             : this(hostFactory, exceptionHandler, exceptionHandler, exceptionHandler)
         { }
 
+        /// <summary>
+        /// Initializes an instance of <see cref="HyperServiceHostContainer"/> with the specified <see cref="IServiceHostFactory"/> and <see cref="IServiceHostExceptionHandler"/> implementations.
+        /// </summary>
+        /// <param name="hostFactory">The <see cref="IServiceHostFactory"/> that is used to create the <see cref="ServiceHost"/> object to wrap.</param>
+        /// <param name="timeoutExceptionHandler">The <see cref="IServiceHostExceptionHandler"/> implementation to use when a <see cref="TimeoutException"/> is thrown.</param>
+        /// <param name="communicationExceptionHandler">The <see cref="IServiceHostExceptionHandler"/> implementation to use when a <see cref="CommunicationException"/> is thrown.</param>
+        /// <param name="genericExceptionHandler">The <see cref="IServiceHostExceptionHandler"/> implementation to use when an <see cref="Exception"/> is thrown that is not a <see cref="TimeoutException"/> or a <see cref="CommunicationException"/>.</param>
         public HyperServiceHostContainer(IServiceHostFactory hostFactory, 
                            IServiceHostExceptionHandler timeoutExceptionHandler,
                            IServiceHostExceptionHandler communicationExceptionHandler,
@@ -51,6 +77,11 @@ namespace Hyper.WcfHosting
             _genericExceptionHandler = genericExceptionHandler;
         }
 
+        /// <summary>
+        /// Creates the <see cref="ServiceHost"/> if it does not exist and calls its Open() method. Exception handling is
+        /// delegated to the <see cref="IServiceHostExceptionHandler"/> implementations specified in the constructor.
+        /// </summary>
+        /// <returns></returns>
         public bool Start()
         {
             var startedSuccessfully = false;
@@ -84,6 +115,13 @@ namespace Hyper.WcfHosting
             return startedSuccessfully;
         }
 
+        /// <summary>
+        /// Calls the <see cref="ServiceHost.Abort()"/> method if it is in the <see cref="CommunicationState.Faulted"/> state.
+        /// Otherwise, calls the <see cref="ServiceHost.Close()"/> method instead.
+        /// Calls <see cref="IDisposable.Dispose()"/> on the <see cref="ServiceHost"/> if it implements <see cref="IDisposable"/>.
+        /// Calls <see cref="IDisposable.Dispose()"/> on the hosted service if it implements <see cref="IDisposable"/>.
+        /// Exception handling is delegated to the <see cref="IServiceHostExceptionHandler"/> implementations specified in the constructor.
+        /// </summary>
         public void Stop()
         {
             IDisposable disposableService = null;
@@ -98,6 +136,11 @@ namespace Hyper.WcfHosting
                     else
                         _host.Close();
 
+                    // Dispose of our host if applicable
+                    var disposableHost = _host as IDisposable;
+                    if (disposableHost != null)
+                        disposableHost.Dispose();
+                    
                     _host = null;
                 }
             }
@@ -118,12 +161,15 @@ namespace Hyper.WcfHosting
             }
             finally
             {
-                // Always try to call Dispose() if our service was disposable
+                // Dispose of our service if applicable
                 if (disposableService != null)
                     disposableService.Dispose();
             }
         }
 
+        /// <summary>
+        /// List of endpoints on which the <see cref="ServiceHost"/> is listening.
+        /// </summary>
         public ServiceEndpointCollection Endpoints
         {
             get

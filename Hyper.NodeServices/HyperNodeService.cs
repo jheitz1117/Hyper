@@ -344,8 +344,52 @@ namespace Hyper.NodeServices
         }
 
         /// <summary>
-        /// This method provides one last chance to dispose of any subscribers that may still exist due to child threads not
-        /// terminating as expected.
+        /// Waits for all of the child <see cref="Task"/> objects to complete execution.
+        /// </summary>
+        public void WaitAllChildTasks()
+        {
+            Task.WaitAll(GetChildTasks().ToArray());
+        }
+
+        /// <summary>
+        /// Waits for all of the child <see cref="Task"/> objects to complete execution.
+        /// </summary>
+        /// <param name="token">A <see cref="CancellationToken"/> to observe while waiting for the tasks to complete.</param>
+        public void WaitAllChildTasks(CancellationToken token)
+        {
+            Task.WaitAll(GetChildTasks().ToArray(), token);
+        }
+
+        /// <summary>
+        /// Waits for all of the child <see cref="Task"/> objects to complete execution.
+        /// </summary>
+        /// <param name="timeout">A <see cref="TimeSpan"/> that represents the number of milliseconds to wait, or a <see cref="TimeSpan"/> that represents -1 milliseconds to wait indefinitely.</param>
+        public void WaitAllChildTasks(TimeSpan timeout)
+        {
+            Task.WaitAll(GetChildTasks().ToArray(), timeout);
+        }
+
+        /// <summary>
+        /// Waits for all of the child <see cref="Task"/> objects to complete execution.
+        /// </summary>
+        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="Timeout.Infinite"/> (-1) to wait indefinitely.</param>
+        public void WaitAllChildTasks(int millisecondsTimeout)
+        {
+            Task.WaitAll(GetChildTasks().ToArray(), millisecondsTimeout);
+        }
+
+        /// <summary>
+        /// Waits for all of the child <see cref="Task"/> objects to complete execution.
+        /// </summary>
+        /// <param name="millisecondsTimeout">The number of milliseconds to wait, or <see cref="Timeout.Infinite"/> (-1) to wait indefinitely.</param>
+        /// <param name="token">A <see cref="CancellationToken"/> to observe while waiting for the tasks to complete.</param>
+        public void WaitAllChildTasks(int millisecondsTimeout, CancellationToken token)
+        {
+            Task.WaitAll(GetChildTasks().ToArray(), millisecondsTimeout, token);
+        }
+
+        /// <summary>
+        /// Provides one last chance to dispose of resources.
         /// </summary>
         public void Dispose()
         {
@@ -811,6 +855,13 @@ namespace Hyper.NodeServices
                 taskInfo.Dispose();
         }
 
+        private IEnumerable<Task> GetChildTasks()
+        {
+            return _liveTasks.Keys.Select(
+                taskId => _liveTasks[taskId].WhenChildTasks()
+            );
+        }
+
         #region Configuration
 
         private static HyperNodeService Create()
@@ -1086,7 +1137,7 @@ namespace Hyper.NodeServices
                     Elapsed = _liveTasks[taskId].Elapsed
                 }
             );
-        } 
+        }
 
         internal IEnumerable<string> GetChildNodes()
         {

@@ -30,6 +30,7 @@ namespace Hyper.WcfHosting
         /// <param name="callback">The delegate to be executed when the <see cref="CancellationToken"/> is canceled.</param>
         public void RegisterCancellationDelegate(Action callback)
         {
+            // TODO: Need to store these cancellation registration objects in a list of IDisposable. Then need to implement IDisposable for this class to ensure they are disposed.
             _tokenSource.Token.Register(callback);
         }
 

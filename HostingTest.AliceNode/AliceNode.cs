@@ -44,11 +44,30 @@ namespace HostingTest.AliceNode
             Debug.Listeners.Clear();
             Debug.Listeners.Add(new ConsoleTraceListener());
 
+            var tokenSource = new CancellationTokenSource();
+
+            //TODO: Need to write HOWTO article on hosting a HyperNode. First, start with naive hosting. Then present problems and show how the use of Hyper.WcfHosting takes care of those problems. Can then slowly build up to HyperServiceHostContainer and then make recommendations on WaitAll settings and stuch.
             var container = new HyperServiceHostContainer(
                 () =>
                 {
                     var host = new CancellableServiceHost(HyperNodeService.Instance);
-                    host.RegisterCancellationDelegate(HyperNodeService.Instance.Cancel);
+
+                    // When we abort, we want to cancel the service and wait for all child tasks to complete
+                    host.RegisterCancellationDelegate(
+                        args =>
+                        {
+                            var cancelParams = (CancellationParams) args;
+                            HyperNodeService.Instance.Cancel();
+                            HyperNodeService.Instance.WaitAllChildTasks(cancelParams.MillisecondsTimeout, cancelParams.Token);
+                        },
+                        new CancellationParams
+                        {
+                            // TODO: Write about how these settings can be pulled from the app.config settings as a way to customize how long the service will wait after cancellation before proceeding to force a close.
+                            MillisecondsTimeout = 100,
+                            Timeout = TimeSpan.FromMilliseconds(2000),
+                            Token = tokenSource.Token
+                        }
+                    );
 
                     return host;
                 },
@@ -77,5 +96,12 @@ namespace HostingTest.AliceNode
             Console.WriteLine("Done.");
             Thread.Sleep(1000);
         }
+    }
+
+    internal class CancellationParams
+    {
+        public int MillisecondsTimeout { get; set; }
+        public TimeSpan Timeout { get; set; }
+        public CancellationToken Token { get; set; }
     }
 }

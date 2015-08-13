@@ -79,6 +79,10 @@ namespace Hyper.NodeServices
             _childTasks.AddRange(collection);
         }
 
+        /// <summary>
+        /// Creates a task that will complete when all of the child tasks have completed.
+        /// </summary>
+        /// <returns></returns>
         public Task WhenChildTasks()
         {
             return Task.WhenAll(_childTasks);
