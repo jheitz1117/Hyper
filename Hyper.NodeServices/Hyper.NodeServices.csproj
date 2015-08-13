@@ -76,6 +76,7 @@
     <Compile Include="CommandModules\SystemCommands\SetTaskProgressCacheDurationCommand.cs" />
     <Compile Include="Configuration\SystemCommandElement.cs" />
     <Compile Include="Configuration\SystemCommandElementCollection.cs" />
+    <Compile Include="Exceptions\HyperNodeConfigurationException.cs" />
     <Compile Include="Exceptions\ActivityMonitorSubscriptionException.cs">
       <SubType>Code</SubType>
     </Compile>

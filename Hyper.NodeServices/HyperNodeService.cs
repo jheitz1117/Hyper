@@ -29,22 +29,9 @@ using HyperNetExtensibilityTest.CommandModules;
 namespace Hyper.NodeServices
 {
     /// <summary>
-    /// This class is the heart of the concept of a "HyperNode," which is able to process <see cref="HyperNodeMessageRequest"/> objects and return <see cref="HyperNodeMessageResponse"/> objects.
-    /// When a <see cref="HyperNodeService"/> object receives a message, it will choose to either ignore it or process it. Details about what happened during message processing such as
-    /// why the message was ignored or whether there were any errors during processing are contained in the response object. The following are some possible results:
-    /// 
-    /// 1) The message was ignored. This could happen for one of the the following reasons:
-    ///    - The message itself had expired
-    ///    - This specific <see cref="HyperNodeService"/> object was not one of the intended recipients of the message
-    ///    - This specific <see cref="HyperNodeService"/> object has already processed the message
-    /// 2) The message failed. This could happen for one of the following reasons:
-    ///    - This specific <see cref="HyperNodeService"/> object did not recognize the message and was unable to determine how to process it.
-    ///    - This specific <see cref="HyperNodeService"/> object was an intended recipient, recognized the message, and acknowledged the ability to process the message, but encountered
-    ///      a fatal error during processing.
-    /// 3) The message was processed successfully, possibly with warnings and/or non-fatal errors. The following flags may be specified in any combination via bitwise OR: 
-    ///    - Success
-    ///    - HadNonFatalErrors
-    ///    - HadWarnings
+    /// Processes <see cref="HyperNodeMessageRequest"/> objects and returns <see cref="HyperNodeMessageResponse"/> objects.
+    /// This class is a singleton and must be referenced using the static <see cref="HyperNodeService.Instance"/> property.
+    /// This class cannot be inherited.
     /// </summary>
     [ServiceBehavior(
         ConcurrencyMode = ConcurrencyMode.Multiple,
@@ -866,8 +853,11 @@ namespace Hyper.NodeServices
 
         private static HyperNodeService Create()
         {
-            var config = (HyperNodeConfigurationSection)ConfigurationManager.GetSection("hyperNet/hyperNode");
-
+            const string sectionName = "hyperNet/hyperNode";
+            var config = (HyperNodeConfigurationSection)ConfigurationManager.GetSection(sectionName);
+            if (config == null)
+                throw new HyperNodeConfigurationException(string.Format("The configuration does not contain a {0} section.", sectionName));
+            
             var service = new HyperNodeService(config.HyperNodeName)
             {
                 EnableTaskProgressCache = config.EnableTaskProgressCache,
