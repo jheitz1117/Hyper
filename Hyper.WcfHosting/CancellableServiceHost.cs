@@ -65,7 +65,7 @@ namespace Hyper.WcfHosting
         }
 
         /// <summary>
-        /// Registers a delegate that will be called when this CancellationToken is canceled.
+        /// Registers a delegate that will be called when this <see cref="CancellationToken"/> is canceled.
         /// </summary>
         /// <param name="callback">The delegate to be executed when the <see cref="CancellationToken"/> is canceled.</param>
         /// <param name="state">The state to pass to the <paramref name="callback"/> when the delegate is invoked. This may be null.</param>
