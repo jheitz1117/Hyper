@@ -14,8 +14,8 @@ namespace Hyper.Test
         [TestMethod]
         public void NoEncryptionTest()
         {
-            var encryption = new SymmetricEncryptionProvider(
-                new SymmetricEncryptionConfiguration()
+            var encryption = new SymmetricEncryptionService(
+                new SymmetricEncryptionConfiguration
                 {
                     AlgorithmType = SymmetricAlgorithmType.None,
                     PlainTextTransform = new Utf8StringTransform(),
@@ -32,8 +32,8 @@ namespace Hyper.Test
         [TestMethod]
         public void NoEncryptionTransformTest()
         {
-            var encryption = new SymmetricEncryptionProvider(
-                new SymmetricEncryptionConfiguration()
+            var encryption = new SymmetricEncryptionService(
+                new SymmetricEncryptionConfiguration
                 {
                     AlgorithmType = SymmetricAlgorithmType.None,
                     PlainTextTransform = new Utf8StringTransform(),
@@ -51,12 +51,12 @@ namespace Hyper.Test
         [TestMethod]
         public void EncryptDecryptStringRoundTripTest()
         {
-            var encryption = new SymmetricEncryptionProvider(
+            var encryption = new SymmetricEncryptionService(
                 new SymmetricEncryptionConfiguration()
             );
 
             var key = encryption.GenerateKeyString();
-            var iv = encryption.GenerateIVString();
+            var iv = encryption.GenerateIvString();
 
             const string inputString = InputStringTest;
             var encryptedResult = encryption.EncryptString(inputString, key, iv);
@@ -68,10 +68,10 @@ namespace Hyper.Test
         [TestMethod]
         public void CustomKeyTransformRoundTripTest()
         {
-            var encryption = new SymmetricEncryptionProvider(
-                new SymmetricEncryptionConfiguration() {
+            var encryption = new SymmetricEncryptionService(
+                new SymmetricEncryptionConfiguration {
                     KeyTransform = new CustomKeyStringTransform(),
-                    IVTransform = new CustomIVStringTransform()
+                    IvTransform = new CustomIvStringTransform()
                 }
             );
 
@@ -96,12 +96,12 @@ namespace Hyper.Test
             {
                 if (string.IsNullOrWhiteSpace(input))
                 { throw new ArgumentNullException("input"); }
-                else
-                    return base.GetBytes(input.PadLeft(32, 'X').Substring(0, 32));
+                    
+                return base.GetBytes(input.PadLeft(32, 'X').Substring(0, 32));
             }
         }
 
-        private class CustomIVStringTransform : Utf8StringTransform, IStringTransform
+        private class CustomIvStringTransform : Utf8StringTransform, IStringTransform
         {
             string IStringTransform.GetString(byte[] input)
             {
@@ -112,8 +112,8 @@ namespace Hyper.Test
             {
                 if (string.IsNullOrWhiteSpace(input))
                 { throw new ArgumentNullException("input"); }
-                else
-                    return base.GetBytes(input.PadLeft(16, 'X').Substring(0, 16));
+                    
+                return base.GetBytes(input.PadLeft(16, 'X').Substring(0, 16));
             }
         }
     }

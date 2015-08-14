@@ -1,10 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using Hyper.Extensibility.Cryptography;
 
 namespace Hyper.Cryptography
 {
-    public class SymmetricEncryptionProvider
+    /// <summary>
+    /// Provides encryption services using the options in the specified <see cref="SymmetricEncryptionConfiguration"/> instance.
+    /// </summary>
+    public class SymmetricEncryptionService
     {
         private readonly SymmetricAlgorithm _algorithm;
         private readonly SymmetricEncryptionConfiguration _config;
@@ -12,10 +16,10 @@ namespace Hyper.Cryptography
         #region Public Methods
 
         /// <summary>
-        /// Creates a new instance of SymmetricEncryptionProvider with the specified configuration.
+        /// Initializes a new instance of <see cref="SymmetricEncryptionService"/> with the specified configuration.
         /// </summary>
-        /// <param name="config">SymmetricEncryptionConfiguration to use for encryption.</param>
-        public SymmetricEncryptionProvider(SymmetricEncryptionConfiguration config)
+        /// <param name="config">The <see cref="SymmetricEncryptionConfiguration"/> to use for encryption.</param>
+        public SymmetricEncryptionService(SymmetricEncryptionConfiguration config)
         {
             if (config == null)
             { throw new ArgumentNullException("config"); }
@@ -27,19 +31,19 @@ namespace Hyper.Cryptography
                 case SymmetricAlgorithmType.None: // effectively turns off encryption, so output is equal to input, except for any transformations done by the IStringTransform objects
                     _algorithm = null; 
                     break;
-                case SymmetricAlgorithmType.TripleDES:
+                case SymmetricAlgorithmType.TripleDes:
                     _algorithm = new TripleDESCryptoServiceProvider();
                     break;
-                case SymmetricAlgorithmType.DES:
+                case SymmetricAlgorithmType.Des:
                     _algorithm = new DESCryptoServiceProvider();
                     break;
-                case SymmetricAlgorithmType.RC2:
+                case SymmetricAlgorithmType.Rc2:
                     _algorithm = new RC2CryptoServiceProvider();
                     break;
                 case SymmetricAlgorithmType.Rijndael:
                     _algorithm = new RijndaelManaged();
                     break;
-                case SymmetricAlgorithmType.AES:
+                case SymmetricAlgorithmType.Aes:
                     _algorithm = new AesCryptoServiceProvider();
                     break;
                 case SymmetricAlgorithmType.Custom: // added support for custom implementations of SymmetricAlgorithm for maximum flexibility
@@ -89,11 +93,11 @@ namespace Hyper.Cryptography
             {
                 if (_config.KeyTransform == null)
                 { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a KeyTransform defined."); }
-                if (_config.IVTransform == null)
+                if (_config.IvTransform == null)
                 { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have an IVTransform defined."); }
                 
                 keyBytes = _config.KeyTransform.GetBytes(key);
-                ivBytes = _config.IVTransform.GetBytes(iv);
+                ivBytes = _config.IvTransform.GetBytes(iv);
             }
 
             return Encrypt(input, keyBytes, ivBytes);
@@ -168,11 +172,11 @@ namespace Hyper.Cryptography
             {
                 if (_config.KeyTransform == null)
                 { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a KeyTransform defined."); }
-                if (_config.IVTransform == null)
+                if (_config.IvTransform == null)
                 { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have an IVTransform defined."); }
 
                 keyBytes = _config.KeyTransform.GetBytes(key);
-                ivBytes = _config.IVTransform.GetBytes(iv);
+                ivBytes = _config.IvTransform.GetBytes(iv);
             }
 
             return Decrypt(input, keyBytes, ivBytes);
@@ -248,7 +252,7 @@ namespace Hyper.Cryptography
         /// Generates a random IV byte array.
         /// </summary>
         /// <returns></returns>
-        public byte[] GenerateIV()
+        public byte[] GenerateIv()
         {
             if (_algorithm == null)
             { throw new InvalidOperationException("No algorithm was defined because the SymmetricEncryptionConfiguration specified SymmetricAlgorithmType.None."); }
@@ -262,12 +266,12 @@ namespace Hyper.Cryptography
         /// Generates a random IV string.
         /// </summary>
         /// <returns></returns>
-        public string GenerateIVString()
+        public string GenerateIvString()
         {
-            if (_config.IVTransform == null)
+            if (_config.IvTransform == null)
             { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have an IVTransform defined."); }
 
-            return _config.IVTransform.GetString(GenerateIV());
+            return _config.IvTransform.GetString(GenerateIv());
         }
 
         #endregion
@@ -280,7 +284,7 @@ namespace Hyper.Cryptography
         /// <param name="input">Input bytes to transform.</param>
         /// <param name="key">Key bytes to use for the transform.</param>
         /// <param name="iv">IV bytes to use for the transform.</param>
-        /// <param name="cryptoDirection">One of the Hyper.Cryptography.SymmetricEncryptionProvider.CryptoDirectionType values.</param>
+        /// <param name="cryptoDirection">One of the Hyper.Cryptography.SymmetricEncryptionService.CryptoDirectionType values.</param>
         /// <returns></returns>
         private byte[] PerformByteTransformation(byte[] input, byte[] key, byte[] iv, CryptoDirectionType cryptoDirection)
         {
@@ -323,6 +327,9 @@ namespace Hyper.Cryptography
 
         #endregion
 
+        /// <summary>
+        /// Indicates whether we are encrypting or decrypting.
+        /// </summary>
         private enum CryptoDirectionType
         {
             Encrypt = 0,
@@ -330,14 +337,44 @@ namespace Hyper.Cryptography
         }
     }
 
+    /// <summary>
+    /// Symmetric algorithms supported by the <see cref="SymmetricEncryptionService"/>.
+    /// </summary>
     public enum SymmetricAlgorithmType
     {
+        /// <summary>
+        /// Indicates that no encryption should be used and the bytes/strings should simply be transformed using the specified <see cref="IStringTransform"/>.
+        /// </summary>
         None = 0,
+        
+        /// <summary>
+        /// Indicates that a user-defined algorithm should be used.
+        /// </summary>
         Custom = 1,
-        TripleDES = 2,
-        DES = 3,
-        RC2 = 4,
+
+        /// <summary>
+        /// Indicates that the Triple DES algorithm should be used.
+        /// </summary>
+        TripleDes = 2,
+
+        /// <summary>
+        /// Indicates that the DES algorithm should be used.
+        /// </summary>
+        Des = 3,
+
+        /// <summary>
+        /// Indicates that the RC2 algorithm should be used.
+        /// </summary>
+        Rc2 = 4,
+
+        /// <summary>
+        /// Indicates that the Rijndael algorithm should be used.
+        /// </summary>
         Rijndael = 5,
-        AES = 6
+
+        /// <summary>
+        /// Indicates that the AES algorithm should be used.
+        /// </summary>
+        Aes = 6
     }
 }

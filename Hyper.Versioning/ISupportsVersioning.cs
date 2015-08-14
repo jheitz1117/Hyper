@@ -3,7 +3,7 @@
 namespace Hyper.Versioning
 {
     /// <summary>
-    /// Describes a class which supports versioning using a <see cref="System.Version"/> object.
+    /// Defines a <see cref="System.Version"/> property for use in versioning logic.
     /// </summary>
     public interface ISupportsVersioning
     {

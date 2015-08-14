@@ -21,7 +21,7 @@ namespace Hyper.WcfHosting
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="ServiceHost"/>.
+        /// Creates an instance of <see cref="ServiceHost"/> using the specified factory method.
         /// </summary>
         /// <returns></returns>
         public ServiceHost Create()

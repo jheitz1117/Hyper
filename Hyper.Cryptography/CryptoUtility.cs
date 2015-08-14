@@ -16,11 +16,11 @@ namespace Hyper.Cryptography
         {
             if (string.IsNullOrWhiteSpace(hexString))
             { throw new ArgumentNullException("hexString", "Parameter must not be empty or contain only whitespace."); }
-            else if (!Regex.IsMatch(hexString, "^[a-fA-F0-9]+$") || hexString.Length % 2 == 1)
+            if (!Regex.IsMatch(hexString, "^[a-fA-F0-9]+$") || hexString.Length % 2 == 1)
             { throw new ArgumentException("Parameter must be an even number of characters in the range 0-9 or a-f.", "hexString"); }
 
-            byte[] output = new byte[hexString.Length / 2];
-            for (int i = 0; i < hexString.Length; i += 2)
+            var output = new byte[hexString.Length / 2];
+            for (var i = 0; i < hexString.Length; i += 2)
             {
                 output[i / 2] = byte.Parse(hexString.Substring(i, 2), NumberStyles.HexNumber);
             }
@@ -38,7 +38,7 @@ namespace Hyper.Cryptography
             if (input == null)
             { throw new ArgumentNullException("input"); }
 
-            return string.Join("", input.Select(h => h.ToString("X2")));
+            return string.Join("", input.Select(h => h.ToString("x2")));
         }
     }
 }

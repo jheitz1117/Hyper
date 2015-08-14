@@ -41,13 +41,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CryptoUtility.cs" />
-    <Compile Include="MD5Generator.cs" />
+    <Compile Include="Md5Generator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringTransforms\Base64StringTransform.cs" />
     <Compile Include="StringTransforms\HexStringTransform.cs" />
     <Compile Include="StringTransforms\Utf8StringTransform.cs" />
     <Compile Include="SymmetricEncryptionConfiguration.cs" />
-    <Compile Include="SymmetricEncryptionProvider.cs" />
+    <Compile Include="SymmetricEncryptionService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyper.Extensibility\Hyper.Extensibility.csproj">

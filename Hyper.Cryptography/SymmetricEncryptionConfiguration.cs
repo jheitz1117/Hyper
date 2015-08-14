@@ -3,6 +3,9 @@ using Hyper.Extensibility.Cryptography;
 
 namespace Hyper.Cryptography
 {
+    /// <summary>
+    /// Contains configuration options for <see cref="SymmetricEncryptionService"/> objects.
+    /// </summary>
     public class SymmetricEncryptionConfiguration
     {
         #region Properties
@@ -45,27 +48,27 @@ namespace Hyper.Cryptography
         /// <summary>
         /// Specifies an IStringTransform object to use when converting between IV strings and bytes. Required unless SymmetricAlgorithmType.None is specified.
         /// </summary>
-        public IStringTransform IVTransform { get; set; }
+        public IStringTransform IvTransform { get; set; }
 
         #endregion Properties
 
         #region Public Methods
 
         /// <summary>
-        /// Creates a new instance of SymmetricEncryptionConfiguration with default settings consisting of:
+        /// Initializes a new instance of SymmetricEncryptionConfiguration with default settings consisting of:
         /// AES encryption using CBC and PKCS7.
         /// Plaintext strings are encoded using a UTF8 transform.
         /// All other strings (ciphertext, key, and IV strings) are encoded using a hex transform.
         /// </summary>
         public SymmetricEncryptionConfiguration()
         {
-            this.AlgorithmType = SymmetricAlgorithmType.AES;
+            this.AlgorithmType = SymmetricAlgorithmType.Aes;
             this.CipherMode = CipherMode.CBC;
             this.PaddingMode = PaddingMode.PKCS7;
             this.PlainTextTransform = new Utf8StringTransform();
             this.CipherTextTransform = new HexStringTransform();
             this.KeyTransform = new HexStringTransform();
-            this.IVTransform = new HexStringTransform();
+            this.IvTransform = new HexStringTransform();
         }
 
         #endregion Public Methods
