@@ -78,11 +78,29 @@ namespace Hyper.WcfHosting
         }
 
         /// <summary>
+        /// Communicates a request for cancellation. This method can only be called when the <see cref="CancellableServiceHost"/> is in the <see cref="CommunicationState.Opened"/>, <see cref="CommunicationState.Faulted"/>, or <see cref="CommunicationState.Closing"/> state.
+        /// </summary>
+        public void Cancel()
+        {
+            if (this.State != CommunicationState.Opened &&
+                this.State != CommunicationState.Faulted &&
+                this.State != CommunicationState.Closing)
+            {
+                throw new InvalidOperationException(
+                    string.Format("The {0} can only be cancelled while in the Opened, Faulted, or Closing state.", GetType().Name)
+                );
+            }
+            
+            if (!_tokenSource.IsCancellationRequested)
+                _tokenSource.Cancel();
+        }
+
+        /// <summary>
         /// Aborts the service.
         /// </summary>
         protected override void OnAbort()
         {
-            _tokenSource.Cancel();
+            Cancel();
 
             base.OnAbort();
         }
@@ -92,11 +110,11 @@ namespace Hyper.WcfHosting
         /// </summary>
         protected override void OnClosing()
         {
-            _tokenSource.Cancel();
+            Cancel();
 
             base.OnClosing();
         }
-
+        
         /// <summary>
         /// Disposes of disposable services that are being hosted when the service host is closed.
         /// </summary>
