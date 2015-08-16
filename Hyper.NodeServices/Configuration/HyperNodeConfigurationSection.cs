@@ -4,6 +4,10 @@ namespace Hyper.NodeServices.Configuration
 {
     internal sealed class HyperNodeConfigurationSection : ConfigurationSection
     {
+        /// <summary>
+        /// Specifies the name of the <see cref="HyperNodeService"/>. This attribute is required.
+        /// The default value is "HyperNode1".
+        /// </summary>
         [ConfigurationProperty("name", DefaultValue = "HyperNode1", IsRequired = true)]
         public string HyperNodeName
         {
@@ -11,6 +15,10 @@ namespace Hyper.NodeServices.Configuration
             set { this["name"] = value; }
         }
 
+        /// <summary>
+        /// Specifies whether the task progress cache will be enabled when the <see cref="HyperNodeService"/> starts.
+        /// The cache is not enabled by default.
+        /// </summary>
         [ConfigurationProperty("enableTaskProgressCache", DefaultValue = false, IsRequired = false)]
         public bool EnableTaskProgressCache
         {
@@ -18,6 +26,10 @@ namespace Hyper.NodeServices.Configuration
             set { this["enableTaskProgressCache"] = value; }
         }
 
+        /// <summary>
+        /// Specifies whether diagnostics will be enabled when the <see cref="HyperNodeService"/> starts.
+        /// Diagnostics are not enabled by default.
+        /// </summary>
         [ConfigurationProperty("enableDiagnostics", DefaultValue = false, IsRequired = false)]
         public bool EnableDiagnostics
         {
@@ -25,6 +37,10 @@ namespace Hyper.NodeServices.Configuration
             set { this["enableDiagnostics"] = value; }
         }
 
+        /// <summary>
+        /// Specifies a starting value for the task progress cache duration when the <see cref="HyperNodeService"/> starts.
+        /// The default value is 60 minutes.
+        /// </summary>
         [ConfigurationProperty("taskProgressCacheDuration", DefaultValue = 60, IsRequired = false)]
         public int TaskProgressCacheDurationMinutes
         {
@@ -34,6 +50,7 @@ namespace Hyper.NodeServices.Configuration
 
         /// <summary>
         /// Specifies an upper bound on the number of tasks that can run concurrently. A value of -1 means there is no upper bound.
+        /// No upper bound is specified by default.
         /// </summary>
         [ConfigurationProperty("maxConcurrentTasks", DefaultValue = -1, IsRequired = false)]
         public int MaxConcurrentTasks

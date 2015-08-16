@@ -3,7 +3,7 @@ using Hyper.NodeServices.Contracts.Extensibility;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Exceptions;
 
-namespace HyperNetExtensibilityTest.CommandModules
+namespace Hyper.NodeServices.CommandModules.SystemCommands
 {
     internal class EchoCommand : ICommandModule
     {

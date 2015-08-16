@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Hyper.NodeServices
 {
     [Serializable]
-    internal class HyperNodeConfigurationException : ApplicationException
+    internal class HyperNodeConfigurationException : Exception
     {
         public HyperNodeConfigurationException() { }
         public HyperNodeConfigurationException(string message) : base(message) { }

@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Hyper.NodeServices
 {
     [Serializable]
-    internal class ActivityTrackerInitializationException : ApplicationException
+    internal class ActivityTrackerInitializationException : Exception
     {
         public ActivityTrackerInitializationException() { }
         public ActivityTrackerInitializationException(string message) : base(message) { }

@@ -10,12 +10,20 @@ using Hyper.NodeServices.UnitTesting.Contracts.CommandModules;
 
 namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
 {
-    internal class LongRunningCommandTest : ICommandModule
+    /// <summary>
+    /// Unit test for long-running command modules.
+    /// </summary>
+    public class LongRunningCommandTest : ICommandModule
     {
         private static readonly TimeSpan DefaultTotalRunTime = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan DefaultMinimumSleepInterval = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan DefaultMaximumSleepInterval = TimeSpan.FromSeconds(5);
 
+        /// <summary>
+        /// Executes a long-running command using the specified <see cref="ICommandExecutionContext"/>.
+        /// </summary>
+        /// <param name="context">The <see cref="ICommandExecutionContext"/> to use to run this command module.</param>
+        /// <returns></returns>
         public ICommandResponse Execute(ICommandExecutionContext context)
         {
             // This technique allows us to optionally take a command request. If they just want to run the default settings, they can just pass an empty string and we'll supply the default values.

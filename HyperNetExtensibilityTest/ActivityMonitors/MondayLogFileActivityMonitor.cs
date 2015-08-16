@@ -19,7 +19,7 @@ namespace HyperNetExtensibilityTest.ActivityMonitors
             return (activity.EventDateTime.DayOfWeek == DayOfWeek.Monday);
         }
 
-        public override void OnNext(IHyperNodeActivityEventItem activity)
+        public override void OnTrack(IHyperNodeActivityEventItem activity)
         {
             lock (Lock)
             {

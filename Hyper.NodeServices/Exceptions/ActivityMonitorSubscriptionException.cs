@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Hyper.NodeServices
 {
     [Serializable]
-    internal class ActivityMonitorSubscriptionException : ApplicationException
+    internal class ActivityMonitorSubscriptionException : Exception
     {
         public ActivityMonitorSubscriptionException() { }
         public ActivityMonitorSubscriptionException(string message) : base(message) { }

@@ -14,7 +14,7 @@ namespace Hyper.NodeServices.ActivityTracking
             _target = target;
         }
 
-        public override void OnNext(IHyperNodeActivityEventItem activity)
+        public override void OnTrack(IHyperNodeActivityEventItem activity)
         {
             lock (Lock)
             {

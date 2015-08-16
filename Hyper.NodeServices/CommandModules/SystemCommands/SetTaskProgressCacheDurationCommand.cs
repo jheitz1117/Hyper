@@ -35,7 +35,7 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
 
             HyperNodeService.Instance.TaskProgressCacheDuration = request.CacheDuration;
             context.Activity.TrackFormat("The task progress cache duration is now {0}.", request.CacheDuration);
-
+            
             response.ProcessStatusFlags |= MessageProcessStatusFlags.Success;
 
             return response;

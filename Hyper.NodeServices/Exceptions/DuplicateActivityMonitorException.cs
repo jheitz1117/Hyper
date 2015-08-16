@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Hyper.NodeServices
 {
     [Serializable]
-    internal class DuplicateActivityMonitorException : ApplicationException
+    internal class DuplicateActivityMonitorException : Exception
     {
         public DuplicateActivityMonitorException() { }
         public DuplicateActivityMonitorException(string message) : base(message) { }

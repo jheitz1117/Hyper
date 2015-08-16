@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Hyper.NodeServices
 {
     [Serializable]
-    internal class DuplicateCommandException : ApplicationException
+    internal class DuplicateCommandException : Exception
     {
         public DuplicateCommandException() { }
         public DuplicateCommandException(string message) : base(message) { }
