@@ -28,7 +28,7 @@ namespace Hyper.NodeServices.ActivityTracking
             return (response != null && response.RespondingNodeName != activity.Agent);
         }
 
-        public override void OnNext(IHyperNodeActivityEventItem activity)
+        public override void OnTrack(IHyperNodeActivityEventItem activity)
         {
             // Check if we've received a HyperNodeMessageResponse in the data property.
             var response = activity.EventData as HyperNodeMessageResponse;

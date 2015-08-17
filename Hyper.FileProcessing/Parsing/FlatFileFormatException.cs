@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Hyper.FileProcessing.Parsing
 {
     [Serializable]
-    public class FlatFileFormatException : ApplicationException
+    public class FlatFileFormatException : Exception
     {
         #region Public Methods
 

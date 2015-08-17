@@ -16,7 +16,7 @@ namespace HyperNetExtensibilityTest.ActivityMonitors
             this.Name = GetType().Name;
         }
 
-        public override void OnNext(IHyperNodeActivityEventItem activity)
+        public override void OnTrack(IHyperNodeActivityEventItem activity)
         {
             Trace.WriteLine(
                 string.Format("{0}\r\n    {1:G} {2}\r\n    {3}\r\n    {4}",

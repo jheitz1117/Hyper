@@ -24,7 +24,53 @@ using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Exceptions;
 using Hyper.NodeServices.TaskIdProviders;
-using HyperNetExtensibilityTest.CommandModules;
+
+// TODO: (Phase 2 - see comments below) ClearActivityCache 
+/*************************************************************************************************************************************
+ * ClearActivityCache
+ * 
+ * Everyone on StackOverflow seems to think this is impossible. Best option is to use the workaround posted by Thomas F. Abraham at
+ * the following link: http://stackoverflow.com/questions/4183270/how-to-clear-the-net-4-memorycache/22388943#comment34789210_22388943
+ * 
+ * If we do clear the cache, then for cache items that are currently being accessed, is there any way to keep those and add an
+ * activity item indicating that the cache was cleared? This might cut down on confusion later on when I'm watching a task and
+ * suddenly lose all my progress. It would be nice to be informed that my progress disappeared because the cache was cleared.
+ * 
+ * Alternatively, I can implement my own ObjectCache (by implementing the .NET base class), or I can just roll my own
+ * caching without using the .NET 4 base class. But not without an epic experiment to confirm it works. If we do this, would
+ * probably need to go into its own DLL: Hyper.Caching.
+ *************************************************************************************************************************************/
+
+// TODO: (Phase 2 - see comments below) Self-documenting command modules and other user code
+/*************************************************************************************************************************************
+ * Documentation Notes (Phase 2)
+ * 
+ * Create a ICommandDocumenter interface that can be used to generate documentation for command modules.
+ * 
+ * Need to figure out what methods this should have. Should it just have a single void Document(StreamWriter writer) method? Or should
+ * it have Write() methods for each individual piece of information?
+ * 
+ * Also, I originally thought of this specifically for custom command modules, but it makes sense to do it for other extensibility
+ * points as well, especially activity monitors. If we just had a single Document() method, we could have a hierarchy of interfaces
+ * to support various kinds of documentation, such as:
+ * 
+ * IDocumenter
+ *    |
+ *    void WriteDocument(StreamWriter writer)
+ *    |
+ *    +---ICommandDocumenter
+ *    |       |
+ *    |       void WriteCommandSummaryDocument(StreamWriter writer)
+ *    |       void WriteCommandRequestDocument(StreamWriter writer)
+ *    |       void WriteCommandResponseDocument(StreamWriter writer)
+ *    |
+ *    +---IActivityMonitorDocumenter
+ *    |       |
+ *    |       void WriteShouldTrackCriteriaDocument(StreamWriter writer)
+ *    |       void WriteOnNextDocument(StreamWriter writer)
+ *    |
+ *    +---Etc.
+ *************************************************************************************************************************************/
 
 namespace Hyper.NodeServices
 {
@@ -44,7 +90,6 @@ namespace Hyper.NodeServices
         private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
         private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
-        private static readonly TimeSpan DefaultTaskProgressCacheDuration = TimeSpan.FromHours(1);
         private const bool DefaultSystemCommandsEnabled = true;
 
         #endregion Defaults
@@ -377,7 +422,7 @@ namespace Hyper.NodeServices
         }
 
         /// <summary>
-        /// Provides one last chance to dispose of resources.
+        /// Releases disposable resources consumed by this <see cref="HyperNodeService"/> instance.
         /// </summary>
         public void Dispose()
         {
@@ -418,7 +463,6 @@ namespace Hyper.NodeServices
         private HyperNodeService(string hyperNodeName)
         {
             _hyperNodeName = hyperNodeName;
-            this.TaskProgressCacheDuration = DefaultTaskProgressCacheDuration;
         }
 
         private void InitializeActivityTracker(HyperNodeTaskInfo currentTaskInfo)
@@ -1214,54 +1258,7 @@ namespace Hyper.NodeServices
 
             return result;
         }
-
-        // TODO: (Phase 2 - see comments below) ClearActivityCache 
-        /*************************************************************************************************************************************
-         * ClearActivityCache
-         * 
-         * Everyone on StackOverflow seems to think this is impossible. Best option is to use the workaround posted by Thomas F. Abraham at
-         * the following link: http://stackoverflow.com/questions/4183270/how-to-clear-the-net-4-memorycache/22388943#comment34789210_22388943
-         * 
-         * If we do clear the cache, then for cache items that are currently being accessed, is there any way to keep those and add an
-         * activity item indicating that the cache was cleared? This might cut down on confusion later on when I'm watching a task and
-         * suddenly lose all my progress. It would be nice to be informed that my progress disappeared because the cache was cleared.
-         * 
-         * Alternatively, I can implement my own ObjectCache (by implementing the .NET base class), or I can just roll my own
-         * caching without using the .NET 4 base class. But not without an epic experiment to confirm it works. If we do this, would
-         * probably need to go into its own DLL: Hyper.Caching.
-         *************************************************************************************************************************************/
-
-        // TODO: (Phase 2 - see comments below) Self-documenting command modules and other user code
-        /*************************************************************************************************************************************
-         * Documentation Notes (Phase 2)
-         * 
-         * Create a ICommandDocumenter interface that can be used to generate documentation for command modules.
-         * 
-         * Need to figure out what methods this should have. Should it just have a single void Document(StreamWriter writer) method? Or should
-         * it have Write() methods for each individual piece of information?
-         * 
-         * Also, I originally thought of this specifically for custom command modules, but it makes sense to do it for other extensibility
-         * points as well, especially activity monitors. If we just had a single Document() method, we could have a hierarchy of interfaces
-         * to support various kinds of documentation, such as:
-         * 
-         * IDocumenter
-         *    |
-         *    void WriteDocument(StreamWriter writer)
-         *    |
-         *    +---ICommandDocumenter
-         *    |       |
-         *    |       void WriteCommandSummaryDocument(StreamWriter writer)
-         *    |       void WriteCommandRequestDocument(StreamWriter writer)
-         *    |       void WriteCommandResponseDocument(StreamWriter writer)
-         *    |
-         *    +---IActivityMonitorDocumenter
-         *    |       |
-         *    |       void WriteShouldTrackCriteriaDocument(StreamWriter writer)
-         *    |       void WriteOnNextDocument(StreamWriter writer)
-         *    |
-         *    +---Etc.
-         *************************************************************************************************************************************/
-
+        
         #endregion Internal Helper Methods
     }
 }

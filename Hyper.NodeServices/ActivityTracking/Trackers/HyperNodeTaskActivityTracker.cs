@@ -59,9 +59,9 @@ namespace Hyper.NodeServices.ActivityTracking
             );
         }
 
-        public void TrackFormat(string eventDescription, params object[] args)
+        public void TrackFormat(string eventDescriptionFormat, params object[] args)
         {
-            Track(string.Format(eventDescription, args));
+            Track(string.Format(eventDescriptionFormat, args));
         }
 
         public void TrackException(Exception exception)

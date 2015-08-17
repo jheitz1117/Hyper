@@ -26,7 +26,7 @@ namespace Hyper.NodeServices.ActivityTracking
             this.Name = GetType().Name;
         }
 
-        public override void OnNext(IHyperNodeActivityEventItem activity)
+        public override void OnTrack(IHyperNodeActivityEventItem activity)
         {
             // First add a new cache item or get the existing cache item with the specified key
             var taskProgressInfo = AddOrGetExisting(activity.TaskId, () => new HyperNodeTaskProgressInfo());
