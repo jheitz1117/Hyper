@@ -609,7 +609,7 @@ namespace Hyper.NodeServices
             HyperNodeActionReasonType? rejectionReason = null;
 
             // Check the reason why we are rejecting
-            if (_liveTasks.Count >= this.MaxConcurrentTasks)
+            if (this.MaxConcurrentTasks > -1 && _liveTasks.Count >= this.MaxConcurrentTasks)
                 rejectionReason = HyperNodeActionReasonType.MaxConcurrentTaskCountReached;
             else if (_masterTokenSource.IsCancellationRequested)
                 rejectionReason = HyperNodeActionReasonType.CancellationRequested;
