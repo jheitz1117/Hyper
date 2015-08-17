@@ -2,6 +2,9 @@
 
 namespace Hyper.NodeServices.Contracts
 {
+    /// <summary>
+    /// The reasons why the <see cref="IHyperNodeService"/> chose to take the <see cref="HyperNodeActionType"/> specified in the <see cref="HyperNodeMessageResponse"/>.
+    /// </summary>
     [DataContract]
     public enum HyperNodeActionReasonType
     {

@@ -91,7 +91,6 @@ namespace Hyper.NodeServices
         private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
         private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
-        private const bool DefaultSystemCommandsEnabled = true;
 
         #endregion Defaults
 
@@ -927,7 +926,8 @@ namespace Hyper.NodeServices
             if (systemCommandsCollection != null)
                 userDefinedSystemCommandsEnabledDefault = systemCommandsCollection.Enabled;
 
-            var actualDefaultEnabled = userDefinedSystemCommandsEnabledDefault ?? DefaultSystemCommandsEnabled;
+            // If the user didn't turn on the system commands, they simply won't be available.
+            var actualDefaultEnabled = userDefinedSystemCommandsEnabledDefault ?? false;
 
             // Make all commands enabled or disabled according to the user-defined default, or the HyperNode's default if the user did not define a default
             var systemCommandConfigs = new List<CommandModuleConfiguration>

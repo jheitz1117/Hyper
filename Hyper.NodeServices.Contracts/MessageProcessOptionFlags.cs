@@ -9,7 +9,7 @@ namespace Hyper.NodeServices.Contracts
      ********************************************************************************/
 
     /// <summary>
-    /// Flags that indicate what happened while a command was running in a <see cref="IHyperNodeService"/>
+    /// Flags to indicate which processing options to use when the <see cref="IHyperNodeService"/> processes the <see cref="HyperNodeMessageRequest"/>.
     /// </summary>
     [Flags]
     [DataContract]

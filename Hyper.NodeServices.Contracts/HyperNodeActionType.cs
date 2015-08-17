@@ -2,6 +2,9 @@
 
 namespace Hyper.NodeServices.Contracts
 {
+    /// <summary>
+    /// Actions that a <see cref="IHyperNodeService"/> can take when it receives a <see cref="HyperNodeMessageRequest"/>.
+    /// </summary>
     [DataContract]
     public enum HyperNodeActionType
     {

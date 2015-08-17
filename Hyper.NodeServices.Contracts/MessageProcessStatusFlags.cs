@@ -8,6 +8,9 @@ namespace Hyper.NodeServices.Contracts
      * They do powers of 2 for you so you don't have to keep track of them yourself.
      ********************************************************************************/
 
+    /// <summary>
+    /// Flags that indicate what happened while a command was running in a <see cref="IHyperNodeService"/>.
+    /// </summary>
     [Flags]
     [DataContract]
     public enum MessageProcessStatusFlags
