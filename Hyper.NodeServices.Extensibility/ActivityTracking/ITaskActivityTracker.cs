@@ -66,8 +66,8 @@ namespace Hyper.NodeServices.Extensibility.ActivityTracking
 
         /// <summary>
         /// Raises an <see cref="IHyperNodeActivityEventItem"/> containing information about the specified <see cref="Exception"/>.
-        /// The value of the <see cref="Exception.Message"/> property is stored in the <see cref="IHyperNodeActivityEventItem.EventDescription"/> property, and
-        /// the result of calling <see cref="Exception.ToString()"/> is stored in the <see cref="IHyperNodeActivityEventItem.EventDetail"/> property.
+        /// The value of the <see cref="Exception.Message"/> property is used for the event description, and the result of calling
+        /// <see cref="Exception.ToString()"/> is used for the event detail.
         /// </summary>
         /// <param name="exception">The <see cref="Exception"/> to track.</param>
         void TrackException(Exception exception);

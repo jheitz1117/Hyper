@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using Hyper.Extensibility.IO;
 
 namespace Hyper.Cryptography
 {

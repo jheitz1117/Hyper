@@ -12,7 +12,8 @@ namespace Hyper.Cryptography
     public class Md5Generator
     {
         // TODO: By default, use Utf8 encoding for plaintext and Hex for ciphertext like we were doing before. This should be cleaned up later.
-        
+        // TODO: Refactor into a OneWayHashService similar to SymmetricEncryptionService
+
         /// <summary>
         /// Specifies an <see cref="IStringTransform"/> instance to use when converting between plaintext strings and bytes. Required for string hashing but not for byte hashing.
         /// </summary>

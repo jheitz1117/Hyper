@@ -10,7 +10,7 @@ namespace Hyper.NodeServices.Extensibility.CommandModules
     public sealed class PassThroughSerializer : ICommandRequestSerializer, ICommandResponseSerializer
     {
         /// <summary>
-        /// Returns the result of the <see cref="ICommandRequest"/>.<see cref="ICommandRequest.ToString()"/> method.
+        /// Returns the result of the <see cref="ICommandRequest"/>.<see cref="object.ToString()"/> method.
         /// </summary>
         /// <param name="request">The <see cref="ICommandRequest"/> object to serialize.</param>
         /// <returns></returns>
@@ -20,7 +20,7 @@ namespace Hyper.NodeServices.Extensibility.CommandModules
         }
 
         /// <summary>
-        /// Returns the result of the <see cref="ICommandResponse"/>.<see cref="ICommandResponse.ToString()"/> method.
+        /// Returns the result of the <see cref="ICommandResponse"/>.<see cref="object.ToString()"/> method.
         /// </summary>
         /// <param name="response">The <see cref="ICommandResponse"/> object to serialize.</param>
         /// <returns></returns>
