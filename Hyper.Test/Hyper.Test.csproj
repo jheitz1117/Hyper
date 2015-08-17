@@ -78,6 +78,10 @@
       <Project>{8BE9047A-C0C3-468D-ACFF-9BD332C975B4}</Project>
       <Name>Hyper.Extensibility</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Hyper.IO\Hyper.IO.csproj">
+      <Project>{38434D6E-DE0F-4A31-9462-D9374FEA862D}</Project>
+      <Name>Hyper.IO</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="TestHyperDbSchema.xml">

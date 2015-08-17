@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using Hyper.Extensibility.IO;
+using Hyper.IO;
 
 namespace Hyper.Cryptography
 {
@@ -9,6 +11,18 @@ namespace Hyper.Cryptography
     /// </summary>
     public class Md5Generator
     {
+        // TODO: By default, use Utf8 encoding for plaintext and Hex for ciphertext like we were doing before. This should be cleaned up later.
+        
+        /// <summary>
+        /// Specifies an <see cref="IStringTransform"/> instance to use when converting between plaintext strings and bytes. Required for string hashing but not for byte hashing.
+        /// </summary>
+        private static readonly IStringTransform PlainTextTransform = StringTransform.FromEncoding(Encoding.UTF8);
+
+        /// <summary>
+        /// Specifies an <see cref="IStringTransform"/> instance to use when converting between ciphertext strings and bytes. Required for string hashing but not for byte hashing.
+        /// </summary>
+        private static readonly IStringTransform CipherTextTransform = StringTransform.GetHexTransform();
+
         /// <summary>
         /// Returns the uppercase MD5 hash string for the specified string value.
         /// </summary>
@@ -16,7 +30,7 @@ namespace Hyper.Cryptography
         /// <returns></returns>
         public static string GetMd5(string plainValue)
         {
-            return GetMd5(Encoding.UTF8.GetBytes(plainValue));
+            return GetMd5(PlainTextTransform.GetBytes(plainValue));
         }
 
         /// <summary>
@@ -36,7 +50,7 @@ namespace Hyper.Cryptography
         /// <returns></returns>
         private static string GetMd5(byte[] inputBytes)
         {
-            return CryptoUtility.BytesToHexString(MD5.Create().ComputeHash(inputBytes)).ToUpper();
+            return CipherTextTransform.GetString(MD5.Create().ComputeHash(inputBytes)).ToUpper();
         }
     }
 }

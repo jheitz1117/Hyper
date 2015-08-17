@@ -1,12 +1,12 @@
 ﻿using System;
-using Hyper.Extensibility.Cryptography;
+using Hyper.Extensibility.IO;
 
-namespace Hyper.Cryptography
+namespace Hyper.IO.StringTransforms
 {
     /// <summary>
     /// Transforms Base64-encoded <see cref="string"/> objects into <see cref="byte"/> arrays and vice versa.
     /// </summary>
-    public class Base64StringTransform : IStringTransform
+    internal class Base64StringTransform : IStringTransform
     {
         /// <summary>
         /// Transforms the specified <see cref="byte"/> array into a Base64-encoded <see cref="string"/>.

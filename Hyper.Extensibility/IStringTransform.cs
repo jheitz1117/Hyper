@@ -1,4 +1,4 @@
-﻿namespace Hyper.Extensibility.Cryptography
+﻿namespace Hyper.Extensibility.IO
 {
     /// <summary>
     /// Defines methods to transform <see cref="string"/> objects into <see cref="byte"/> arrays and vice versa.

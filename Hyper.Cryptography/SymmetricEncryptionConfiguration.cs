@@ -1,5 +1,7 @@
 ﻿using System.Security.Cryptography;
-using Hyper.Extensibility.Cryptography;
+using System.Text;
+using Hyper.Extensibility.IO;
+using Hyper.IO;
 
 namespace Hyper.Cryptography
 {
@@ -16,37 +18,37 @@ namespace Hyper.Cryptography
         public SymmetricAlgorithmType AlgorithmType { get; set; }
 
         /// <summary>
-        /// Required if SymmetricAlgorithmType.Custom is specified. Otherwise, optional.
+        /// Required if <see cref="SymmetricAlgorithmType"/>.<see cref="SymmetricAlgorithmType.Custom"/> is specified. Otherwise, optional.
         /// </summary>
         public SymmetricAlgorithm CustomSymmetricAlgorithm { get; set; }
 
         /// <summary>
-        /// Specifies which CipherMode to use for encryption. Required for all algorithms except SymmetricAlgorithmType.None.
+        /// Specifies which <see cref="CipherMode"/> to use for encryption. Required for all algorithms except <see cref="SymmetricAlgorithmType"/>.<see cref="SymmetricAlgorithmType.None"/>.
         /// </summary>
         public CipherMode CipherMode { get; set; }
 
         /// <summary>
-        /// Specifies which PaddingMode to use for encryption. Required for all algorithms except SymmetricAlgorithmType.None.
+        /// Specifies which <see cref="PaddingMode"/> to use for encryption. Required for all algorithms except <see cref="SymmetricAlgorithmType"/>.<see cref="SymmetricAlgorithmType.None"/>.
         /// </summary>
         public PaddingMode PaddingMode { get; set; }
 
         /// <summary>
-        /// Specifies an IStringTransform object to use when converting between plaintext strings and bytes. Required for string encryption but not for byte encryption.
+        /// Specifies an <see cref="IStringTransform"/> instance to use when converting between plaintext strings and bytes. Required for string encryption but not for byte encryption.
         /// </summary>
         public IStringTransform PlainTextTransform { get; set; }
 
         /// <summary>
-        /// Specifies an IStringTransform object to use when converting between ciphertext strings and bytes. Required for string encryption but not for byte encryption.
+        /// Specifies an <see cref="IStringTransform"/> instance to use when converting between ciphertext strings and bytes. Required for string encryption but not for byte encryption.
         /// </summary>
         public IStringTransform CipherTextTransform { get; set; }
 
         /// <summary>
-        /// Specifies an IStringTransform object to use when converting between key strings and bytes. Required unless SymmetricAlgorithmType.None is specified.
+        /// Specifies an <see cref="IStringTransform"/> instance to use when converting between key strings and bytes. Required unless SymmetricAlgorithmType.None is specified.
         /// </summary>
         public IStringTransform KeyTransform { get; set; }
 
         /// <summary>
-        /// Specifies an IStringTransform object to use when converting between IV strings and bytes. Required unless SymmetricAlgorithmType.None is specified.
+        /// Specifies an <see cref="IStringTransform"/> instance to use when converting between IV strings and bytes. Required unless SymmetricAlgorithmType.None is specified.
         /// </summary>
         public IStringTransform IvTransform { get; set; }
 
@@ -55,8 +57,8 @@ namespace Hyper.Cryptography
         #region Public Methods
 
         /// <summary>
-        /// Initializes a new instance of SymmetricEncryptionConfiguration with default settings consisting of:
-        /// AES encryption using CBC and PKCS7.
+        /// Initializes a new instance of <see cref="SymmetricEncryptionConfiguration"/> with default settings consisting of:
+        /// <see cref="SymmetricAlgorithmType.Aes"/> encryption using <see cref="System.Security.Cryptography.CipherMode.CBC"/> and <see cref="System.Security.Cryptography.PaddingMode.PKCS7"/>.
         /// Plaintext strings are encoded using a UTF8 transform.
         /// All other strings (ciphertext, key, and IV strings) are encoded using a hex transform.
         /// </summary>
@@ -65,10 +67,10 @@ namespace Hyper.Cryptography
             this.AlgorithmType = SymmetricAlgorithmType.Aes;
             this.CipherMode = CipherMode.CBC;
             this.PaddingMode = PaddingMode.PKCS7;
-            this.PlainTextTransform = new Utf8StringTransform();
-            this.CipherTextTransform = new HexStringTransform();
-            this.KeyTransform = new HexStringTransform();
-            this.IvTransform = new HexStringTransform();
+            this.PlainTextTransform = StringTransform.FromEncoding(Encoding.UTF8);
+            this.CipherTextTransform = StringTransform.GetHexTransform();
+            this.KeyTransform = StringTransform.GetHexTransform();
+            this.IvTransform = StringTransform.GetHexTransform();
         }
 
         #endregion Public Methods
