@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using Hyper.Extensibility.WcfHosting;
 
@@ -116,8 +117,8 @@ namespace Hyper.WcfHosting
         }
 
         /// <summary>
-        /// Calls the <see cref="ServiceHost.Abort()"/> method if it is in the <see cref="CommunicationState.Faulted"/> state.
-        /// Otherwise, calls the <see cref="ServiceHost.Close()"/> method instead.
+        /// Calls the <see cref="CommunicationObject.Abort()"/> method if it is in the <see cref="CommunicationState.Faulted"/> state.
+        /// Otherwise, calls the <see cref="CommunicationObject.Close()"/> method instead.
         /// Calls <see cref="IDisposable.Dispose()"/> on the hosted service if it implements <see cref="IDisposable"/>.
         /// Exception handling is delegated to the <see cref="IServiceHostExceptionHandler"/> implementations specified in the constructor.
         /// </summary>
