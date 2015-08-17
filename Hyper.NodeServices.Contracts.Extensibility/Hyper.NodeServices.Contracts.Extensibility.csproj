@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7B2637A1-5D34-410D-8391-9AD0351C3C6F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Hyper.NodeServices.Contracts.Extensibility</RootNamespace>
+    <AssemblyName>Hyper.NodeServices.Contracts.Extensibility</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CommandModules\CommandRequestString.cs" />
+    <Compile Include="CommandModules\CommandResponse.cs" />
+    <Compile Include="CommandModules\CommandResponseString.cs" />
+    <Compile Include="CommandModules\ICommandRequest.cs" />
+    <Compile Include="CommandModules\ICommandRequestSerializer.cs" />
+    <Compile Include="CommandModules\ICommandResponse.cs" />
+    <Compile Include="CommandModules\ICommandResponseSerializer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serializers\DataContractCommandJsonSerializer{TRequest,TResponse}.cs" />
+    <Compile Include="Serializers\DataContractCommandSerializer{TRequest,TResponse}.cs" />
+    <Compile Include="Serializers\DataContractRequestJsonSerializer{T}.cs" />
+    <Compile Include="Serializers\DataContractRequestSerializer{T}.cs" />
+    <Compile Include="Serializers\DataContractResponseJsonSerializer{T}.cs" />
+    <Compile Include="Serializers\DataContractResponseSerializer{T}.cs" />
+    <Compile Include="Serializers\NetDataContractCommandSerializer{TRequest,TResponse}.cs" />
+    <Compile Include="Serializers\NetDataContractRequestSerializer{T}.cs" />
+    <Compile Include="Serializers\NetDataContractResponseSerializer{T}.cs" />
+    <Compile Include="Serializers\PassThroughSerializer.cs" />
+    <Compile Include="Serializers\XmlObjectCommandSerializer{TRequest,TResponse}.cs" />
+    <Compile Include="Serializers\XmlObjectRequestSerializer{T}.cs" />
+    <Compile Include="Serializers\XmlObjectResponseSerializer{T}.cs" />
+    <Compile Include="Serializers\XmlObjectSerializerWrapper{T}.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hyper.Extensibility\Hyper.Extensibility.csproj">
+      <Project>{8BE9047A-C0C3-468D-ACFF-9BD332C975B4}</Project>
+      <Name>Hyper.Extensibility</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.IO\Hyper.IO.csproj">
+      <Project>{38434D6E-DE0F-4A31-9462-D9374FEA862D}</Project>
+      <Name>Hyper.IO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.NodeServices.Contracts\Hyper.NodeServices.Contracts.csproj">
+      <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
+      <Name>Hyper.NodeServices.Contracts</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

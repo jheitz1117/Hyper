@@ -17,7 +17,8 @@ using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
 using Hyper.NodeServices.Configuration;
 using Hyper.NodeServices.Contracts;
-using Hyper.NodeServices.Contracts.Extensibility;
+using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
+using Hyper.NodeServices.Contracts.Extensibility.Serializers;
 using Hyper.NodeServices.Contracts.SystemCommands;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
@@ -933,73 +934,73 @@ namespace Hyper.NodeServices
             {
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
+                    CommandName = SystemCommandName.GetCachedTaskProgressInfo,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(GetCachedTaskProgressInfoCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.GetNodeStatus,
+                    CommandName = SystemCommandName.GetNodeStatus,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(GetNodeStatusCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.GetChildNodes,
+                    CommandName = SystemCommandName.GetChildNodes,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(GetChildNodesCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.Discover,
+                    CommandName = SystemCommandName.Discover,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(DiscoverCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.Echo,
+                    CommandName = SystemCommandName.Echo,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(EchoCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.EnableCommand,
+                    CommandName = SystemCommandName.EnableCommand,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(EnableCommandModuleCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.EnableActivityMonitor,
+                    CommandName = SystemCommandName.EnableActivityMonitor,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(EnableActivityMonitorCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.RenameActivityMonitor,
+                    CommandName = SystemCommandName.RenameActivityMonitor,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(RenameActivityMonitorCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.EnableTaskProgressCache,
+                    CommandName = SystemCommandName.EnableTaskProgressCache,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(EnableTaskProgressCacheCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.EnableDiagnostics,
+                    CommandName = SystemCommandName.EnableDiagnostics,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(EnableDiagnosticsCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.CancelTask,
+                    CommandName = SystemCommandName.CancelTask,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(CancelTaskCommand)
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandNames.SetTaskProgressCacheDuration,
+                    CommandName = SystemCommandName.SetTaskProgressCacheDuration,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(SetTaskProgressCacheDurationCommand)
                 }
@@ -1140,7 +1141,7 @@ namespace Hyper.NodeServices
                 commandName => new CommandStatus
                 {
                     CommandName = commandName,
-                    CommandType = (SystemCommandNames.IsSystemCommand(commandName) ? HyperNodeCommandType.SystemCommand : HyperNodeCommandType.CustomCommand),
+                    CommandType = (SystemCommandName.IsSystemCommand(commandName) ? HyperNodeCommandType.SystemCommand : HyperNodeCommandType.CustomCommand),
                     Enabled = _commandModuleConfigurations[commandName].Enabled
                 }
             );

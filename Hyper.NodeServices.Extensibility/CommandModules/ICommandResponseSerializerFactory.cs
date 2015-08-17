@@ -1,4 +1,4 @@
-﻿using Hyper.NodeServices.Contracts.Extensibility;
+﻿using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
 namespace Hyper.NodeServices.Extensibility.CommandModules
 {

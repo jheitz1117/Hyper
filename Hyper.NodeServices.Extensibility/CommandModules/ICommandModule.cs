@@ -1,5 +1,5 @@
 ﻿using Hyper.NodeServices.Contracts;
-using Hyper.NodeServices.Contracts.Extensibility;
+using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
 namespace Hyper.NodeServices.Extensibility.CommandModules
 {

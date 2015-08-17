@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Hyper.NodeServices.Client;
 using Hyper.NodeServices.Contracts;
-using Hyper.NodeServices.Contracts.Extensibility;
-using Hyper.NodeServices.Contracts.Serializers;
+using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
+using Hyper.NodeServices.Contracts.Extensibility.Serializers;
 using Hyper.NodeServices.Contracts.SystemCommands;
 using Hyper.NodeServices.UnitTesting.Contracts.CommandModules;
 
@@ -42,7 +42,7 @@ namespace HyperNodeTestClient
                 var serializer = new NetDataContractResponseSerializer<DiscoverResponse>();
                 var msg = new HyperNodeMessageRequest(ClientAgentName)
                 {
-                    CommandName = SystemCommandNames.Discover
+                    CommandName = SystemCommandName.Discover
                 };
 
                 var response = new HyperNodeClient("Alice").ProcessMessage(msg);
@@ -79,7 +79,7 @@ namespace HyperNodeTestClient
                 var serializer = new NetDataContractResponseSerializer<GetNodeStatusResponse>();
                 var msg = new HyperNodeMessageRequest(ClientAgentName)
                 {
-                    CommandName = SystemCommandNames.GetNodeStatus,
+                    CommandName = SystemCommandName.GetNodeStatus,
                     IntendedRecipientNodeNames = new List<string>
                     {
                         cboHyperNodeNames.Text
@@ -393,7 +393,7 @@ namespace HyperNodeTestClient
 
             var progressRequest = new HyperNodeMessageRequest("HyperNodeTestClient")
             {
-                CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
+                CommandName = SystemCommandName.GetCachedTaskProgressInfo,
                 CommandRequestString = taskId
             };
 
@@ -423,7 +423,7 @@ namespace HyperNodeTestClient
 
             var progressRequest = new HyperNodeMessageRequest("HyperNodeTestClient")
             {
-                CommandName = SystemCommandNames.GetCachedTaskProgressInfo,
+                CommandName = SystemCommandName.GetCachedTaskProgressInfo,
                 CommandRequestString = taskId,
                 IntendedRecipientNodeNames = new List<string>
                 {

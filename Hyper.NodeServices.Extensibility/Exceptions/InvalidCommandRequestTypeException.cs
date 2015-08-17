@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using Hyper.NodeServices.Contracts.Extensibility;
+using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.CommandModules;
 
 namespace Hyper.NodeServices.Extensibility.Exceptions

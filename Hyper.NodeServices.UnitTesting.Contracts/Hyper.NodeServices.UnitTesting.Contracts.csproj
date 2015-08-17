@@ -45,9 +45,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hyper.NodeServices.Contracts\Hyper.NodeServices.Contracts.csproj">
-      <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
-      <Name>Hyper.NodeServices.Contracts</Name>
+    <ProjectReference Include="..\Hyper.NodeServices.Contracts.Extensibility\Hyper.NodeServices.Contracts.Extensibility.csproj">
+      <Project>{7B2637A1-5D34-410D-8391-9AD0351C3C6F}</Project>
+      <Name>Hyper.NodeServices.Contracts.Extensibility</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

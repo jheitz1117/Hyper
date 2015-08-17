@@ -74,6 +74,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyper.NodeServices.UnitTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyper.IO", "Hyper.IO\Hyper.IO.csproj", "{38434D6E-DE0F-4A31-9462-D9374FEA862D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyper.NodeServices.Contracts.SystemCommands", "Hyper.NodeServices.Contracts.SystemCommands\Hyper.NodeServices.Contracts.SystemCommands.csproj", "{7709E8C1-D0D3-4949-8EAD-0FDAE3FB6A64}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyper.NodeServices.Contracts.Extensibility", "Hyper.NodeServices.Contracts.Extensibility\Hyper.NodeServices.Contracts.Extensibility.csproj", "{7B2637A1-5D34-410D-8391-9AD0351C3C6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -184,6 +188,14 @@ Global
 		{38434D6E-DE0F-4A31-9462-D9374FEA862D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38434D6E-DE0F-4A31-9462-D9374FEA862D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38434D6E-DE0F-4A31-9462-D9374FEA862D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7709E8C1-D0D3-4949-8EAD-0FDAE3FB6A64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7709E8C1-D0D3-4949-8EAD-0FDAE3FB6A64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7709E8C1-D0D3-4949-8EAD-0FDAE3FB6A64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7709E8C1-D0D3-4949-8EAD-0FDAE3FB6A64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B2637A1-5D34-410D-8391-9AD0351C3C6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B2637A1-5D34-410D-8391-9AD0351C3C6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B2637A1-5D34-410D-8391-9AD0351C3C6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B2637A1-5D34-410D-8391-9AD0351C3C6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -215,5 +227,7 @@ Global
 		{3770A663-2499-4897-A669-58E90D340760} = {D958CF47-922B-49C2-8C34-473D4EF7A889}
 		{43F73423-A2DD-4D58-B680-C64DFB948E78} = {D958CF47-922B-49C2-8C34-473D4EF7A889}
 		{38434D6E-DE0F-4A31-9462-D9374FEA862D} = {4DE65D47-16FA-4FB3-9CE5-EFD974BF95AB}
+		{7709E8C1-D0D3-4949-8EAD-0FDAE3FB6A64} = {D958CF47-922B-49C2-8C34-473D4EF7A889}
+		{7B2637A1-5D34-410D-8391-9AD0351C3C6F} = {D958CF47-922B-49C2-8C34-473D4EF7A889}
 	EndGlobalSection
 EndGlobal

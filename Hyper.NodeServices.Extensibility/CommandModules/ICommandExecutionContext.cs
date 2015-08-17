@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using Hyper.NodeServices.Contracts;
-using Hyper.NodeServices.Contracts.Extensibility;
+using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.Extensibility.CommandModules

@@ -1,6 +1,6 @@
 ﻿using Hyper.NodeServices.Contracts;
-using Hyper.NodeServices.Contracts.Extensibility;
-using Hyper.NodeServices.Contracts.Serializers;
+using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
+using Hyper.NodeServices.Contracts.Extensibility.Serializers;
 using Hyper.NodeServices.Contracts.SystemCommands;
 using Hyper.NodeServices.Extensibility.CommandModules;
 

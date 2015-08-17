@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using Hyper.NodeServices.Contracts.Extensibility;
+using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
 namespace Hyper.NodeServices.UnitTesting.Contracts.CommandModules
 {
