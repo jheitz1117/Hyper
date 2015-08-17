@@ -62,7 +62,7 @@ namespace Hyper.NodeServices.ActivityTracking
                 {
                     /* Otherwise, we assume the response came from a child node. In this case, we'll add the task ID from
                      * the child node's response object to our collection so we can propagate to the caller if necessary.*/
-                    taskProgressInfo.ChildTaskIds.TryAdd(response.RespondingNodeName, response.TaskId);
+                    taskProgressInfo.ChildNodeTaskIds.TryAdd(response.RespondingNodeName, response.TaskId);
                 }
             }
 

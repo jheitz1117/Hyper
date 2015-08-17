@@ -2,6 +2,9 @@
 
 namespace Hyper.NodeServices.Contracts.SystemCommands
 {
+    /// <summary>
+    /// Command types for command modules.
+    /// </summary>
     [DataContract]
     public enum HyperNodeCommandType
     {

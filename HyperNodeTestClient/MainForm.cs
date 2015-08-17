@@ -210,8 +210,8 @@ namespace HyperNodeTestClient
 
             lstAliceActivityItems.DataSource = GetActivityStrings(taskProgressInfo.Activity);
 
-            if (taskProgressInfo.ChildTaskIds.ContainsKey("Bob") && !_bobIsProgressTracking && cboHyperNodeNames.Text == "Bob")
-                StartBobProgressTracking(taskProgressInfo.ChildTaskIds["Bob"]);
+            if (taskProgressInfo.ChildNodeTaskIds.ContainsKey("Bob") && !_bobIsProgressTracking && cboHyperNodeNames.Text == "Bob")
+                StartBobProgressTracking(taskProgressInfo.ChildNodeTaskIds["Bob"]);
         }
 
         private void aliceProgressWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
