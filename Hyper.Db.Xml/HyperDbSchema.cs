@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Hyper.Db.Xml.ScriptSources;
-using Hyper.Versioning;
+using Hyper.Extensibility.Versioning;
 
 namespace Hyper.Db.Xml
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Hyper.Versioning;
+using Hyper.Extensibility.Versioning;
 
 namespace Hyper.Db.Xml.ScriptSources
 {

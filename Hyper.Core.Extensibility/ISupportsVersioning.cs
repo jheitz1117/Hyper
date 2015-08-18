@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Hyper.Versioning
+namespace Hyper.Extensibility.Versioning
 {
     /// <summary>
     /// Defines a <see cref="System.Version"/> property for use in versioning logic.

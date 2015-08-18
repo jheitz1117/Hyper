@@ -41,10 +41,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IActivityItem.cs" />
-    <Compile Include="IServiceHostExceptionHandler.cs" />
-    <Compile Include="IServiceHostFactory.cs" />
-    <Compile Include="IStringTransform.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

@@ -58,9 +58,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hyper.Cryptography\Hyper.Cryptography.csproj">
-      <Project>{2aa90399-540a-4626-898c-fba2a39f2b43}</Project>
-      <Name>Hyper.Cryptography</Name>
+    <ProjectReference Include="..\Hyper.Core.Extensibility\Hyper.Core.Extensibility.csproj">
+      <Project>{16933AC7-6624-4467-8FCD-42C2F43EB0F3}</Project>
+      <Name>Hyper.Core.Extensibility</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.Core\Hyper.Core.csproj">
+      <Project>{603D4FB2-837A-4D37-9B74-4A9153F79D39}</Project>
+      <Name>Hyper.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyper.Db.ScriptWriters\Hyper.Db.ScriptWriters.csproj">
       <Project>{3d9d4cf1-42c3-4fca-a617-153cf41e9b8c}</Project>
@@ -73,14 +77,6 @@
     <ProjectReference Include="..\Hyper.Db\Hyper.Db.csproj">
       <Project>{73C60F01-B6F8-4210-9B1D-D9E7B7979F99}</Project>
       <Name>Hyper.Db</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Hyper.Extensibility\Hyper.Extensibility.csproj">
-      <Project>{8BE9047A-C0C3-468D-ACFF-9BD332C975B4}</Project>
-      <Name>Hyper.Extensibility</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Hyper.IO\Hyper.IO.csproj">
-      <Project>{38434D6E-DE0F-4A31-9462-D9374FEA862D}</Project>
-      <Name>Hyper.IO</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
