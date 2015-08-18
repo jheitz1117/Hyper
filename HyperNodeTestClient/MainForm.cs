@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Hyper.IO;
 using Hyper.NodeServices.Client;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
@@ -25,7 +26,7 @@ namespace HyperNodeTestClient
         public MainForm()
         {
             InitializeComponent();
-
+            
             tvwRealTimeTaskTrace.BeforeExpand += tvwTaskTrace_OnBeforeExpand;
             tvwAliceTaskTrace.BeforeExpand += tvwTaskTrace_OnBeforeExpand;
             tvwBobTaskTrace.BeforeExpand += tvwTaskTrace_OnBeforeExpand;

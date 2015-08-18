@@ -62,6 +62,7 @@
     <Compile Include="Serializers\XmlObjectCommandSerializer{TRequest,TResponse}.cs" />
     <Compile Include="Serializers\XmlObjectRequestSerializer{T}.cs" />
     <Compile Include="Serializers\XmlObjectResponseSerializer{T}.cs" />
+    <Compile Include="Serializers\XmlObjectSerializerWrapper.cs" />
     <Compile Include="Serializers\XmlObjectSerializerWrapper{T}.cs" />
   </ItemGroup>
   <ItemGroup>

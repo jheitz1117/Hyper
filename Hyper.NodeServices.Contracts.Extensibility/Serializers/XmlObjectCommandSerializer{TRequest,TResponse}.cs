@@ -1,4 +1,5 @@
 ﻿using System;
+using Hyper.Extensibility.IO;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
 namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
@@ -13,29 +14,53 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         where TRequest : ICommandRequest
         where TResponse : ICommandResponse
     {
+        private readonly IStringTransform _requestSerializationTransform;
+        private readonly IStringTransform _responseSerializationTransform;
+
         private XmlObjectRequestSerializer<TRequest> _requestSerializer;
         private XmlObjectRequestSerializer<TRequest> RequestSerializer
         {
-            get { return (_requestSerializer ?? (_requestSerializer = CreateRequestSerializer())); }
+            get { return (_requestSerializer ?? (_requestSerializer = CreateRequestSerializer(_requestSerializationTransform))); }
         }
 
         private XmlObjectResponseSerializer<TResponse> _responseSerializer;
         private XmlObjectResponseSerializer<TResponse> ResponseSerializer
         {
-            get { return (_responseSerializer ?? (_responseSerializer = CreateResponseSerializer())); }
+            get { return (_responseSerializer ?? (_responseSerializer = CreateResponseSerializer(_responseSerializationTransform))); }
+        }
+
+        /// <summary>
+        /// Initializes an instance of <see cref="XmlObjectCommandSerializer{TRequest, TResponse}"/> using <see cref="XmlObjectSerializerWrapper.DefaultStringTransform"/>
+        /// for requests and responses.
+        /// </summary>
+        protected XmlObjectCommandSerializer()
+            : this(XmlObjectSerializerWrapper.DefaultStringTransform, XmlObjectSerializerWrapper.DefaultStringTransform) { }
+
+        /// <summary>
+        /// Initializes an instance of <see cref="XmlObjectCommandSerializer{TRequest, TResponse}"/> using the specified <see cref="IStringTransform"/>
+        /// instances for requests and responses, respectively.
+        /// </summary>
+        /// <param name="requestSerializationTransform">The <see cref="IStringTransform"/> to use when transforming request data between string and byte representations.</param>
+        /// <param name="responseSerializationTransform">The <see cref="IStringTransform"/> to use when transforming response data between string and byte representations.</param>
+        protected XmlObjectCommandSerializer(IStringTransform requestSerializationTransform, IStringTransform responseSerializationTransform)
+        {
+            _requestSerializationTransform = requestSerializationTransform;
+            _responseSerializationTransform = responseSerializationTransform;
         }
 
         /// <summary>
         /// When overridden in a derived class, creates an instance of <see cref="XmlObjectRequestSerializer{T}"/> to use for serialization.
         /// </summary>
+        /// <param name="requestSerializationTransform">The <see cref="IStringTransform"/> to use when constructing the <see cref="XmlObjectRequestSerializer{T}"/></param>
         /// <returns></returns>
-        protected abstract XmlObjectRequestSerializer<TRequest> CreateRequestSerializer();
-
+        protected abstract XmlObjectRequestSerializer<TRequest> CreateRequestSerializer(IStringTransform requestSerializationTransform);
+        
         /// <summary>
         /// When overridden in a derived class, creates an instance of <see cref="XmlObjectResponseSerializer{T}"/> to use for serialization.
         /// </summary>
+        /// <param name="responseSerializationTransform">The <see cref="IStringTransform"/> to use when constructing the <see cref="XmlObjectResponseSerializer{T}"/></param>
         /// <returns></returns>
-        protected abstract XmlObjectResponseSerializer<TResponse> CreateResponseSerializer();
+        protected abstract XmlObjectResponseSerializer<TResponse> CreateResponseSerializer(IStringTransform responseSerializationTransform);
 
         /// <summary>
         /// Serializes the specified <see cref="ICommandRequest"/> into a string.

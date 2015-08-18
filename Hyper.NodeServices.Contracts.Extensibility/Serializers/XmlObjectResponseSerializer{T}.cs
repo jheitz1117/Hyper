@@ -1,4 +1,5 @@
 ﻿using System;
+using Hyper.Extensibility.IO;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
 namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
@@ -10,6 +11,19 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
     public abstract class XmlObjectResponseSerializer<T> : XmlObjectSerializerWrapper<T>, ICommandResponseSerializer
         where T : ICommandResponse
     {
+        /// <summary>
+        /// Initializes an instance of <see cref="XmlObjectResponseSerializer{T}"/> using <see cref="XmlObjectSerializerWrapper.DefaultStringTransform"/>.
+        /// </summary>
+        protected XmlObjectResponseSerializer() { }
+
+        /// <summary>
+        /// Initializes an instance of <see cref="XmlObjectResponseSerializer{T}"/> using the specified <see cref="IStringTransform"/> instance.
+        /// </summary>
+        /// <param name="serializationTransform">The <see cref="IStringTransform"/> to use when transforming data between string and byte representations.</param>
+        protected XmlObjectResponseSerializer(IStringTransform serializationTransform)
+            : base(serializationTransform) { }
+        
+
         /// <summary>
         /// Serializes the specified <see cref="ICommandResponse"/> into a string.
         /// </summary>

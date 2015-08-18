@@ -1,51 +1,24 @@
-﻿using System.IO;
-using System.Runtime.Serialization;
-using System.Text;
-using Hyper.Extensibility.IO;
-using Hyper.IO;
+﻿using Hyper.Extensibility.IO;
 
 namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
 {
     /// <summary>
-    /// Wraps an instance of <see cref="XmlObjectSerializer"/> and simplifies the task of serializing to and deserializing from string data.
+    /// Abstract generic version of <see cref="XmlObjectSerializerWrapper"/>
     /// </summary>
     /// <typeparam name="T">The type of object to be serialized or deserialized.</typeparam>
-    public abstract class XmlObjectSerializerWrapper<T>
+    public abstract class XmlObjectSerializerWrapper<T> : XmlObjectSerializerWrapper
     {
-        private XmlObjectSerializer _serializer;
-        private XmlObjectSerializer Serializer
-        {
-            get { return (_serializer ?? (_serializer = CreateSerializer())); }
-        }
+        /// <summary>
+        /// Initializes an instance of <see cref="XmlObjectSerializerWrapper{T}"/> using <see cref="XmlObjectSerializerWrapper.DefaultStringTransform"/>.
+        /// </summary>
+        protected XmlObjectSerializerWrapper() { }
 
         /// <summary>
-        /// The <see cref="IStringTransform"/> to use when transforming the serialized bytes into a string.
+        /// Initializes an instance of <see cref="XmlObjectSerializerWrapper{T}"/> using the specified <see cref="IStringTransform"/> instance.
         /// </summary>
-        public IStringTransform SerializationTransform { get; set; }
-
-        /// <summary>
-        /// The <see cref="IStringTransform"/> to use when transforming a string into bytes to be deserialized.
-        /// </summary>
-        public IStringTransform DeserializationTransform { get; set; }
-
-        /// <summary>
-        /// Initializes an instance of <see cref="XmlObjectSerializerWrapper{T}"/> using <see cref="IStringTransform"/>
-        /// instances created from <see cref="Encoding"/>.<see cref="Encoding.Default"/>.
-        /// </summary>
-        protected XmlObjectSerializerWrapper()
-            : this(StringTransform.FromEncoding(Encoding.Default), StringTransform.FromEncoding(Encoding.Default)) { }
-
-        /// <summary>
-        /// Initializes an instance of <see cref="XmlObjectSerializerWrapper{T}"/> using the specified <see cref="IStringTransform"/>
-        /// instances for serialization and deserialization, respectively.
-        /// </summary>
-        /// <param name="serializationTransform">The <see cref="IStringTransform"/> to use when transforming the serialized bytes into a string.</param>
-        /// <param name="deserializationTransform">The <see cref="IStringTransform"/> to use when transforming a string into bytes to be deserialized.</param>
-        protected XmlObjectSerializerWrapper(IStringTransform serializationTransform, IStringTransform deserializationTransform)
-        {
-            this.SerializationTransform = serializationTransform;
-            this.DeserializationTransform = deserializationTransform;
-        }
+        /// <param name="serializationTransform">The <see cref="IStringTransform"/> to use when transforming data between string and byte representations.</param>
+        protected XmlObjectSerializerWrapper(IStringTransform serializationTransform)
+            : base(serializationTransform) { }
 
         /// <summary>
         /// Serializes the specified object into a string.
@@ -54,13 +27,7 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         /// <returns></returns>
         protected string Serialize(T target)
         {
-            using (var memory = new MemoryStream())
-            {
-                this.Serializer.WriteObject(memory, target);
-                memory.Flush();
-
-                return this.SerializationTransform.GetString(memory.ToArray());
-            }
+            return base.Serialize(target);
         }
 
         /// <summary>
@@ -68,18 +35,9 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         /// </summary>
         /// <param name="inputString">The string to deserialize.</param>
         /// <returns></returns>
-        protected T Deserialize(string inputString)
+        protected new T Deserialize(string inputString)
         {
-            using (var memory = new MemoryStream(this.DeserializationTransform.GetBytes(inputString)))
-            {
-                return (T)this.Serializer.ReadObject(memory);
-            }
+            return (T) base.Deserialize(inputString);
         }
-
-        /// <summary>
-        /// When overridden in a derived class, creates an instance of <see cref="XmlObjectSerializer"/> to use for serialization.
-        /// </summary>
-        /// <returns></returns>
-        public abstract XmlObjectSerializer CreateSerializer();
     }
 }
