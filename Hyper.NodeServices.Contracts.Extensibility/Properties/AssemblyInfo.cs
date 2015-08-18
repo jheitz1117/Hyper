@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Hyper.NodeServices.Contracts.Extensibility")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Utility classes and interfaces for extending HyperNode data contracts.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Hyper.NodeServices.Contracts.Extensibility")]
+[assembly: AssemblyCompany("Josh Heitz")]
+[assembly: AssemblyProduct("HyperNode Services")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
