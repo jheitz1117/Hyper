@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.Caching;
 using Hyper.NodeServices.Contracts;
-using Hyper.NodeServices.Contracts.SystemCommands;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
+using Hyper.NodeServices.SystemCommands.Contracts;
 
 namespace Hyper.NodeServices.ActivityTracking
 {

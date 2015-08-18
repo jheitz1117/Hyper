@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
-namespace Hyper.NodeServices.Contracts.SystemCommands
+namespace Hyper.NodeServices.SystemCommands.Contracts
 {
     /// <summary>
     /// <see cref="ICommandRequest"/> for the <see cref="SystemCommandName.RenameActivityMonitor"/> system command.

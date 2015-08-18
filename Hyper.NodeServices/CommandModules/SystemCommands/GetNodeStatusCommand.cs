@@ -2,8 +2,8 @@
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Contracts.Extensibility.Serializers;
-using Hyper.NodeServices.Contracts.SystemCommands;
 using Hyper.NodeServices.Extensibility.CommandModules;
+using Hyper.NodeServices.SystemCommands.Contracts;
 
 namespace Hyper.NodeServices.CommandModules.SystemCommands
 {

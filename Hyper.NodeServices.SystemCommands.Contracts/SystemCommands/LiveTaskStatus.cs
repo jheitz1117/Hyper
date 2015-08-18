@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Hyper.NodeServices.Contracts.SystemCommands
+namespace Hyper.NodeServices.SystemCommands.Contracts
 {
     /// <summary>
     /// Describes the status of a task.

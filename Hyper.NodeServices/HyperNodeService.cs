@@ -12,18 +12,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Hyper.ActivityTracking;
 using Hyper.NodeServices.ActivityTracking;
-using Hyper.NodeServices.Client;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
 using Hyper.NodeServices.Configuration;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Contracts.Extensibility.Serializers;
-using Hyper.NodeServices.Contracts.SystemCommands;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Exceptions;
+using Hyper.NodeServices.SystemCommands.Contracts;
 using Hyper.NodeServices.TaskIdProviders;
 
 // TODO: (Phase 2 - see comments below) ClearActivityCache 

@@ -1,7 +1,7 @@
 ﻿using System.ServiceModel;
 using Hyper.NodeServices.Contracts;
 
-namespace Hyper.NodeServices.Client
+namespace Hyper.NodeServices.Contracts
 {
     /// <summary>
     /// Communicates with a remote implementation of the <see cref="IHyperNodeService"/> service contract.

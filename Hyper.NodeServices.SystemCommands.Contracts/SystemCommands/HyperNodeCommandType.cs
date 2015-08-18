@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Hyper.NodeServices.Contracts.SystemCommands
+namespace Hyper.NodeServices.SystemCommands.Contracts
 {
     /// <summary>
     /// Command types for command modules.

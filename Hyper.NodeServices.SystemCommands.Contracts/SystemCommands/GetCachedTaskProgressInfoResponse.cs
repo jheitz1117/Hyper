@@ -1,7 +1,8 @@
 ﻿using System.Runtime.Serialization;
+using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
-namespace Hyper.NodeServices.Contracts.SystemCommands
+namespace Hyper.NodeServices.SystemCommands.Contracts
 {
     /// <summary>
     /// <see cref="ICommandResponse"/> for the <see cref="SystemCommandName.GetCachedTaskProgressInfo"/> system command.

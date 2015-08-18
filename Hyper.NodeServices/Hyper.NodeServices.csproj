@@ -115,17 +115,9 @@
       <Project>{8BE9047A-C0C3-468D-ACFF-9BD332C975B4}</Project>
       <Name>Hyper.Extensibility</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyper.NodeServices.Client\Hyper.NodeServices.Client.csproj">
-      <Project>{93FCAC7D-AFDF-4347-AB73-C8E0EB4A5951}</Project>
-      <Name>Hyper.NodeServices.Client</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Hyper.NodeServices.Contracts.Extensibility\Hyper.NodeServices.Contracts.Extensibility.csproj">
       <Project>{7B2637A1-5D34-410D-8391-9AD0351C3C6F}</Project>
       <Name>Hyper.NodeServices.Contracts.Extensibility</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Hyper.NodeServices.Contracts.SystemCommands\Hyper.NodeServices.Contracts.SystemCommands.csproj">
-      <Project>{7709E8C1-D0D3-4949-8EAD-0FDAE3FB6A64}</Project>
-      <Name>Hyper.NodeServices.Contracts.SystemCommands</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyper.NodeServices.Contracts\Hyper.NodeServices.Contracts.csproj">
       <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
@@ -134,6 +126,10 @@
     <ProjectReference Include="..\Hyper.NodeServices.Extensibility\Hyper.NodeServices.Extensibility.csproj">
       <Project>{B9A95110-2589-42D9-88F7-D72E684F6FB1}</Project>
       <Name>Hyper.NodeServices.Extensibility</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.NodeServices.SystemCommands.Contracts\Hyper.NodeServices.SystemCommands.Contracts.csproj">
+      <Project>{CDF441C8-D72B-4120-98B8-E88AD5A8C027}</Project>
+      <Name>Hyper.NodeServices.SystemCommands.Contracts</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

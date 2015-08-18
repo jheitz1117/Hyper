@@ -1,7 +1,8 @@
 ﻿using System.Linq;
+using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
-namespace Hyper.NodeServices.Contracts.SystemCommands
+namespace Hyper.NodeServices.SystemCommands.Contracts
 {
     /// <summary>
     /// Enumerates the names of built-in system command modules.

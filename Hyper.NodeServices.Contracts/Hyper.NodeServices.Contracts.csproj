@@ -47,6 +47,7 @@
     <Compile Include="HyperNodeActionReasonType.cs" />
     <Compile Include="HyperNodeActionType.cs" />
     <Compile Include="HyperNodeActivityItem.cs" />
+    <Compile Include="HyperNodeClient.cs" />
     <Compile Include="HyperNodeMessageRequest.cs" />
     <Compile Include="HyperNodeMessageResponse.cs" />
     <Compile Include="HyperNodePath.cs" />

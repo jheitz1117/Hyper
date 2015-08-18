@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7709E8C1-D0D3-4949-8EAD-0FDAE3FB6A64}</ProjectGuid>
+    <ProjectGuid>{CDF441C8-D72B-4120-98B8-E88AD5A8C027}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Hyper.NodeServices.Contracts.SystemCommands</RootNamespace>
-    <AssemblyName>Hyper.NodeServices.Contracts.SystemCommands</AssemblyName>
+    <RootNamespace>Hyper.NodeServices.SystemCommands.Contracts</RootNamespace>
+    <AssemblyName>Hyper.NodeServices.SystemCommands.Contracts</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -28,7 +28,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Hyper.NodeServices.Contracts.SystemCommands.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -42,6 +41,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SystemCommandName.cs" />
+    <Compile Include="SystemCommands\ActivityMonitorStatus.cs" />
+    <Compile Include="SystemCommands\CommandStatus.cs" />
+    <Compile Include="SystemCommands\DiscoverResponse.cs" />
+    <Compile Include="SystemCommands\EnableActivityMonitorRequest.cs" />
+    <Compile Include="SystemCommands\EnableCommandModuleRequest.cs" />
+    <Compile Include="SystemCommands\EnableDiagnosticsRequest.cs" />
+    <Compile Include="SystemCommands\EnableTaskProgressCacheRequest.cs" />
+    <Compile Include="SystemCommands\GetCachedTaskProgressInfoResponse.cs" />
+    <Compile Include="SystemCommands\GetChildNodesResponse.cs" />
+    <Compile Include="SystemCommands\GetNodeStatusResponse.cs" />
+    <Compile Include="SystemCommands\HyperNodeCommandType.cs" />
+    <Compile Include="SystemCommands\HyperNodeTaskProgressInfo.cs" />
+    <Compile Include="SystemCommands\LiveTaskStatus.cs" />
+    <Compile Include="SystemCommands\RenameActivityMonitorRequest.cs" />
+    <Compile Include="SystemCommands\SetTaskProgressCacheDurationRequest.cs" />
+    <Compile Include="SystemCommands\SetTaskProgressCacheDurationResponse.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyper.NodeServices.Contracts.Extensibility\Hyper.NodeServices.Contracts.Extensibility.csproj">

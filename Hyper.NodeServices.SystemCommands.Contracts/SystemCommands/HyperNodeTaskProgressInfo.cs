@@ -1,8 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Hyper.NodeServices.Contracts;
 
-namespace Hyper.NodeServices.Contracts.SystemCommands
+namespace Hyper.NodeServices.SystemCommands.Contracts
 {
     /// <summary>
     /// Describes progress information for a task.

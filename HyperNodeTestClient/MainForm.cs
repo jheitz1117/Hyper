@@ -6,12 +6,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Hyper.IO;
-using Hyper.NodeServices.Client;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Contracts.Extensibility.Serializers;
-using Hyper.NodeServices.Contracts.SystemCommands;
+using Hyper.NodeServices.SystemCommands.Contracts;
 using Hyper.NodeServices.UnitTesting.Contracts.CommandModules;
 
 namespace HyperNodeTestClient
