@@ -11,7 +11,7 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>Initial release.</releaseNotes>
-    <copyright>Copyright 2015</copyright>
+    <copyright>$copyright$</copyright>
   </metadata>
   <files>
     <file src="bin\$configuration$\$id$.xml" target="lib" />
