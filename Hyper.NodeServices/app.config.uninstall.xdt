@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
 <configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+  <!-- remove our hyperNet section group -->
   <configSections>
-    <sectionGroup name="hyperNet" xdt:Transform="Remove">
-      <section name="hyperNode" type="Hyper.NodeServices.Configuration.HyperNodeConfigurationSection, Hyper.NodeServices" xdt:Transform="Remove" />
-    </sectionGroup>
+    <sectionGroup name="hyperNet" xdt:Transform="Remove" xdt:Locator="Match(name)" />
   </configSections>
+  
+  <!-- remove all empty sections in case ours was the only one -->
+  <configSections xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
 </configuration>
