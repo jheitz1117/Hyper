@@ -10,12 +10,12 @@
     <projectUrl>https://github.com/jheitz1117/Hyper</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial release.</releaseNotes>
-    <copyright>Copyright 2015</copyright>
+    <releaseNotes>Add XDT transforms for app.config.</releaseNotes>
+    <copyright>$copyright$</copyright>
   </metadata>
   <files>
     <file src="bin\$configuration$\$id$.xml" target="lib" />
-	<file src="app.config.install.xdt" target="content" />
-	<file src="app.config.uninstall.xdt" target="content" />
+    <file src="app.config.install.xdt" target="content" />
+    <file src="app.config.uninstall.xdt" target="content" />
   </files>
 </package>
