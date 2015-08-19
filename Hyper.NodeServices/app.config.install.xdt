@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+  <configSections xdt:Transform="InsertIfMissing">
+    <sectionGroup name="hyperNet" xdt:Transform="InsertIfMissing">
+      <section name="hyperNode" type="Hyper.NodeServices.Configuration.HyperNodeConfigurationSection, Hyper.NodeServices" xdt:Transform="InsertIfMissing" />
+    </sectionGroup>
+  </configSections>
+</configuration>

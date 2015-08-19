@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Hyper.Core.Extensibility")]
-[assembly: AssemblyDescription("Interfaces for Hyper.Core extensibility points.")]
+[assembly: AssemblyTitle("HyperNet SOA Core Interfaces")]
+[assembly: AssemblyDescription("Interfaces for extending the HyperNet Core Library.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Josh Heitz")]
-[assembly: AssemblyProduct("HyperNet Core")]
+[assembly: AssemblyProduct("HyperNet SOA")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

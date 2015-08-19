@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Hyper.NodeServices.UnitTesting.Contracts")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("HyperNode Unit Testing Contracts")]
+[assembly: AssemblyDescription("Request and response classes for HyperNode Unit Testing Command Modules.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Hyper.NodeServices.UnitTesting.Contracts")]
+[assembly: AssemblyCompany("Josh Heitz")]
+[assembly: AssemblyProduct("HyperNet SOA")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

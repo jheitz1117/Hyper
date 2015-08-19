@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Hyper.NodeServices.Extensibility")]
-[assembly: AssemblyDescription("Base classes and interfaces for extending HyperNode services.")]
+[assembly: AssemblyTitle("HyperNode Module Interfaces")]
+[assembly: AssemblyDescription("Base classes and interfaces for creating user-defined modules for the HyperNode Service Library.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Josh Heitz")]
-[assembly: AssemblyProduct("HyperNode Services")]
+[assembly: AssemblyProduct("HyperNet SOA")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
