@@ -3,10 +3,14 @@
   <!-- insert an empty section-->
   <configSections xdt:Transform="InsertBefore(/configuration/*[1])" />
 
-  <!-- remove all elements that have our section name and re-append them to the last config in case they have outdated type information for the HyperNodeConfigurationSection -->
+  <!-- remove all elements that have our section name in case they have outdated type information for the HyperNodeConfigurationSection -->
+  <configSections xdt:Locator="XPath(/configuration/configSections[last()])">
+    <sectionGroup name="hyperNet" xdt:Transform="RemoveAll" xdt:Locator="Match(name)" />
+  </configSections>
+  
+  <!-- insert updated config if it doesn't exist -->
   <configSections xdt:Locator="XPath(/configuration/configSections[last()])">
     <sectionGroup name="hyperNet" xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)">
-      <section name="hyperNode" type="Hyper.NodeServices.Configuration.HyperNodeConfigurationSection, Hyper.NodeServices" xdt:Transform="RemoveAll" xdt:Locator="Match(name)" />
       <section name="hyperNode" type="Hyper.NodeServices.Configuration.HyperNodeConfigurationSection, Hyper.NodeServices" xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)" />
     </sectionGroup>
   </configSections>
