@@ -43,7 +43,7 @@ namespace Hyper.NodeServices.Configuration
             return this.OfType<SystemCommandElement>().GetEnumerator();
         }
 
-        [ConfigurationProperty("enabled", IsRequired = false, DefaultValue = true)]
+        [ConfigurationProperty("enabled", IsRequired = false, DefaultValue = false)]
         public bool Enabled
         {
             get { return (bool)base["enabled"]; }

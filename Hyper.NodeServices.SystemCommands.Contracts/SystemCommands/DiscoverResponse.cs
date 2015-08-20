@@ -18,7 +18,7 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         public MessageProcessStatusFlags ProcessStatusFlags { get; set; }
 
         /// <summary>
-        /// A dictionary containing the descendants of the <see cref="IHyperNodeService."/>
+        /// A dictionary containing the descendants of the <see cref="IHyperNodeService"/>.
         /// </summary>
         [DataMember]
         public ConcurrentDictionary<string, DiscoverResponse> ChildNodes { get; set; }
