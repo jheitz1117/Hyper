@@ -95,7 +95,7 @@ namespace Hyper.NodeServices
 
         #region Private Members
 
-        private const string HyperNodeConfigurationSectionName = "hyperNet/hyperNode";
+        private const string HyperNodeConfigurationSectionName = "hyperSoa/hyperNode";
         private readonly string _hyperNodeName;
         private readonly object _lock = new object();
         private readonly TaskProgressCacheMonitor _taskProgressCacheMonitor = new TaskProgressCacheMonitor();

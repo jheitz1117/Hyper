@@ -2,7 +2,7 @@
 using System.IO;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 
-namespace HyperNetExtensibilityTest.ActivityMonitors
+namespace NodeModuleTest.ActivityMonitors
 {
     public class MondayLogFileActivityMonitor : HyperNodeServiceActivityMonitor
     {

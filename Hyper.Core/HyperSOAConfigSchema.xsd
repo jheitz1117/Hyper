@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xs:schema
-    targetNamespace="http://www.hypernet.com/HyperNetConfigSchema"
+    targetNamespace="http://www.hypersoa.com/HyperSOAConfigSchema"
     elementFormDefault="qualified"
-    xmlns="http://www.hypernet.com/HyperNetConfigSchema"
-    xmlns:tns="http://www.hypernet.com/HyperNetConfigSchema"
+    xmlns="http://www.hypersoa.com/HyperSOAConfigSchema"
+    xmlns:tns="http://www.hypersoa.com/HyperSOAConfigSchema"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
 >
-  <xs:element name="hyperNet" type="HyperNetConfiguration" />
+  <xs:element name="hyperSoa" type="HyperSoaConfiguration" />
 
-  <xs:complexType name="HyperNetConfiguration">
+  <xs:complexType name="HyperSoaConfiguration">
     <xs:sequence>
       <xs:element name="hyperNode" minOccurs="0" maxOccurs="1" type="HyperNodeConfiguration" />
     </xs:sequence>

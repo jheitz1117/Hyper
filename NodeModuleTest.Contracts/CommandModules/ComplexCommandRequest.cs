@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
-namespace HyperNet.ExtensibilityTest.Shared.CommandModules
+namespace NodeModuleTest.Contracts.CommandModules
 {
     [DataContract]
     public class ComplexCommandRequest : ICommandRequest

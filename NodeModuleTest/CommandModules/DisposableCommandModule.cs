@@ -4,7 +4,7 @@ using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.CommandModules;
 
-namespace HyperNetExtensibilityTest.CommandModules
+namespace NodeModuleTest.CommandModules
 {
     public class DisposableCommandModule : ICommandModule, IDisposable
     {

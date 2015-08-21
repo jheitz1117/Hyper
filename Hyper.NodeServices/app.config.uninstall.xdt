@@ -1,10 +1,27 @@
 <?xml version="1.0"?>
-<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
-  <!-- remove our hyperNet section group -->
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform"
+               xmlns:hs="http://www.hypersoa.com/HyperSOAConfigSchema">
+  <!-- remove our hyperSoa section group -->
   <configSections>
-    <sectionGroup name="hyperNet" xdt:Transform="Remove" xdt:Locator="Match(name)" />
+    <sectionGroup name="hyperSoa" xdt:Transform="Remove" xdt:Locator="Match(name)" />
   </configSections>
   
   <!-- remove all empty sections in case ours was the only one -->
   <configSections xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
+  
+  <!-- remove our hyperNode node if it was in the default state -->
+  <configSections>
+    <hyperSoa xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
+  </configSections>
+  
+  <!-- remove our hyperNode entry if it is still in the default state:
+           -Has no child nodes
+           -Either has no attributes at all, or has a name attribute equal to 'HyperNode1' and no other attributes.
+  -->
+  <hs:hyperSoa>
+    <hs:hyperNode xdt:Transform="Remove" xdt:Locator="Condition(count(*)=0 and (not(@*) or (@name='HyperNode1' and count(@*) = 1)))" />
+  </hs:hyperSoa>
+  
+  <!-- remove the hyperSoa entry if it's empty -->
+  <hs:hyperSoa xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
 </configuration>

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("HyperNode Contract Interfaces")]
-[assembly: AssemblyDescription("Utility classes and interfaces for creating user-defined request and response classes for HyperNode Command Modules.")]
+[assembly: AssemblyTitle("HyperSOA Node Contract Interfaces")]
+[assembly: AssemblyDescription("Utility classes and interfaces for user-defined request and response classes for HyperNode command modules.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Josh Heitz")]
-[assembly: AssemblyProduct("HyperNet SOA")]
+[assembly: AssemblyProduct("HyperSOA")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.1")]
-[assembly: AssemblyFileVersion("1.0.0.1")]
+[assembly: AssemblyVersion("1.0.0.2")]
+[assembly: AssemblyFileVersion("1.0.0.2")]

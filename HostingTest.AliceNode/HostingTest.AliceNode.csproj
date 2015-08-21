@@ -69,9 +69,9 @@
       <Project>{0D7D8078-E918-4579-BFD5-105742557575}</Project>
       <Name>Hyper.NodeServices</Name>
     </ProjectReference>
-    <ProjectReference Include="..\HyperNetExtensibilityTest\HyperNetExtensibilityTest.csproj">
-      <Project>{01837910-e278-4f61-93e4-673f0f012aa0}</Project>
-      <Name>HyperNetExtensibilityTest</Name>
+    <ProjectReference Include="..\NodeModuleTest\NodeModuleTest.csproj">
+      <Project>{a912dd84-1a2b-4fbc-b4d0-0f0b91d536b9}</Project>
+      <Name>NodeModuleTest</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 
-namespace HyperNetExtensibilityTest.ActivityMonitors
+namespace NodeModuleTest.ActivityMonitors
 {
     /// <summary>
     /// Stock <see cref="HyperNodeServiceActivityMonitor"/> that calls <see cref="Trace"/>.WriteLine() for each activity event. This monitor

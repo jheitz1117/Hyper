@@ -3,9 +3,9 @@ using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Contracts.Extensibility.Serializers;
 using Hyper.NodeServices.Extensibility.CommandModules;
-using HyperNet.ExtensibilityTest.Shared.CommandModules;
+using NodeModuleTest.Contracts.CommandModules;
 
-namespace HyperNetExtensibilityTest.CommandModules
+namespace NodeModuleTest.CommandModules
 {
     public class ComplexCommandModule : ICommandModule, ICommandRequestSerializerFactory, ICommandResponseSerializerFactory
     {

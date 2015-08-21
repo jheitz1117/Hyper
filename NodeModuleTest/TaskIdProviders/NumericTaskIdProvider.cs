@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using Hyper.NodeServices.Extensibility;
 
-namespace HyperNetExtensibilityTest.TaskIdProviders
+namespace NodeModuleTest.TaskIdProviders
 {
     public class NumericTaskIdProvider : TaskIdProviderBase, IDisposable
     {
