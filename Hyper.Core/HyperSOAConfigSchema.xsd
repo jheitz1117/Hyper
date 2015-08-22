@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xs:schema
-    targetNamespace="http://www.hypersoa.com/HyperSOAConfigSchema"
+    targetNamespace="http://www.hypersoa.net/HyperSOAConfigSchema"
     elementFormDefault="qualified"
-    xmlns="http://www.hypersoa.com/HyperSOAConfigSchema"
-    xmlns:tns="http://www.hypersoa.com/HyperSOAConfigSchema"
+    xmlns="http://www.hypersoa.net/HyperSOAConfigSchema"
+    xmlns:tns="http://www.hypersoa.net/HyperSOAConfigSchema"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
 >
   <xs:element name="hyperSoa" type="HyperSoaConfiguration" />

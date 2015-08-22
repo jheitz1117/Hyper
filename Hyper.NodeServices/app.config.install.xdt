@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform"
-               xmlns:hs="http://www.hypersoa.com/HyperSOAConfigSchema">
+               xmlns:hs="http://www.hypersoa.net/HyperSOAConfigSchema">
   <!-- insert an empty section-->
   <configSections xdt:Transform="InsertBefore(/configuration/*[1])" />
 
