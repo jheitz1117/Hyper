@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xs:schema
-    targetNamespace="http://www.hypersoa.com/HyperDbXmlSchema"
+    targetNamespace="http://www.hypersoa.net/HyperDbXmlSchema"
     elementFormDefault="qualified"
-    xmlns="http://www.hypersoa.com/HyperDbXmlSchema"
-    xmlns:tns="http://www.hypersoa.com/HyperDbXmlSchema"
+    xmlns="http://www.hypersoa.net/HyperDbXmlSchema"
+    xmlns:tns="http://www.hypersoa.net/HyperDbXmlSchema"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
 >
   <xs:element name="databaseSchemaConfiguration" type="DatabaseSchemaConfiguration">

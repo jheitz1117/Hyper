@@ -19,7 +19,7 @@
   <configSections xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
 
   <!-- Add a default hyperNode entry just for fun -->
-  <hyperSoa xmlns="http://www.hypersoa.com/HyperSOAConfigSchema" xdt:Transform="InsertIfMissing">
+  <hyperSoa xmlns="http://www.hypersoa.net/HyperSOAConfigSchema" xdt:Transform="InsertIfMissing">
     <hyperNode name="HyperNode1" xdt:Transform="InsertIfMissing" />
   </hyperSoa>
 </configuration>
