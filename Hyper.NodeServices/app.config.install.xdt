@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
-<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform"
-               xmlns:hs="http://www.hypersoa.com/HyperSOAConfigSchema">
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
   <!-- insert an empty section-->
   <configSections xdt:Transform="InsertBefore(/configuration/*[1])" />
 
@@ -20,7 +19,7 @@
   <configSections xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
 
   <!-- Add a default hyperNode entry just for fun -->
-  <hs:hyperSoa xdt:Transform="InsertIfMissing">
-    <hs:hyperNode name="HyperNode1" xdt:Transform="InsertIfMissing" />
-  </hs:hyperSoa>
+  <hyperSoa xmlns="http://www.hypersoa.com/HyperSOAConfigSchema" xdt:Transform="InsertIfMissing">
+    <hyperNode name="HyperNode1" xdt:Transform="InsertIfMissing" />
+  </hyperSoa>
 </configuration>

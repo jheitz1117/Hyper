@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
-<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform"
-               xmlns:hs="http://www.hypersoa.com/HyperSOAConfigSchema">
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
   <!-- remove our hyperSoa section group -->
   <configSections>
     <sectionGroup name="hyperSoa" xdt:Transform="Remove" xdt:Locator="Match(name)" />
@@ -18,10 +17,10 @@
            -Has no child nodes
            -Either has no attributes at all, or has a name attribute equal to 'HyperNode1' and no other attributes.
   -->
-  <hs:hyperSoa>
-    <hs:hyperNode xdt:Transform="Remove" xdt:Locator="Condition(count(*)=0 and (not(@*) or (@name='HyperNode1' and count(@*) = 1)))" />
-  </hs:hyperSoa>
+  <hyperSoa xmlns="http://www.hypersoa.com/HyperSOAConfigSchema">
+    <hyperNode xdt:Transform="Remove" xdt:Locator="Condition(count(*)=0 and (not(@*) or (@name='HyperNode1' and count(@*) = 1)))" />
+  </hyperSoa>
   
   <!-- remove the hyperSoa entry if it's empty -->
-  <hs:hyperSoa xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
+  <hyperSoa xmlns="http://www.hypersoa.com/HyperSOAConfigSchema" xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
 </configuration>
