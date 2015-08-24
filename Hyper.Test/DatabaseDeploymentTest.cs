@@ -86,7 +86,7 @@ namespace Hyper.Test
         [TestMethod]
         public void ValidateNoXmlDeclarationTest()
         {
-            var doc = XDocument.Parse("<databaseSchemaConfiguration xmlns=\"http://www.hyperdb.com/HyperDbXmlSchema\" />");
+            var doc = XDocument.Parse("<databaseSchemaConfiguration xmlns=\"http://www.hypersoa.net/HyperDbXmlSchema\" />");
             var dbManager = new HyperDbXmlScriptProvider();
             dbManager.ValidateDbXmlDocument(doc, null, false);
         }

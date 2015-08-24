@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Text;
 using Hyper.Cryptography;
+using Hyper.Extensibility.IO;
+using Hyper.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Hyper.Test
@@ -13,12 +15,12 @@ namespace Hyper.Test
         [TestMethod]
         public void NoEncryptionTest()
         {
-            var encryption = new SymmetricEncryptionProvider(
-                new SymmetricEncryptionConfiguration()
+            var encryption = new SymmetricEncryptionService(
+                new SymmetricEncryptionConfiguration
                 {
                     AlgorithmType = SymmetricAlgorithmType.None,
-                    PlainTextTransform = new Utf8StringTransform(),
-                    CipherTextTransform = new Utf8StringTransform()
+                    PlainTextTransform = StringTransform.FromEncoding(Encoding.UTF8),
+                    CipherTextTransform = StringTransform.FromEncoding(Encoding.UTF8)
                 }
             );
 
@@ -31,12 +33,12 @@ namespace Hyper.Test
         [TestMethod]
         public void NoEncryptionTransformTest()
         {
-            var encryption = new SymmetricEncryptionProvider(
-                new SymmetricEncryptionConfiguration()
+            var encryption = new SymmetricEncryptionService(
+                new SymmetricEncryptionConfiguration
                 {
                     AlgorithmType = SymmetricAlgorithmType.None,
-                    PlainTextTransform = new Utf8StringTransform(),
-                    CipherTextTransform = new Base64StringTransform()
+                    PlainTextTransform = StringTransform.FromEncoding(Encoding.UTF8),
+                    CipherTextTransform = StringTransform.GetBase64Transform()
                 }
             );
 
@@ -50,12 +52,12 @@ namespace Hyper.Test
         [TestMethod]
         public void EncryptDecryptStringRoundTripTest()
         {
-            var encryption = new SymmetricEncryptionProvider(
+            var encryption = new SymmetricEncryptionService(
                 new SymmetricEncryptionConfiguration()
             );
 
             var key = encryption.GenerateKeyString();
-            var iv = encryption.GenerateIVString();
+            var iv = encryption.GenerateIvString();
 
             const string inputString = InputStringTest;
             var encryptedResult = encryption.EncryptString(inputString, key, iv);
@@ -67,10 +69,10 @@ namespace Hyper.Test
         [TestMethod]
         public void CustomKeyTransformRoundTripTest()
         {
-            var encryption = new SymmetricEncryptionProvider(
-                new SymmetricEncryptionConfiguration() {
+            var encryption = new SymmetricEncryptionService(
+                new SymmetricEncryptionConfiguration {
                     KeyTransform = new CustomKeyStringTransform(),
-                    IVTransform = new CustomIVStringTransform()
+                    IvTransform = new CustomIvStringTransform()
                 }
             );
 
@@ -84,35 +86,35 @@ namespace Hyper.Test
             Assert.AreEqual(inputString, decryptedResult, "Decrypted result is not equal to the original string.");
         }
 
-        private class CustomKeyStringTransform : Utf8StringTransform, IStringTransform
+        private class CustomKeyStringTransform : IStringTransform
         {
             string IStringTransform.GetString(byte[] input)
             {
-                return base.GetString(input);
+                return Encoding.UTF8.GetString(input);
             }
 
             byte[] IStringTransform.GetBytes(string input)
             {
                 if (string.IsNullOrWhiteSpace(input))
                 { throw new ArgumentNullException("input"); }
-                else
-                    return base.GetBytes(input.PadLeft(32, 'X').Substring(0, 32));
+
+                return Encoding.UTF8.GetBytes(input.PadLeft(32, 'X').Substring(0, 32));
             }
         }
 
-        private class CustomIVStringTransform : Utf8StringTransform, IStringTransform
+        private class CustomIvStringTransform : IStringTransform
         {
             string IStringTransform.GetString(byte[] input)
             {
-                return base.GetString(input);
+                return Encoding.UTF8.GetString(input);
             }
 
             byte[] IStringTransform.GetBytes(string input)
             {
                 if (string.IsNullOrWhiteSpace(input))
                 { throw new ArgumentNullException("input"); }
-                else
-                    return base.GetBytes(input.PadLeft(16, 'X').Substring(0, 16));
+
+                return Encoding.UTF8.GetBytes(input.PadLeft(16, 'X').Substring(0, 16));
             }
         }
     }

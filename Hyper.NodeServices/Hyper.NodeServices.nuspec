@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://github.com/jheitz1117/Hyper/blob/develop/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/jheitz1117/Hyper</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>Add XDT transforms for app.config.</releaseNotes>
+    <copyright>$copyright$</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\$id$.xml" target="lib" />
+    <file src="app.config.install.xdt" target="content" />
+    <file src="app.config.uninstall.xdt" target="content" />
+  </files>
+</package>

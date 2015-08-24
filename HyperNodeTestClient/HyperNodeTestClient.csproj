@@ -85,13 +85,21 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hyper.Services.HyperNodeContracts\Hyper.Services.HyperNodeContracts.csproj">
-      <Project>{60FBA4DD-489B-4E68-B627-4F82BEC80C61}</Project>
-      <Name>Hyper.Services.HyperNodeContracts</Name>
+    <ProjectReference Include="..\Hyper.NodeServices.Contracts.Extensibility\Hyper.NodeServices.Contracts.Extensibility.csproj">
+      <Project>{7B2637A1-5D34-410D-8391-9AD0351C3C6F}</Project>
+      <Name>Hyper.NodeServices.Contracts.Extensibility</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyper.Services.HyperNodeProxies\Hyper.Services.HyperNodeProxies.csproj">
-      <Project>{140CF975-943C-4A31-A6D9-3C501EA412B8}</Project>
-      <Name>Hyper.Services.HyperNodeProxies</Name>
+    <ProjectReference Include="..\Hyper.NodeServices.Contracts\Hyper.NodeServices.Contracts.csproj">
+      <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
+      <Name>Hyper.NodeServices.Contracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.NodeServices.SystemCommands.Contracts\Hyper.NodeServices.SystemCommands.Contracts.csproj">
+      <Project>{CDF441C8-D72B-4120-98B8-E88AD5A8C027}</Project>
+      <Name>Hyper.NodeServices.SystemCommands.Contracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.NodeServices.UnitTesting.Contracts\Hyper.NodeServices.UnitTesting.Contracts.csproj">
+      <Project>{43F73423-A2DD-4D58-B680-C64DFB948E78}</Project>
+      <Name>Hyper.NodeServices.UnitTesting.Contracts</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

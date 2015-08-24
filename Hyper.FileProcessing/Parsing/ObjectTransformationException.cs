@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Hyper.FileProcessing.Parsing
 {
     [Serializable]
-    public class ObjectTransformationException : ApplicationException {
+    public class ObjectTransformationException : Exception {
         #region Public Methods
 
         public ObjectTransformationException()

@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema
+    targetNamespace="http://www.hypersoa.net/HyperSOAConfigSchema"
+    elementFormDefault="qualified"
+    xmlns="http://www.hypersoa.net/HyperSOAConfigSchema"
+    xmlns:tns="http://www.hypersoa.net/HyperSOAConfigSchema"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+  <xs:element name="hyperSoa" type="HyperSoaConfiguration" />
+
+  <xs:complexType name="HyperSoaConfiguration">
+    <xs:sequence>
+      <xs:element name="hyperNode" minOccurs="0" maxOccurs="1" type="HyperNodeConfiguration" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="HyperNodeConfiguration">
+    <xs:all>
+      <xs:element name="systemCommands" minOccurs="0" maxOccurs="1" type="SystemCommandCollection">
+        <xs:unique name="UK_SystemCommandName">
+          <xs:selector xpath="tns:systemCommand" />
+          <xs:field xpath="@name" />
+        </xs:unique>
+      </xs:element>
+      <xs:element name="commandModules" minOccurs="0" maxOccurs="1" type="CommandModuleCollection">
+        <xs:unique name="UK_CommandModuleName">
+          <xs:selector xpath="tns:add" />
+          <xs:field xpath="@name" />
+        </xs:unique>
+      </xs:element>
+      <xs:element name="activityMonitors" minOccurs="0" maxOccurs="1" type="ActivityMonitorCollection">
+        <xs:unique name="UK_ActivityMonitorName">
+          <xs:selector xpath="tns:add" />
+          <xs:field xpath="@name" />
+        </xs:unique>
+      </xs:element>
+    </xs:all>
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="maxConcurrentTasks" type="xs:integer" />
+    <xs:attribute name="enableTaskProgressCache" type="xs:boolean" />
+    <xs:attribute name="enableDiagnostics" type="xs:boolean" />
+    <xs:attribute name="taskProgressCacheDuration" type="xs:nonNegativeInteger" />
+    <xs:attribute name="taskIdProviderType" type="xs:string" />
+  </xs:complexType>
+  
+  <xs:complexType name="SystemCommandCollection">
+    <xs:sequence>
+      <xs:element name="systemCommand" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="name" type="xs:string" use="required" />
+          <xs:attribute name="enabled" type="xs:boolean" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="enabled" type="xs:boolean" />
+  </xs:complexType>
+
+  <xs:complexType name="CommandModuleCollection">
+    <xs:sequence>
+      <xs:element name="add" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="name" type="xs:string" use="required" />
+          <xs:attribute name="type" type="xs:string" use="required" />
+          <xs:attribute name="enabled" type="xs:boolean" use="required" />
+          <xs:attribute name="requestSerializer" type="xs:string" use="optional" />
+          <xs:attribute name="responseSerializer" type="xs:string" use="optional" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="requestSerializer" type="xs:string" use="optional" />
+    <xs:attribute name="responseSerializer" type="xs:string" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="ActivityMonitorCollection">
+    <xs:sequence>
+      <xs:element name="add" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="name" type="xs:string" use="required" />
+          <xs:attribute name="type" type="xs:string" use="required" />
+          <xs:attribute name="enabled" type="xs:boolean" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

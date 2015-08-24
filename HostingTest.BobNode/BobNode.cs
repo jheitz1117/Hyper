@@ -1,22 +1,31 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using Hyper.Services.HyperNodeHosting;
+using Hyper.NodeServices;
 using Hyper.WcfHosting;
 
 namespace HostingTest.BobNode
 {
     class BobNode
     {
-        static void Main(string[] args)
+        static void Main()
         {
             Debug.Listeners.Clear();
             Debug.Listeners.Add(new ConsoleTraceListener());
 
-            var host = new HyperServiceHost(new HyperNodeServiceHostFactory(), new DefaultServiceHostExceptionHandler());
+            var container = new HyperServiceHostContainer(
+                () =>
+                {
+                    var host = new CancellableServiceHost(HyperNodeService.Instance);
+                    host.RegisterCancellationDelegate(HyperNodeService.Instance.Cancel);
+
+                    return host;
+                },
+                new DefaultServiceHostExceptionHandler()
+            );
 
             Console.WriteLine("Starting service...");
-            if (!host.Start())
+            if (!container.Start())
             {
                 Console.WriteLine("Failed to start service. Press any key to continue...");
                 Console.ReadKey();
@@ -24,7 +33,7 @@ namespace HostingTest.BobNode
             }
 
             Console.WriteLine("Service started and is listening on the following addresses:");
-            foreach (var endpoint in host.Endpoints)
+            foreach (var endpoint in container.Endpoints)
             {
                 Console.WriteLine("    " + endpoint.Address);
             }
@@ -32,7 +41,7 @@ namespace HostingTest.BobNode
             Console.WriteLine("Press any key to stop service...");
             Console.ReadKey();
             Console.WriteLine("Stopping service...");
-            host.Stop();
+            container.Stop();
 
             Console.WriteLine("Done.");
             Thread.Sleep(1000);

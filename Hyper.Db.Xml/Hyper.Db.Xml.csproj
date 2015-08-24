@@ -28,6 +28,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Hyper.Db.Xml.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -60,13 +61,13 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Hyper.Core.Extensibility\Hyper.Core.Extensibility.csproj">
+      <Project>{16933AC7-6624-4467-8FCD-42C2F43EB0F3}</Project>
+      <Name>Hyper.Core.Extensibility</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Hyper.Db\Hyper.Db.csproj">
       <Project>{73c60f01-b6f8-4210-9b1d-d9e7b7979f99}</Project>
       <Name>Hyper.Db</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Hyper.Versioning\Hyper.Versioning.csproj">
-      <Project>{91ac28f2-373b-44af-b970-a0608a174c39}</Project>
-      <Name>Hyper.Versioning</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

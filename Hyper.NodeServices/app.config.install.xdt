@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+  <!-- insert an empty section-->
+  <configSections xdt:Transform="InsertBefore(/configuration/*[1])" />
+
+  <!-- remove all elements that have our section name in case they have outdated type information for the HyperNodeConfigurationSection -->
+  <configSections xdt:Locator="XPath(/configuration/configSections[last()])">
+    <sectionGroup name="hyperSoa" xdt:Transform="RemoveAll" xdt:Locator="Match(name)" />
+  </configSections>
+  
+  <!-- insert updated config if it doesn't exist -->
+  <configSections xdt:Locator="XPath(/configuration/configSections[last()])">
+    <sectionGroup name="hyperSoa" xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)">
+      <section name="hyperNode" type="Hyper.NodeServices.Configuration.HyperNodeConfigurationSection, Hyper.NodeServices" xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)" />
+    </sectionGroup>
+  </configSections>
+  
+  <!-- remove all empty sections -->
+  <configSections xdt:Transform="RemoveAll" xdt:Locator="Condition(count(*)=0)" />
+
+  <!-- Add a default hyperNode entry just for fun -->
+  <hyperSoa xmlns="http://www.hypersoa.net/HyperSOAConfigSchema" xdt:Transform="InsertIfMissing">
+    <hyperNode name="HyperNode1" xdt:Transform="InsertIfMissing" />
+  </hyperSoa>
+</configuration>
