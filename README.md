@@ -1,4 +1,4 @@
 Hyper
 =====
 
-Personal collection of handy code.
+Facilitates rapid development of SOA systems.
