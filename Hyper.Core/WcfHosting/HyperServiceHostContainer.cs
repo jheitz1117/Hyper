@@ -107,6 +107,9 @@ namespace Hyper.WcfHosting
             _timeoutExceptionHandler = timeoutExceptionHandler;
             _communicationExceptionHandler = communicationExceptionHandler;
             _genericExceptionHandler = genericExceptionHandler;
+
+            // By default, this property is true, making the container a one stop shop for ServiceHost management. Users can turn the feature off if they have to though.
+            this.DisposeServiceOnStop = true;
         }
 
         /// <summary>
