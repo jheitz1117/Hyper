@@ -62,7 +62,8 @@ namespace Hyper.Tasks
         /// </summary>
         public void Stop()
         {
-            _cancellationTokenSource.Cancel();
+            if (!_cancellationTokenSource.IsCancellationRequested)
+                _cancellationTokenSource.Cancel();
         }
 
         /// <summary>

@@ -100,7 +100,8 @@ namespace Hyper.NodeServices
 
         public void Cancel()
         {
-            _taskTokenSource.Cancel();
+            if (!_taskTokenSource.IsCancellationRequested)
+                _taskTokenSource.Cancel();
         }
 
         public void Dispose()

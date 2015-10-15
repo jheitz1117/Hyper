@@ -372,7 +372,8 @@ namespace Hyper.NodeServices
         /// </summary>
         public void Cancel()
         {
-            _masterTokenSource.Cancel();
+            if (!_masterTokenSource.IsCancellationRequested)
+                _masterTokenSource.Cancel();
         }
 
         /// <summary>
