@@ -20,6 +20,37 @@ namespace Hyper.WcfHosting
         private readonly IServiceHostExceptionHandler _genericExceptionHandler;
 
         /// <summary>
+        /// List of endpoints on which the <see cref="ServiceHost"/> is listening.
+        /// </summary>
+        public ServiceEndpointCollection Endpoints
+        {
+            get
+            {
+                if (_host != null && _host.Description != null && _host.Description.Endpoints != null)
+                    return _host.Description.Endpoints;
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Indiciates whether the internal <see cref="ServiceHost"/> has been created and is in the <see cref="CommunicationState.Opened"/> state.
+        /// </summary>
+        public bool IsRunning
+        {
+            get
+            {
+                return (_host != null && _host.State == CommunicationState.Opened);
+            }
+        }
+
+        /// <summary>
+        /// Indicates whether the <see cref="HyperServiceHostContainer.Stop()"/> method will try to dispose the service hosted by
+        /// the internal <see cref="ServiceHost"/>.
+        /// </summary>
+        public bool DisposeServiceOnStop { get; set; }
+
+        /// <summary>
         /// Initializes an instance of <see cref="HyperServiceHostContainer"/> with the specified factory method and <see cref="IServiceHostExceptionHandler"/> implementation.
         /// </summary>
         /// <param name="factory">The delegate that is invoked to create the <see cref="ServiceHost"/> object to wrap.</param>
@@ -157,22 +188,8 @@ namespace Hyper.WcfHosting
             finally
             {
                 // Dispose of our service if applicable
-                if (disposableService != null)
+                if (disposableService != null && this.DisposeServiceOnStop)
                     disposableService.Dispose();
-            }
-        }
-
-        /// <summary>
-        /// List of endpoints on which the <see cref="ServiceHost"/> is listening.
-        /// </summary>
-        public ServiceEndpointCollection Endpoints
-        {
-            get
-            {
-                if (_host != null && _host.Description != null && _host.Description.Endpoints != null)
-                    return _host.Description.Endpoints;
-
-                return null;
             }
         }
     }
