@@ -368,6 +368,47 @@ namespace Hyper.NodeServices
         }
 
         /// <summary>
+        /// Adds the specified <see cref="CommandModuleConfiguration"/> object to the list of command modules recognized by this <see cref="HyperNodeService"/>.
+        /// </summary>
+        /// <param name="commandConfig">The <see cref="CommandModuleConfiguration"/> object to add.</param>
+        public void AddCommandModuleConfiguration(CommandModuleConfiguration commandConfig)
+        {
+            if (commandConfig == null)
+                throw new ArgumentNullException("commandConfig");
+            
+            if (string.IsNullOrWhiteSpace(commandConfig.CommandName))
+                throw new ArgumentException("The CommandName property of the commandConfig parameter must not be null or whitespace.", "commandConfig");
+            
+            if (!_commandModuleConfigurations.TryAdd(commandConfig.CommandName, commandConfig))
+            {
+                throw new DuplicateCommandException(
+                    string.Format("A command already exists with the name '{0}'.", commandConfig.CommandName)
+                );
+            }
+        }
+
+        /// <summary>
+        /// Adds the specified <see cref="Type"/> as an enabled command module with the specified command name. Command modules
+        /// added using this method do not have <see cref="ICommandRequestSerializer"/> or <see cref="ICommandResponseSerializer"/>
+        /// imlementations defined.
+        /// </summary>
+        /// <param name="commandName">The name of the command.</param>
+        /// <param name="commandModuleType">The <see cref="Type"/> of the command module.</param>
+        public void AddCommandModuleConfiguration(string commandName, Type commandModuleType)
+        {
+            AddCommandModuleConfiguration(
+                new CommandModuleConfiguration
+                {
+                    CommandName = commandName,
+                    CommandModuleType = commandModuleType,
+                    Enabled = true,
+                    RequestSerializer = null,
+                    ResponseSerializer = null
+                }
+            );
+        }
+
+        /// <summary>
         /// Initiates a cancellation request.
         /// </summary>
         public void Cancel()
@@ -1013,12 +1054,7 @@ namespace Hyper.NodeServices
                     systemCommandConfig.Enabled = config.SystemCommands[systemCommandConfig.CommandName].Enabled;
 
                 // Finally, try to add this system command to our collection
-                if (!service._commandModuleConfigurations.TryAdd(systemCommandConfig.CommandName, systemCommandConfig))
-                {
-                    throw new DuplicateCommandException(
-                        string.Format("A command already exists with the name '{0}'.", systemCommandConfig.CommandName)
-                    );
-                }
+                service.AddCommandModuleConfiguration(systemCommandConfig);
             }
         }
 
