@@ -8,8 +8,11 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Configuration;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using System.Xml.Schema;
 using Hyper.ActivityTracking;
 using Hyper.NodeServices.ActivityTracking;
 using Hyper.NodeServices.CommandModules;
@@ -939,22 +942,56 @@ namespace Hyper.NodeServices
 
         private static HyperNodeService Create()
         {
-            var config = (HyperNodeConfigurationSection)ConfigurationManager.GetSection(HyperNodeConfigurationSectionName);
-            if (config == null)
+            // We have to open the config this way to prevent the SectionInformation.GetRawXML() method from throwing an exception
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+            // Try to get our hyperNode custom section
+            var section = (HyperNodeConfigurationSection)config.GetSection(HyperNodeConfigurationSectionName);
+            if (section == null)
                 throw new HyperNodeConfigurationException(string.Format("The configuration does not contain a {0} section.", HyperNodeConfigurationSectionName));
             
-            var service = new HyperNodeService(config.HyperNodeName)
+            // Retrieve our section XML and validate it
+            var sectionXml = "";
+            
+            try
             {
-                EnableTaskProgressCache = config.EnableTaskProgressCache,
-                EnableDiagnostics = config.EnableDiagnostics,
-                TaskProgressCacheDuration = TimeSpan.FromMinutes(config.TaskProgressCacheDurationMinutes),
-                MaxConcurrentTasks = config.MaxConcurrentTasks
+                sectionXml = section.SectionInformation.GetRawXml();
+            }
+            catch
+            {
+                // Eat this exception, since we're about to throw a better one
+            }
+
+            // If we threw an exception above, or if we simply got back an empty string, throw a more descriptive exception
+            if (string.IsNullOrWhiteSpace(sectionXml))
+                throw new HyperNodeConfigurationException(string.Format("Unable to get the raw XML string for the {0} section.", HyperNodeConfigurationSectionName));
+
+            // Now make sure the string is valid XML
+            var configXmlDocument = XDocument.Parse(sectionXml, LoadOptions.SetLineInfo);
+            
+            // Now validate our XML
+            var builder = new StringBuilder();
+            ValidateSectionXml(configXmlDocument, (sender, args) =>
+            {
+                builder.AppendLine(args.Message);
+            }, false);
+
+            // Check for validation errors before proceeding to deserialize the database schema document
+            if (builder.Length > 0)
+            { throw new XmlSchemaValidationException(builder.ToString()); }
+
+            var service = new HyperNodeService(section.HyperNodeName)
+            {
+                EnableTaskProgressCache = section.EnableTaskProgressCache,
+                EnableDiagnostics = section.EnableDiagnostics,
+                TaskProgressCacheDuration = TimeSpan.FromMinutes(section.TaskProgressCacheDurationMinutes),
+                MaxConcurrentTasks = section.MaxConcurrentTasks
             };
 
-            ConfigureSystemCommands(service, config);
-            ConfigureTaskProvider(service, config);
-            ConfigureActivityMonitors(service, config);
-            ConfigureCommandModules(service, config);
+            ConfigureSystemCommands(service, section);
+            ConfigureTaskProvider(service, section);
+            ConfigureActivityMonitors(service, section);
+            ConfigureCommandModules(service, section);
 
             return service;
         }
@@ -1159,6 +1196,50 @@ namespace Hyper.NodeServices
                 }
             }
         }
+
+        /// <summary>
+        /// Validates the specified <see cref="XDocument"/> containing the XML for the hyperNode configuration section.
+        /// </summary>
+        /// <param name="sectionXmlDocument"><see cref="XDocument"/> object containing the hyperNode configuration section to validate.</param>
+        /// <param name="validationEventHandler">Callback for validation errors. If this is null, an exception is thrown if any validation errors occur.</param>
+        /// <param name="addSchemaInfo">Indicates whether to populate the post-schema-validation infoset (PSVI).</param>
+        public static void ValidateSectionXml(XDocument sectionXmlDocument, ValidationEventHandler validationEventHandler, bool addSchemaInfo)
+        {
+            if (sectionXmlDocument == null)
+            { throw new ArgumentNullException("sectionXmlDocument"); }
+
+            var schemaSet = new XmlSchemaSet();
+            schemaSet.Add(HyperSoaXmlSchema);
+
+            sectionXmlDocument.Validate(schemaSet, validationEventHandler, addSchemaInfo);
+        }
+
+        /// <summary>
+        /// Default XML schema used to validate the hyperNode XML configuration section.
+        /// </summary>
+        private static XmlSchema HyperSoaXmlSchema
+        {
+            get
+            {
+                if (_hyperSoaXmlSchema == null)
+                {
+                    if (_hyperSoaXmlSchema == null)
+                    {
+                        var assembly = typeof(HyperActivityTracker).Assembly;
+                        using (var xsdStream = assembly.GetManifestResourceStream("Hyper.Core.HyperSOAConfigSchema.xsd"))
+                        {
+                            if (xsdStream == null)
+                            { throw new InvalidOperationException("Unable to find HyperSOAConfigSchema.xsd in " + assembly); }
+
+                            // Specifying null for the event handler causes an XmlSchemaException to be raised if any validation errors occur.
+                            _hyperSoaXmlSchema = XmlSchema.Read(xsdStream, null);
+                        }
+                    }
+                }
+
+                return _hyperSoaXmlSchema;
+            }
+        } private static XmlSchema _hyperSoaXmlSchema;
 
         #endregion Configuration
 

@@ -176,7 +176,6 @@ namespace Hyper.Db.Xml
             if (!_dbXmlSchemaSet.Contains(dbXmlDocument.Root.GetDefaultNamespace().ToString()))
             { throw new XmlSchemaValidationException("The namespace referenced in the specified XML document is not listed for validation. Call AddDbXmlSchema() to add it."); }
 
-            // It's okay if we
             dbXmlDocument.Validate(_dbXmlSchemaSet, validationEventHandler, addSchemaInfo);
         }
 
