@@ -381,7 +381,7 @@ namespace Hyper.NodeServices
             
             if (string.IsNullOrWhiteSpace(commandConfig.CommandName))
                 throw new ArgumentException("The CommandName property of the commandConfig parameter must not be null or whitespace.", "commandConfig");
-            
+
             if (!_commandModuleConfigurations.TryAdd(commandConfig.CommandName, commandConfig))
             {
                 throw new DuplicateCommandException(
@@ -1186,13 +1186,7 @@ namespace Hyper.NodeServices
                         ResponseSerializer = configResponseSerializer ?? DefaultResponseSerializer
                     };
 
-                    // If this fails, a command with the specified name already exists
-                    if (!service._commandModuleConfigurations.TryAdd(commandModuleConfig.Name, commandConfig))
-                    {
-                        throw new DuplicateCommandException(
-                            string.Format("A command already exists with the name '{0}'.", commandModuleConfig.Name)
-                        );
-                    }
+                    service.AddCommandModuleConfiguration(commandConfig);
                 }
             }
         }
