@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using Hyper.NodeServices.Extensibility.Configuration;
 
 namespace Hyper.NodeServices.Configuration
 {
-    internal sealed class SystemCommandElementCollection : ConfigurationElementCollection, IEnumerable<SystemCommandElement>
+    internal sealed class SystemCommandElementCollection : ConfigurationElementCollection, ISystemCommandConfigurationCollection
     {
         public SystemCommandElement this[int index]
         {
@@ -38,16 +39,21 @@ namespace Hyper.NodeServices.Configuration
             return ((SystemCommandElement)element).Name;
         }
 
-        public new IEnumerator<SystemCommandElement> GetEnumerator()
+        public new IEnumerator<ISystemCommandConfiguration> GetEnumerator()
         {
             return this.OfType<SystemCommandElement>().GetEnumerator();
         }
 
-        [ConfigurationProperty("enabled", IsRequired = false, DefaultValue = false)]
+        [ConfigurationProperty("enabled", IsRequired = false)]
         public bool Enabled
         {
             get { return (bool)base["enabled"]; }
             set { base["enabled"] = value; }
+        }
+
+        public ISystemCommandConfiguration GetByCommandName(string commandName)
+        {
+            return this[commandName];
         }
     }
 }

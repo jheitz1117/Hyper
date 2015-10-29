@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using Hyper.NodeServices.Extensibility.Configuration;
 
 namespace Hyper.NodeServices.Configuration
 {
-    internal sealed class CommandModuleElementCollection : ConfigurationElementCollection, IEnumerable<CommandModuleElement>
+    internal sealed class CommandModuleElementCollection : ConfigurationElementCollection, ICommandModuleConfigurationCollection
     {
         public CommandModuleElement this[int index]
         {
@@ -38,7 +39,7 @@ namespace Hyper.NodeServices.Configuration
             return ((CommandModuleElement)element).Name;
         }
 
-        public new IEnumerator<CommandModuleElement> GetEnumerator()
+        public new IEnumerator<ICommandModuleConfiguration> GetEnumerator()
         {
             return this.OfType<CommandModuleElement>().GetEnumerator();
         }

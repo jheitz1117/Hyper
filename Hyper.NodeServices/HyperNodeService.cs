@@ -18,12 +18,14 @@ using Hyper.NodeServices.ActivityTracking;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
 using Hyper.NodeServices.Configuration;
+using Hyper.NodeServices.Configuration.Validation;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Contracts.Extensibility.Serializers;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
+using Hyper.NodeServices.Extensibility.Configuration;
 using Hyper.NodeServices.Extensibility.Exceptions;
 using Hyper.NodeServices.SystemCommands.Contracts;
 using Hyper.NodeServices.TaskIdProviders;
@@ -90,17 +92,23 @@ namespace Hyper.NodeServices
     {
         #region Defaults
 
+        internal const bool DefaultTaskProgressCacheEnabled = false;
+        internal const bool DefaultDiagnosticsEnabled = false;
+        internal const int DefaultProgressCacheDurationMinutes = 60;
+        internal const int DefaultMaxConcurrentTasks = -1;
+
         private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
         private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
+        private static readonly IHyperNodeConfigurationProvider DefaultConfigurationProvider = new HyperNodeSectionConfigurationProvider();
 
         #endregion Defaults
 
         #region Private Members
 
-        private const string HyperNodeConfigurationSectionName = "hyperSoa/hyperNode";
+        private static readonly object Lock = new object();
+
         private readonly string _hyperNodeName;
-        private readonly object _lock = new object();
         private readonly TaskProgressCacheMonitor _taskProgressCacheMonitor = new TaskProgressCacheMonitor();
         private readonly List<HyperNodeServiceActivityMonitor> _customActivityMonitors = new List<HyperNodeServiceActivityMonitor>();
         private readonly ConcurrentDictionary<string, CommandModuleConfiguration> _commandModuleConfigurations = new ConcurrentDictionary<string, CommandModuleConfiguration>();
@@ -139,7 +147,13 @@ namespace Hyper.NodeServices
         /// </summary>
         public static HyperNodeService Instance
         {
-            get { return _instance ?? (_instance = Create()); }
+            get
+            {
+                if (_instance == null)
+                    CreateAndConfigure(DefaultConfigurationProvider);
+
+                return _instance;
+            }
         } private static HyperNodeService _instance;
 
         #endregion Properties
@@ -371,6 +385,22 @@ namespace Hyper.NodeServices
         }
 
         /// <summary>
+        /// Creates the singleton instance of <see cref="HyperNodeService"/> using the specified <see cref="IHyperNodeConfigurationProvider"/>.
+        /// </summary>
+        /// <param name="configProvider">The <see cref="IHyperNodeConfigurationProvider"/> to use to configure the service.</param>
+        public static void CreateAndConfigure(IHyperNodeConfigurationProvider configProvider)
+        {
+            if (_instance == null)
+            {
+                lock (Lock)
+                {
+                    if (_instance == null)
+                        _instance = Create(configProvider);
+                }
+            }
+        }
+
+        /// <summary>
         /// Adds the specified <see cref="CommandModuleConfiguration"/> object to the list of command modules recognized by this <see cref="HyperNodeService"/>.
         /// </summary>
         /// <param name="commandConfig">The <see cref="CommandModuleConfiguration"/> object to add.</param>
@@ -378,7 +408,7 @@ namespace Hyper.NodeServices
         {
             if (commandConfig == null)
                 throw new ArgumentNullException("commandConfig");
-            
+
             if (string.IsNullOrWhiteSpace(commandConfig.CommandName))
                 throw new ArgumentException("The CommandName property of the commandConfig parameter must not be null or whitespace.", "commandConfig");
 
@@ -938,65 +968,60 @@ namespace Hyper.NodeServices
             );
         }
 
+        #endregion Private Methods
+
         #region Configuration
 
-        private static HyperNodeService Create()
+        private static HyperNodeService Create(IHyperNodeConfigurationProvider configProvider)
         {
-            // We have to open the config this way to prevent the SectionInformation.GetRawXML() method from throwing an exception
-            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            if (configProvider == null)
+                throw new ArgumentNullException("configProvider");
 
-            // Try to get our hyperNode custom section
-            var section = (HyperNodeConfigurationSection)config.GetSection(HyperNodeConfigurationSectionName);
-            if (section == null)
-                throw new HyperNodeConfigurationException(string.Format("The configuration does not contain a {0} section.", HyperNodeConfigurationSectionName));
-            
-            // Retrieve our section XML and validate it
-            var sectionXml = "";
-            
+            IHyperNodeConfiguration config;
+
             try
             {
-                sectionXml = section.SectionInformation.GetRawXml();
+                config = configProvider.GetConfiguration();
             }
-            catch
+            catch (Exception ex)
             {
-                // Eat this exception, since we're about to throw a better one
+                throw new HyperNodeConfigurationException(
+                    string.Format(
+                        "An exception was thrown while attempting to retrieve the configuration for this {0} using {1}. See inner exception for details.",
+                        typeof(HyperNodeService).FullName,
+                        configProvider.GetType().FullName
+                    ),
+                    ex
+                );
             }
 
-            // If we threw an exception above, or if we simply got back an empty string, throw a more descriptive exception
-            if (string.IsNullOrWhiteSpace(sectionXml))
-                throw new HyperNodeConfigurationException(string.Format("Unable to get the raw XML string for the {0} section.", HyperNodeConfigurationSectionName));
-
-            // Now make sure the string is valid XML
-            var configXmlDocument = XDocument.Parse(sectionXml, LoadOptions.SetLineInfo);
-            
-            // Now validate our XML
+            // Validate our configuration
             var builder = new StringBuilder();
-            ValidateSectionXml(configXmlDocument, (sender, args) =>
-            {
-                builder.AppendLine(args.Message);
-            }, false);
+            new HyperNodeConfigurationValidator(
+                (sender, args) => builder.AppendLine(args.Message)
+            ).ValidateConfiguration(config);
 
-            // Check for validation errors before proceeding to deserialize the database schema document
+            // Check for validation errors before proceeding to create and configure our HyperNodeService instance
             if (builder.Length > 0)
-            { throw new XmlSchemaValidationException(builder.ToString()); }
+            { throw new HyperNodeConfigurationException(builder.ToString()); }
 
-            var service = new HyperNodeService(section.HyperNodeName)
+            var service = new HyperNodeService(config.HyperNodeName)
             {
-                EnableTaskProgressCache = section.EnableTaskProgressCache,
-                EnableDiagnostics = section.EnableDiagnostics,
-                TaskProgressCacheDuration = TimeSpan.FromMinutes(section.TaskProgressCacheDurationMinutes),
-                MaxConcurrentTasks = section.MaxConcurrentTasks
+                EnableTaskProgressCache = config.EnableTaskProgressCache ?? DefaultTaskProgressCacheEnabled,
+                EnableDiagnostics = config.EnableDiagnostics ?? DefaultDiagnosticsEnabled,
+                TaskProgressCacheDuration = TimeSpan.FromMinutes(config.TaskProgressCacheDurationMinutes ?? DefaultProgressCacheDurationMinutes),
+                MaxConcurrentTasks = config.MaxConcurrentTasks ?? DefaultMaxConcurrentTasks
             };
 
-            ConfigureSystemCommands(service, section);
-            ConfigureTaskProvider(service, section);
-            ConfigureActivityMonitors(service, section);
-            ConfigureCommandModules(service, section);
+            ConfigureSystemCommands(service, config);
+            ConfigureTaskProvider(service, config);
+            ConfigureActivityMonitors(service, config);
+            ConfigureCommandModules(service, config);
 
             return service;
         }
 
-        private static void ConfigureSystemCommands(HyperNodeService service, HyperNodeConfigurationSection config)
+        private static void ConfigureSystemCommands(HyperNodeService service, IHyperNodeConfiguration config)
         {
             // Grab our user-defined default for system commands being enabled or disabled
             bool? userDefinedSystemCommandsEnabledDefault = null;
@@ -1004,8 +1029,8 @@ namespace Hyper.NodeServices
             if (systemCommandsCollection != null)
                 userDefinedSystemCommandsEnabledDefault = systemCommandsCollection.Enabled;
 
-            // If the user didn't turn on the system commands, they simply won't be available.
-            var actualDefaultEnabled = userDefinedSystemCommandsEnabledDefault ?? false;
+            // If the user didn't configure the system commands, they will be on by default (so that we can get task statuses and such)
+            var actualDefaultEnabled = userDefinedSystemCommandsEnabledDefault ?? true;
 
             // Make all commands enabled or disabled according to the user-defined default, or the HyperNode's default if the user did not define a default
             var systemCommandConfigs = new List<CommandModuleConfiguration>
@@ -1087,19 +1112,23 @@ namespace Hyper.NodeServices
             foreach (var systemCommandConfig in systemCommandConfigs)
             {
                 // Allow each system command to be enabled or disabled individually. This takes precedence over any defaults defined previously
-                if (config.SystemCommands != null && config.SystemCommands[systemCommandConfig.CommandName] != null)
-                    systemCommandConfig.Enabled = config.SystemCommands[systemCommandConfig.CommandName].Enabled;
+                if (config.SystemCommands != null)
+                {
+                    var userConfig = config.SystemCommands.GetByCommandName(systemCommandConfig.CommandName);
+                    if (userConfig != null)
+                        systemCommandConfig.Enabled = userConfig.Enabled;
+                }
 
                 // Finally, try to add this system command to our collection
                 service.AddCommandModuleConfiguration(systemCommandConfig);
             }
         }
 
-        private static void ConfigureTaskProvider(HyperNodeService service, HyperNodeConfigurationSection config)
+        private static void ConfigureTaskProvider(HyperNodeService service, IHyperNodeConfiguration config)
         {
             ITaskIdProvider taskIdProvider = null;
 
-            // Set our task id provider if applicable, but if we have any problems creating the instance or casting to ITaskIdProvider, we deliberately want to fail out and make them fix the app.config
+            // Set our task id provider if applicable, but if we have any problems creating the instance or casting to ITaskIdProvider, we deliberately want to fail out and make them fix the configuration
             if (!string.IsNullOrWhiteSpace(config.TaskIdProviderType))
             {
                 taskIdProvider = (ITaskIdProvider)Activator.CreateInstance(Type.GetType(config.TaskIdProviderType, true));
@@ -1109,8 +1138,12 @@ namespace Hyper.NodeServices
             service.TaskIdProvider = taskIdProvider ?? DefaultTaskIdProvider;
         }
 
-        private static void ConfigureActivityMonitors(HyperNodeService service, HyperNodeConfigurationSection config)
+        private static void ConfigureActivityMonitors(HyperNodeService service, IHyperNodeConfiguration config)
         {
+            // Consider a null collection equivalent to an empty one
+            if (config.ActivityMonitors == null)
+                return;
+            
             // Instantiate our activity monitors
             foreach (var monitorConfig in config.ActivityMonitors)
             {
@@ -1123,31 +1156,32 @@ namespace Hyper.NodeServices
 
                     monitor.Initialize();
 
-                    lock (service._lock)
+                    if (service._customActivityMonitors.Any(m => m.Name == monitorConfig.Name))
                     {
-                        if (service._customActivityMonitors.Any(m => m.Name == monitorConfig.Name))
-                        {
-                            throw new DuplicateActivityMonitorException(
-                                string.Format("An activity monitor already exists with the name '{0}'.", monitorConfig.Name)
-                            );
-                        }
-
-                        service._customActivityMonitors.Add(monitor);
+                        throw new DuplicateActivityMonitorException(
+                            string.Format("An activity monitor already exists with the name '{0}'.", monitorConfig.Name)
+                        );
                     }
+
+                    service._customActivityMonitors.Add(monitor);
                 }
             }
         }
 
-        private static void ConfigureCommandModules(HyperNodeService service, HyperNodeConfigurationSection config)
+        private static void ConfigureCommandModules(HyperNodeService service, IHyperNodeConfiguration config)
         {
-            Type defaultRequestSerializerType = null;
-            Type defaultResponseSerializerType = null;
+            // Consider a null collection equivalent to an empty one
+            if (config.CommandModules == null)
+                return;
+
+            Type collectionRequestSerializerType = null;
+            Type collectionResponseSerializerType = null;
 
             // First, see if we have any serializer types defined at the collection level
             if (!string.IsNullOrWhiteSpace(config.CommandModules.RequestSerializerType))
-                defaultRequestSerializerType = Type.GetType(config.CommandModules.RequestSerializerType, true);
+                collectionRequestSerializerType = Type.GetType(config.CommandModules.RequestSerializerType, true);
             if (!string.IsNullOrWhiteSpace(config.CommandModules.ResponseSerializerType))
-                defaultResponseSerializerType = Type.GetType(config.CommandModules.ResponseSerializerType, true);
+                collectionResponseSerializerType = Type.GetType(config.CommandModules.ResponseSerializerType, true);
 
             foreach (var commandModuleConfig in config.CommandModules)
             {
@@ -1164,8 +1198,8 @@ namespace Hyper.NodeServices
                         commandResponseSerializerType = Type.GetType(commandModuleConfig.ResponseSerializerType, true);
 
                     // Our final configuration allows command-level serializer types to take precedence, if available. Otherwise, the collection-level types are used.
-                    var configRequestSerializerType = commandRequestSerializerType ?? defaultRequestSerializerType;
-                    var configResponseSerializerType = commandResponseSerializerType ?? defaultResponseSerializerType;
+                    var configRequestSerializerType = commandRequestSerializerType ?? collectionRequestSerializerType;
+                    var configResponseSerializerType = commandResponseSerializerType ?? collectionResponseSerializerType;
 
                     ICommandRequestSerializer configRequestSerializer = null;
                     ICommandResponseSerializer configResponseSerializer = null;
@@ -1191,53 +1225,7 @@ namespace Hyper.NodeServices
             }
         }
 
-        /// <summary>
-        /// Validates the specified <see cref="XDocument"/> containing the XML for the hyperNode configuration section.
-        /// </summary>
-        /// <param name="sectionXmlDocument"><see cref="XDocument"/> object containing the hyperNode configuration section to validate.</param>
-        /// <param name="validationEventHandler">Callback for validation errors. If this is null, an exception is thrown if any validation errors occur.</param>
-        /// <param name="addSchemaInfo">Indicates whether to populate the post-schema-validation infoset (PSVI).</param>
-        public static void ValidateSectionXml(XDocument sectionXmlDocument, ValidationEventHandler validationEventHandler, bool addSchemaInfo)
-        {
-            if (sectionXmlDocument == null)
-            { throw new ArgumentNullException("sectionXmlDocument"); }
-
-            var schemaSet = new XmlSchemaSet();
-            schemaSet.Add(HyperSoaXmlSchema);
-
-            sectionXmlDocument.Validate(schemaSet, validationEventHandler, addSchemaInfo);
-        }
-
-        /// <summary>
-        /// Default XML schema used to validate the hyperNode XML configuration section.
-        /// </summary>
-        private static XmlSchema HyperSoaXmlSchema
-        {
-            get
-            {
-                if (_hyperSoaXmlSchema == null)
-                {
-                    if (_hyperSoaXmlSchema == null)
-                    {
-                        var assembly = typeof(HyperActivityTracker).Assembly;
-                        using (var xsdStream = assembly.GetManifestResourceStream("Hyper.Core.HyperSOAConfigSchema.xsd"))
-                        {
-                            if (xsdStream == null)
-                            { throw new InvalidOperationException("Unable to find HyperSOAConfigSchema.xsd in " + assembly); }
-
-                            // Specifying null for the event handler causes an XmlSchemaException to be raised if any validation errors occur.
-                            _hyperSoaXmlSchema = XmlSchema.Read(xsdStream, null);
-                        }
-                    }
-                }
-
-                return _hyperSoaXmlSchema;
-            }
-        } private static XmlSchema _hyperSoaXmlSchema;
-
         #endregion Configuration
-
-        #endregion Private Methods
 
         #region Internal Helper Methods
 
@@ -1260,7 +1248,7 @@ namespace Hyper.NodeServices
 
         internal IEnumerable<ActivityMonitorStatus> GetActivityMonitorStatuses()
         {
-            lock (_lock)
+            lock (Lock)
             {
                 return _customActivityMonitors.Select(
                     m => new ActivityMonitorStatus
@@ -1370,7 +1358,7 @@ namespace Hyper.NodeServices
 
             return result;
         }
-        
+
         #endregion Internal Helper Methods
     }
 }

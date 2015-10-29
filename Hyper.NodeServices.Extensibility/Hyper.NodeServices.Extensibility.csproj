@@ -40,6 +40,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\ICommandModuleConfiguration.cs" />
+    <Compile Include="Configuration\ISystemCommandConfiguration.cs" />
+    <Compile Include="Configuration\ICommandModuleConfigurationCollection.cs" />
+    <Compile Include="Configuration\ISystemCommandConfigurationCollection.cs" />
+    <Compile Include="Configuration\IHyperNodeConfigurationProvider.cs" />
+    <Compile Include="Configuration\IActivityMonitorConfiguration.cs" />
+    <Compile Include="Configuration\IActivityMonitorConfigurationCollection.cs" />
+    <Compile Include="Configuration\IHyperNodeConfiguration.cs" />
     <Compile Include="Exceptions\InvalidCommandRequestTypeException.cs" />
     <Compile Include="ActivityTracking\HyperNodeServiceActivityMonitor.cs" />
     <Compile Include="CommandModules\ICommandExecutionContext.cs" />
@@ -67,6 +75,7 @@
       <Name>Hyper.NodeServices.Contracts</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
