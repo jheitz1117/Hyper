@@ -2,13 +2,13 @@
 using System.Runtime.Serialization;
 using Hyper.NodeServices.Extensibility.Configuration;
 
-namespace Hyper.NodeServices
+namespace Hyper.NodeServices.Extensibility
 {
     /// <summary>
     /// Thrown when errors occur while validating an instance of <see cref="IHyperNodeConfiguration"/>.
     /// </summary>
     [Serializable]
-    internal class HyperNodeConfigurationException : Exception
+    public class HyperNodeConfigurationException : Exception
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="HyperNodeConfigurationException"/> class.

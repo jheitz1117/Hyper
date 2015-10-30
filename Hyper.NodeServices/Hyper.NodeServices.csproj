@@ -74,11 +74,9 @@
     <Compile Include="CommandModules\SystemCommands\GetChildNodesCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\GetNodeStatusCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\SetTaskProgressCacheDurationCommand.cs" />
-    <Compile Include="Configuration\Validation\HyperNodeConfigurationValidator.cs" />
     <Compile Include="Configuration\HyperNodeSectionConfigurationProvider.cs" />
     <Compile Include="Configuration\ConfigurationSection\SystemCommandElement.cs" />
     <Compile Include="Configuration\ConfigurationSection\SystemCommandElementCollection.cs" />
-    <Compile Include="Configuration\Validation\ValidationEventArgs.cs" />
     <Compile Include="Exceptions\ActivityMonitorSubscriptionException.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -100,7 +98,6 @@
     <Compile Include="Exceptions\DuplicateCommandException.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Exceptions\HyperNodeConfigurationException.cs" />
     <Compile Include="HyperNodeService.SystemCommands.cs">
       <DependentUpon>HyperNodeService.cs</DependentUpon>
     </Compile>

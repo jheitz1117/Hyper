@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
-using Hyper.NodeServices.Configuration.Validation;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Configuration;
+using Hyper.NodeServices.Extensibility.Configuration.Validation;
 using Hyper.NodeServices.SystemCommands.Contracts;
 
 namespace Hyper.NodeServices
@@ -167,7 +167,7 @@ namespace Hyper.NodeServices
             foreach (var systemCommandConfig in systemCommandConfigs)
             {
                 // Allow each system command to be enabled or disabled individually. This takes precedence over any defaults defined previously
-                if (config.SystemCommands != null)
+                if (config.SystemCommands != null && config.SystemCommands.ContainsCommandName(systemCommandConfig.CommandName))
                 {
                     var userConfig = config.SystemCommands.GetByCommandName(systemCommandConfig.CommandName);
                     if (userConfig != null)
@@ -202,7 +202,7 @@ namespace Hyper.NodeServices
             // Instantiate our activity monitors
             foreach (var monitorConfig in config.ActivityMonitors)
             {
-                // If we have any problems creating the instance or casting to HyperNodeServiceActivityMonitor, we deliberately want to fail out and make them fix the app.config
+                // If we have any problems creating the instance or casting to HyperNodeServiceActivityMonitor, we deliberately want to fail out and make them fix the config
                 var monitor = (HyperNodeServiceActivityMonitor)Activator.CreateInstance(Type.GetType(monitorConfig.Type, true));
                 if (monitor != null)
                 {

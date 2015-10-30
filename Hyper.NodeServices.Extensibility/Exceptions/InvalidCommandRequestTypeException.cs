@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.CommandModules;
 
-namespace Hyper.NodeServices.Extensibility.Exceptions
+namespace Hyper.NodeServices.Extensibility
 {
     /// <summary>
     /// Thrown when an <see cref="ICommandModule"/> receives an invalid request.

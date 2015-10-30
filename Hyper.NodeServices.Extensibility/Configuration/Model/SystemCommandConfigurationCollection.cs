@@ -78,5 +78,10 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
             
             return this[commandName];
         }
+
+        public bool ContainsCommandName(string commandName)
+        {
+            return _systemCommands.ContainsKey(commandName);
+        }
     }
 }

@@ -21,7 +21,6 @@ using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Configuration;
-using Hyper.NodeServices.Extensibility.Exceptions;
 using Hyper.NodeServices.TaskIdProviders;
 
 // TODO: (Phase 2 - see comments below) ClearActivityCache 

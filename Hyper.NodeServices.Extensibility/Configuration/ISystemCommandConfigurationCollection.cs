@@ -7,5 +7,6 @@ namespace Hyper.NodeServices.Extensibility.Configuration
     {
         bool Enabled { get; }
         ISystemCommandConfiguration GetByCommandName(string commandName);
+        bool ContainsCommandName(string commandName);
     }
 }

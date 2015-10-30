@@ -1,9 +1,9 @@
-﻿namespace Hyper.NodeServices.Configuration.Validation
+﻿namespace Hyper.NodeServices.Extensibility.Configuration.Validation
 {
     /// <summary>
-    /// Returns detailed information related to the <see cref="ValidationEventHandler"/>.
+    /// Returns detailed information related to the <see cref="HyperNodeConfigurationValidationEventHandler"/>.
     /// </summary>
-    internal class ValidationEventArgs
+    public class HyperNodeConfigurationValidationEventArgs
     {
         /// <summary>
         /// Gets the <see cref="HyperNodeConfigurationException"/> associated with the validation event.

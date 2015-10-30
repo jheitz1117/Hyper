@@ -1,4 +1,5 @@
 ﻿using System.Configuration;
+using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.Configuration;
 
 namespace Hyper.NodeServices.Configuration

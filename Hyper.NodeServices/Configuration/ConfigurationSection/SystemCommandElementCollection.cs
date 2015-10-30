@@ -55,5 +55,10 @@ namespace Hyper.NodeServices.Configuration
         {
             return this[commandName];
         }
+
+        public bool ContainsCommandName(string commandName)
+        {
+            return BaseGetAllKeys().Any(k => k.ToString() == commandName);
+        }
     }
 }

@@ -55,6 +55,11 @@
     <Compile Include="Configuration\Model\HyperNodeConfiguration.cs" />
     <Compile Include="Configuration\Model\CommandModuleConfigurationCollection.cs" />
     <Compile Include="Configuration\Model\SystemCommandConfigurationCollection.cs" />
+    <Compile Include="Configuration\Validation\HyperNodeConfigurationValidationEventArgs.cs" />
+    <Compile Include="Configuration\Validation\HyperNodeConfigurationValidator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Exceptions\HyperNodeConfigurationException.cs" />
     <Compile Include="Exceptions\InvalidCommandRequestTypeException.cs" />
     <Compile Include="ActivityTracking\HyperNodeServiceActivityMonitor.cs" />
     <Compile Include="CommandModules\ICommandExecutionContext.cs" />
@@ -80,6 +85,10 @@
     <ProjectReference Include="..\Hyper.NodeServices.Contracts\Hyper.NodeServices.Contracts.csproj">
       <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
       <Name>Hyper.NodeServices.Contracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.NodeServices.SystemCommands.Contracts\Hyper.NodeServices.SystemCommands.Contracts.csproj">
+      <Project>{cdf441c8-d72b-4120-98b8-e88ad5a8c027}</Project>
+      <Name>Hyper.NodeServices.SystemCommands.Contracts</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

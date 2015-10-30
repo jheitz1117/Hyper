@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Contracts.Extensibility.Serializers;
+using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.CommandModules;
-using Hyper.NodeServices.Extensibility.Exceptions;
 using Hyper.NodeServices.SystemCommands.Contracts;
 
 namespace Hyper.NodeServices.CommandModules.SystemCommands

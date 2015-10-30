@@ -55,6 +55,8 @@
     <Compile Include="AwesomeObjectDbConfig.cs" />
     <Compile Include="CryptographyTest.cs" />
     <Compile Include="DatabaseDeploymentTest.cs" />
+    <Compile Include="HyperNodeMockConfigurationProvider.cs" />
+    <Compile Include="HyperNodeConfigurationTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -77,6 +79,18 @@
     <ProjectReference Include="..\Hyper.Db\Hyper.Db.csproj">
       <Project>{73C60F01-B6F8-4210-9B1D-D9E7B7979F99}</Project>
       <Name>Hyper.Db</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.NodeServices.Contracts\Hyper.NodeServices.Contracts.csproj">
+      <Project>{2CC7522B-D092-4B12-AFE1-991D0FA88C45}</Project>
+      <Name>Hyper.NodeServices.Contracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.NodeServices.Extensibility\Hyper.NodeServices.Extensibility.csproj">
+      <Project>{B9A95110-2589-42D9-88F7-D72E684F6FB1}</Project>
+      <Name>Hyper.NodeServices.Extensibility</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyper.NodeServices\Hyper.NodeServices.csproj">
+      <Project>{0D7D8078-E918-4579-BFD5-105742557575}</Project>
+      <Name>Hyper.NodeServices</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
