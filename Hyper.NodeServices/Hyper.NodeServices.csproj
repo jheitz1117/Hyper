@@ -101,6 +101,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Exceptions\HyperNodeConfigurationException.cs" />
+    <Compile Include="HyperNodeService.SystemCommands.cs">
+      <DependentUpon>HyperNodeService.cs</DependentUpon>
+    </Compile>
+    <Compile Include="HyperNodeService.Configuration.cs">
+      <DependentUpon>HyperNodeService.cs</DependentUpon>
+    </Compile>
     <Compile Include="TaskIdProviders\GuidTaskIdProvider.cs" />
     <Compile Include="HyperNodeService.cs" />
     <Compile Include="HyperNodeTaskInfo.cs" />
