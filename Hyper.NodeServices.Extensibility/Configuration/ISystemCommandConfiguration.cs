@@ -3,7 +3,7 @@
     // TODO: XDOC this interface
     public interface ISystemCommandConfiguration
     {
-        string Name { get; set; }
-        bool Enabled { get; set; }
+        string Name { get; }
+        bool Enabled { get; }
     }
 }

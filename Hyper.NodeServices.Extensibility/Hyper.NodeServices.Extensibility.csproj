@@ -48,6 +48,13 @@
     <Compile Include="Configuration\IActivityMonitorConfiguration.cs" />
     <Compile Include="Configuration\IActivityMonitorConfigurationCollection.cs" />
     <Compile Include="Configuration\IHyperNodeConfiguration.cs" />
+    <Compile Include="Configuration\Model\CommandModuleConfiguration.cs" />
+    <Compile Include="Configuration\Model\SystemCommandConfiguration.cs" />
+    <Compile Include="Configuration\Model\ActivityMonitorConfiguration.cs" />
+    <Compile Include="Configuration\Model\ActivityMonitorConfigurationCollection.cs" />
+    <Compile Include="Configuration\Model\HyperNodeConfiguration.cs" />
+    <Compile Include="Configuration\Model\CommandModuleConfigurationCollection.cs" />
+    <Compile Include="Configuration\Model\SystemCommandConfigurationCollection.cs" />
     <Compile Include="Exceptions\InvalidCommandRequestTypeException.cs" />
     <Compile Include="ActivityTracking\HyperNodeServiceActivityMonitor.cs" />
     <Compile Include="CommandModules\ICommandExecutionContext.cs" />

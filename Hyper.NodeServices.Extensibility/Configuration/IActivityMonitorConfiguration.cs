@@ -3,8 +3,8 @@
     // TODO: XDOC this interface
     public interface IActivityMonitorConfiguration
     {
-        string Name { get; set; }
-        string Type { get; set; }
-        bool Enabled { get; set; }
+        string Name { get; }
+        string Type { get; }
+        bool Enabled { get; }
     }
 }
