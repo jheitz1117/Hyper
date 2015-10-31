@@ -6,14 +6,14 @@ namespace Hyper.NodeServices.Configuration
     internal sealed class ActivityMonitorElement : ConfigurationElement, IActivityMonitorConfiguration
     {
         [ConfigurationProperty("name", IsRequired = true, IsKey = true)]
-        public string Name
+        public string MonitorName
         {
             get { return (string)this["name"]; }
             set { this["name"] = value; }
         }
 
         [ConfigurationProperty("type", IsRequired = true)]
-        public string Type
+        public string MonitorType
         {
             get { return (string)this["type"]; }
             set { this["type"] = value; }

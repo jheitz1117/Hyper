@@ -1,9 +1,21 @@
-﻿namespace Hyper.NodeServices.Extensibility.Configuration.Model
+﻿using Hyper.NodeServices.Contracts;
+using Hyper.NodeServices.Extensibility.CommandModules;
+
+namespace Hyper.NodeServices.Extensibility.Configuration.Model
 {
-    // TODO: XDOC this class
+    /// <summary>
+    /// Defines configurable properties of a system-level <see cref="ICommandModule"/> object in an <see cref="IHyperNodeService"/>.
+    /// </summary>
     public class SystemCommandConfiguration : ISystemCommandConfiguration
     {
-        public string Name { get; set; }
+        /// <summary>
+        /// The name of the system-level <see cref="ICommandModule"/> object. This property is required.
+        /// </summary>
+        public string CommandName { get; set; }
+
+        /// <summary>
+        /// Indicates whether the system-level <see cref="ICommandModule"/> object will be enabled when the <see cref="IHyperNodeService"/> starts.
+        /// </summary>
         public bool Enabled { get; set; }
     }
 }

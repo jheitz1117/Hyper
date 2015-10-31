@@ -36,7 +36,7 @@ namespace Hyper.NodeServices.Configuration
 
         protected override object GetElementKey(ConfigurationElement element)
         {
-            return ((CommandModuleElement)element).Name;
+            return ((CommandModuleElement)element).CommandName;
         }
 
         public new IEnumerator<ICommandModuleConfiguration> GetEnumerator()

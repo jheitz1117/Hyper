@@ -36,7 +36,7 @@ namespace Hyper.NodeServices.Configuration
 
         protected override object GetElementKey(ConfigurationElement element)
         {
-            return ((ActivityMonitorElement)element).Name;
+            return ((ActivityMonitorElement)element).MonitorName;
         }
 
         public new IEnumerator<IActivityMonitorConfiguration> GetEnumerator()

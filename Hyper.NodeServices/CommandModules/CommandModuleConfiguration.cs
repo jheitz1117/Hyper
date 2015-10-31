@@ -3,7 +3,7 @@ using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
 namespace Hyper.NodeServices.CommandModules
 {
-    public class CommandModuleConfiguration
+    internal class CommandModuleConfiguration
     {
         public string CommandName { get; set; }
         public bool Enabled { get; set; }

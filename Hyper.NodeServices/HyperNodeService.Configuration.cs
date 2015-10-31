@@ -203,18 +203,18 @@ namespace Hyper.NodeServices
             foreach (var monitorConfig in config.ActivityMonitors)
             {
                 // If we have any problems creating the instance or casting to HyperNodeServiceActivityMonitor, we deliberately want to fail out and make them fix the config
-                var monitor = (HyperNodeServiceActivityMonitor)Activator.CreateInstance(Type.GetType(monitorConfig.Type, true));
+                var monitor = (HyperNodeServiceActivityMonitor)Activator.CreateInstance(Type.GetType(monitorConfig.MonitorType, true));
                 if (monitor != null)
                 {
-                    monitor.Name = monitorConfig.Name;
+                    monitor.Name = monitorConfig.MonitorName;
                     monitor.Enabled = monitorConfig.Enabled;
 
                     monitor.Initialize();
 
-                    if (service._customActivityMonitors.Any(m => m.Name == monitorConfig.Name))
+                    if (service._customActivityMonitors.Any(m => m.Name == monitorConfig.MonitorName))
                     {
                         throw new DuplicateActivityMonitorException(
-                            string.Format("An activity monitor already exists with the name '{0}'.", monitorConfig.Name)
+                            string.Format("An activity monitor already exists with the name '{0}'.", monitorConfig.MonitorName)
                         );
                     }
 
@@ -240,7 +240,7 @@ namespace Hyper.NodeServices
 
             foreach (var commandModuleConfig in config.CommandModules)
             {
-                var commandModuleType = Type.GetType(commandModuleConfig.Type, true);
+                var commandModuleType = Type.GetType(commandModuleConfig.CommandModuleType, true);
                 if (commandModuleType.GetInterfaces().Contains(typeof(ICommandModule)))
                 {
                     Type commandRequestSerializerType = null;
@@ -268,7 +268,7 @@ namespace Hyper.NodeServices
                     // Finally, construct our command module configuration
                     var commandConfig = new CommandModuleConfiguration
                     {
-                        CommandName = commandModuleConfig.Name,
+                        CommandName = commandModuleConfig.CommandName,
                         Enabled = commandModuleConfig.Enabled,
                         CommandModuleType = commandModuleType,
                         RequestSerializer = configRequestSerializer ?? DefaultRequestSerializer,

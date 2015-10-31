@@ -6,7 +6,7 @@ namespace Hyper.NodeServices.Configuration
     internal sealed class SystemCommandElement : ConfigurationElement, ISystemCommandConfiguration
     {
         [ConfigurationProperty("name", IsRequired = true, IsKey = true)]
-        public string Name
+        public string CommandName
         {
             get { return (string)this["name"]; }
             set { this["name"] = value; }

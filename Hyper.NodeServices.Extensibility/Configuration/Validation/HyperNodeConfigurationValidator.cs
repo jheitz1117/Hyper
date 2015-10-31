@@ -103,26 +103,26 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
         {
             var configClassName = config.GetType().FullName;
 
-            if (string.IsNullOrWhiteSpace(config.Name))
+            if (string.IsNullOrWhiteSpace(config.MonitorName))
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format("The Name property is required for {0}.", configClassName)
+                        string.Format("The MonitorName property is required for {0}.", configClassName)
                     )
                 );
             }
 
-            if (string.IsNullOrWhiteSpace(config.Type))
+            if (string.IsNullOrWhiteSpace(config.MonitorType))
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format("The Type property is required for {0}.", configClassName)
+                        string.Format("The MonitorType property is required for {0}.", configClassName)
                     )
                 );
             }
             else
             {
-                ValidateTypeHasBaseType(config.Type, typeof(HyperNodeServiceActivityMonitor));
+                ValidateTypeHasBaseType(config.MonitorType, typeof(HyperNodeServiceActivityMonitor));
             }
         }
 
@@ -130,23 +130,23 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
         {
             var configClassName = config.GetType().FullName;
 
-            if (string.IsNullOrWhiteSpace(config.Name))
+            if (string.IsNullOrWhiteSpace(config.CommandName))
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format("The Name property is required for {0}.", configClassName)
+                        string.Format("The CommandName property is required for {0}.", configClassName)
                     )
                 );
             }
             else
             {
-                if (!SystemCommandName.IsSystemCommand(config.Name))
+                if (!SystemCommandName.IsSystemCommand(config.CommandName))
                 {
                     RaiseValidationEvent(
                         new HyperNodeConfigurationException(
                             string.Format(
                                 "The value '{0}' is not a valid system command name. The following is a list of all recognized system command names:{1}{1}{2}",
-                                config.Name,
+                                config.CommandName,
                                 Environment.NewLine,
                                 string.Join(Environment.NewLine, SystemCommandName.GetAll())
                             )
@@ -160,26 +160,26 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
         {
             var configClassName = config.GetType().FullName;
 
-            if (string.IsNullOrWhiteSpace(config.Name))
+            if (string.IsNullOrWhiteSpace(config.CommandName))
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format("The Name property is required for {0}.", configClassName)
+                        string.Format("The CommandName property is required for {0}.", configClassName)
                     )
                 );
             }
 
-            if (string.IsNullOrWhiteSpace(config.Type))
+            if (string.IsNullOrWhiteSpace(config.CommandModuleType))
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format("The Type property is required for {0}.", configClassName)
+                        string.Format("The CommandModuleType property is required for {0}.", configClassName)
                     )
                 );
             }
             else
             {
-                ValidateTypeImplementsInterface(config.Type, typeof(ICommandModule));
+                ValidateTypeImplementsInterface(config.CommandModuleType, typeof(ICommandModule));
             }
 
             // RequestSerializerType property is not required, but if it is specified, it must implement the correct interface

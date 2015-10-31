@@ -389,26 +389,6 @@ namespace Hyper.NodeServices
         }
 
         /// <summary>
-        /// Adds the specified <see cref="CommandModuleConfiguration"/> object to the list of command modules recognized by this <see cref="HyperNodeService"/>.
-        /// </summary>
-        /// <param name="commandConfig">The <see cref="CommandModuleConfiguration"/> object to add.</param>
-        public void AddCommandModuleConfiguration(CommandModuleConfiguration commandConfig)
-        {
-            if (commandConfig == null)
-                throw new ArgumentNullException("commandConfig");
-
-            if (string.IsNullOrWhiteSpace(commandConfig.CommandName))
-                throw new ArgumentException("The CommandName property of the commandConfig parameter must not be null or whitespace.", "commandConfig");
-
-            if (!_commandModuleConfigurations.TryAdd(commandConfig.CommandName, commandConfig))
-            {
-                throw new DuplicateCommandException(
-                    string.Format("A command already exists with the name '{0}'.", commandConfig.CommandName)
-                );
-            }
-        }
-
-        /// <summary>
         /// Adds the specified <see cref="Type"/> as an enabled command module with the specified command name. Command modules
         /// added using this method do not have <see cref="ICommandRequestSerializer"/> or <see cref="ICommandResponseSerializer"/>
         /// imlementations defined.
@@ -417,14 +397,27 @@ namespace Hyper.NodeServices
         /// <param name="commandModuleType">The <see cref="Type"/> of the command module.</param>
         public void AddCommandModuleConfiguration(string commandName, Type commandModuleType)
         {
+            AddCommandModuleConfiguration(commandName, commandModuleType, true, null, null);
+        }
+
+        /// <summary>
+        /// Adds the specified <see cref="Type"/> as a command module with the specified command name and configuration options.
+        /// </summary>
+        /// <param name="commandName">The name of the command.</param>
+        /// <param name="commandModuleType">The <see cref="Type"/> of the command module.</param>
+        /// <param name="enabled">Indicates whether the command will be enabled immediately.</param>
+        /// <param name="requestSerializer">The <see cref="ICommandRequestSerializer"/> implementation to use to serialize and deserialize request objects. This parameter can be null.</param>
+        /// <param name="responseSerializer">The <see cref="ICommandResponseSerializer"/> implementation to use to serialize and deserialize response objects. This parameter can be null.</param>
+        public void AddCommandModuleConfiguration(string commandName, Type commandModuleType, bool enabled, ICommandRequestSerializer requestSerializer, ICommandResponseSerializer responseSerializer)
+        {
             AddCommandModuleConfiguration(
                 new CommandModuleConfiguration
                 {
                     CommandName = commandName,
                     CommandModuleType = commandModuleType,
-                    Enabled = true,
-                    RequestSerializer = null,
-                    ResponseSerializer = null
+                    Enabled = enabled,
+                    RequestSerializer = requestSerializer,
+                    ResponseSerializer = responseSerializer
                 }
             );
         }
@@ -935,6 +928,22 @@ namespace Hyper.NodeServices
                 commandResponse.ProcessStatusFlags |= MessageProcessStatusFlags.Cancelled;
 
             args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
+        }
+
+        private void AddCommandModuleConfiguration(CommandModuleConfiguration commandConfig)
+        {
+            if (commandConfig == null)
+                throw new ArgumentNullException("commandConfig");
+
+            if (string.IsNullOrWhiteSpace(commandConfig.CommandName))
+                throw new ArgumentException("The CommandName property of the commandConfig parameter must not be null or whitespace.", "commandConfig");
+
+            if (!_commandModuleConfigurations.TryAdd(commandConfig.CommandName, commandConfig))
+            {
+                throw new DuplicateCommandException(
+                    string.Format("A command already exists with the name '{0}'.", commandConfig.CommandName)
+                );
+            }
         }
 
         /// <summary>

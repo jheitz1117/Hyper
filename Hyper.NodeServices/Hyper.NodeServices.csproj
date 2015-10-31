@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivityTracking\HyperNodeActivityContext.cs" />
+    <Compile Include="CommandModules\CommandModuleConfiguration.cs" />
     <Compile Include="CommandModules\SystemCommands\CancelTaskCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\DiscoverCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\EnableDiagnosticsCommand.cs" />
@@ -88,7 +89,6 @@
     <Compile Include="ActivityTracking\Trackers\HyperNodeServiceActivityTracker.cs" />
     <Compile Include="ActivityTracking\Trackers\HyperNodeTaskActivityTracker.cs" />
     <Compile Include="CommandModules\CommandExecutionContext.cs" />
-    <Compile Include="CommandModules\CommandModuleConfiguration.cs" />
     <Compile Include="Configuration\ConfigurationSection\ActivityMonitorElement.cs" />
     <Compile Include="Configuration\ConfigurationSection\ActivityMonitorElementCollection.cs" />
     <Compile Include="Configuration\ConfigurationSection\CommandModuleElement.cs" />
