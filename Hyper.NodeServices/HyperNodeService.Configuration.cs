@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
@@ -72,6 +73,7 @@ namespace Hyper.NodeServices
             ConfigureTaskProvider(service, config);
             ConfigureActivityMonitors(service, config);
             ConfigureCommandModules(service, config);
+            ConfigureHyperNodeEventTracker(service, config);
 
             return service;
         }
@@ -280,6 +282,23 @@ namespace Hyper.NodeServices
             }
         }
 
+        private static void ConfigureHyperNodeEventTracker(HyperNodeService service, IHyperNodeConfiguration config)
+        {
+            HyperNodeEventTracker eventTracker = null;
+
+            // Set our event tracker if applicable, but if we have any problems creating the instance or casting to HyperNodeEventTracker, we deliberately want to fail out and make them fix the configuration
+            if (!string.IsNullOrWhiteSpace(config.HyperNodeEventTrackerType))
+            {
+                eventTracker = (HyperNodeEventTracker)Activator.CreateInstance(Type.GetType(config.TaskIdProviderType, true));
+                eventTracker.Initialize();
+            }
+
+            service.EventTracker = eventTracker ?? DefaultEventTracker;
+
+            // TODO: Create abstract class with empty virtual overloads for various events
+            // TODO: Figure out how these overloads should interact with the activity tracker...
+        }
+        
         #endregion Configuration
     }
 }
