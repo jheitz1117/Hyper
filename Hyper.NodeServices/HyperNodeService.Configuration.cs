@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Text;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
+using Hyper.NodeServices.EventTracking;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
@@ -284,19 +284,22 @@ namespace Hyper.NodeServices
 
         private static void ConfigureHyperNodeEventTracker(HyperNodeService service, IHyperNodeConfiguration config)
         {
-            HyperNodeEventTracker eventTracker = null;
+            HyperNodeEventHandler eventHandler = null;
 
-            // Set our event tracker if applicable, but if we have any problems creating the instance or casting to HyperNodeEventTracker, we deliberately want to fail out and make them fix the configuration
-            if (!string.IsNullOrWhiteSpace(config.HyperNodeEventTrackerType))
+            // Set our event handler if applicable, but if we have any problems creating the instance or casting to HyperNodeEventHandler, we deliberately want to fail out and make them fix the configuration
+            if (!string.IsNullOrWhiteSpace(config.HyperNodeEventHandlerType))
             {
-                eventTracker = (HyperNodeEventTracker)Activator.CreateInstance(Type.GetType(config.TaskIdProviderType, true));
-                eventTracker.Initialize();
+                eventHandler = (HyperNodeEventHandler)Activator.CreateInstance(Type.GetType(config.HyperNodeEventHandlerType, true));
+                eventHandler.Initialize(); // TODO: Do we really need this?
             }
 
-            service.EventTracker = eventTracker ?? DefaultEventTracker;
-
-            // TODO: Create abstract class with empty virtual overloads for various events
-            // TODO: Figure out how these overloads should interact with the activity tracker...
+            service.EventTracker = new HyperNodeEventTracker(
+                new HyperNodeEventContext(
+                    service.HyperNodeName,
+                    service.EnableDiagnostics
+                ),
+                eventHandler ?? DefaultEventHandler
+            );
         }
         
         #endregion Configuration
