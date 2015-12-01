@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace NodeModuleTest.ActivityMonitors
@@ -27,6 +28,16 @@ namespace NodeModuleTest.ActivityMonitors
                     activity.EventDetail
                 )
             );
+        }
+
+        public override void OnActivityReportingError(Exception exception)
+        {
+            Trace.WriteLine(exception);
+        }
+
+        public override void OnTaskCompleted()
+        {
+            Trace.WriteLine("Yay!");
         }
     }
 }

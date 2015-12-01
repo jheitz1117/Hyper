@@ -1,4 +1,5 @@
-﻿using Hyper.NodeServices.Contracts;
+﻿using System;
+using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.ActivityTracking
@@ -27,6 +28,21 @@ namespace Hyper.NodeServices.ActivityTracking
                         ProgressPart = activity.ProgressPart,
                         ProgressTotal = activity.ProgressTotal,
                         Elapsed = activity.Elapsed
+                    }
+                );
+            }
+        }
+
+        public override void OnActivityReportingError(Exception exception)
+        {
+            lock (Lock)
+            {
+                _target.TaskTrace.Add(
+                    new HyperNodeActivityItem("Error")
+                    {
+                        EventDateTime = DateTime.Now,
+                        EventDescription = exception.Message,
+                        EventDetail = exception.ToString()
                     }
                 );
             }

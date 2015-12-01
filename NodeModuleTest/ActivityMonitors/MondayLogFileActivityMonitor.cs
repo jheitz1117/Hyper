@@ -29,7 +29,16 @@ namespace NodeModuleTest.ActivityMonitors
                 {
                     writer.WriteLine(OnNextCount);
                     writer.Flush();
-                }    
+                }
+            }
+        }
+
+        public override void OnActivityReportingError(Exception exception)
+        {
+            using (var writer = new StreamWriter("DatabaseWriter_Error.txt", true))
+            {
+                writer.WriteLine(exception);
+                writer.Flush();
             }
         }
     }

@@ -541,6 +541,7 @@ namespace Hyper.NodeServices
                     a => a.EventArgs.ActivityItem as IHyperNodeActivityEventItem // Cast all our activity items as IHyperNodeActivityEventItem
                 );
 
+                var systemActivityMonitors = new List<HyperNodeServiceActivityMonitor>();
                 /*****************************************************************************************************************
                  * Subscribe our task progress cache monitor to our event stream only if the client requested it and the feature is actually enabled. There is currently no built-in
                  * functionality to support long-running task tracing other than the memory cache. If the client opts to disable the memory cache to save resources,
@@ -549,13 +550,7 @@ namespace Hyper.NodeServices
                  * activity.
                  *****************************************************************************************************************/
                 if (this.EnableTaskProgressCache && currentTaskInfo.Message.CacheTaskProgress)
-                {
-                    currentTaskInfo.ActivitySubscribers.Add(
-                        liveEvents
-                            .Where(a => _taskProgressCacheMonitor.ShouldTrack(a))
-                            .Subscribe(_taskProgressCacheMonitor)
-                    );
-                }
+                    systemActivityMonitors.Add(_taskProgressCacheMonitor);
 
                 /*****************************************************************************************************************
                  * If we want a task trace returned, that's fine, but the task trace in the real-time response would only ever contain events recorded during the current
@@ -567,14 +562,7 @@ namespace Hyper.NodeServices
                  * complete" message would not have occured before the method returned.
                  *****************************************************************************************************************/
                 if (currentTaskInfo.Message.ReturnTaskTrace)
-                {
-                    var responseTaskTraceMonitor = new ResponseTaskTraceMonitor(currentTaskInfo.Response);
-                    currentTaskInfo.ActivitySubscribers.Add(
-                        liveEvents
-                            .Where(a => responseTaskTraceMonitor.ShouldTrack(a))
-                            .Subscribe(responseTaskTraceMonitor)
-                    );
-                }
+                    systemActivityMonitors.Add(new ResponseTaskTraceMonitor(currentTaskInfo.Response));
 
                 /*****************************************************************************************************************
                  * Concurrent tasks cannot return anything meaningful in the real-time response because the main thread gets to the return statement long before the
@@ -597,11 +585,22 @@ namespace Hyper.NodeServices
                  * intended recipients and the corresponding "main" task IDs to use to request status updates. This would be exclusively for the cache. If the
                  * user wanted to use something other than the cache, they would have to determine the task IDs their own way.
                  *****************************************************************************************************************/
-                var childNodeResponseMonitor = new ChildNodeResponseMonitor(currentTaskInfo.Response);
+                systemActivityMonitors.Add(new ChildNodeResponseMonitor(currentTaskInfo.Response));
+
+                /*****************************************************************************************************************
+                 * Subscribe our system activity monitors to the event stream first
+                 *****************************************************************************************************************/
                 currentTaskInfo.ActivitySubscribers.Add(
-                    liveEvents
-                        .Where(a => childNodeResponseMonitor.ShouldTrack(a))
-                        .Subscribe(childNodeResponseMonitor)
+                    new CompositeDisposable(
+                        systemActivityMonitors.Select(
+                            m => new HyperNodeActivityObserver(
+                                m,
+                                liveEvents,
+                                Scheduler.CurrentThread,
+                                currentTaskInfo
+                            )
+                        )
+                    )
                 );
 
                 /*****************************************************************************************************************
@@ -612,38 +611,13 @@ namespace Hyper.NodeServices
                 currentTaskInfo.ActivitySubscribers.Add(
                     new CompositeDisposable(
                         from monitor in _customActivityMonitors
-                        where monitor.Enabled
-                        // Make sure the monitors are enabled
-                        select liveEvents
-                            .Where(
-                                e =>
-                                {
-                                    var shouldTrack = false;
-
-                                    try
-                                    {
-                                        // ...for activity items matching the specified criteria
-                                        shouldTrack = monitor.ShouldTrack(e);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        // This is legal at this point because we already setup our cache and task trace monitors earlier
-                                        currentTaskInfo.Activity.TrackException(
-                                            new ActivityMonitorSubscriptionException(
-                                                string.Format(
-                                                    "Unable to subscribe activity monitor '{0}' because its ShouldTrack() method threw an exception.",
-                                                    monitor.Name
-                                                ),
-                                                ex
-                                            )
-                                        );
-                                    }
-
-                                    return shouldTrack;
-                                }
-                            )
-                            .ObserveOn(ThreadPoolScheduler.Instance) // Force custom activity monitors to run on the threadpool in case they are long-running and/or ill-behaved
-                            .Subscribe(monitor)
+                        where monitor.Enabled // Only add the monitors that are enabled
+                        select new HyperNodeActivityObserver(
+                            monitor,
+                            liveEvents,
+                            Scheduler.CurrentThread,
+                            currentTaskInfo
+                        )
                     )
                 );
             }

@@ -525,5 +525,29 @@ namespace HyperNodeTestClient
         }
 
         #endregion Private Methods
+
+        private void btnLoadTestAlice_Click(object sender, EventArgs e)
+        {
+            Parallel.For(0, 10000, i =>
+            {
+                using (var client = new HyperNodeClient("Alice"))
+                {
+                    try
+                    {
+                        client.ProcessMessage(
+                            new HyperNodeMessageRequest(ClientAgentName)
+                            {
+                                CommandName = SystemCommandName.Echo,
+                                CommandRequestString = "Hello!"
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        //MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            });
+        }
     }
 }
