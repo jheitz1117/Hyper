@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Hyper.NodeServices.ActivityTracking;
@@ -37,6 +40,15 @@ namespace Hyper.NodeServices
 
         public HyperNodeTaskActivityTracker Activity { get; set; }
 
+        private readonly IConnectableObservable<Unit> _terminatingSequence = Observable.Return(Unit.Default).Publish();
+        public IConnectableObservable<Unit> TerminatingSequence
+        {
+            get
+            {
+                return _terminatingSequence;
+            }
+        }
+
         private readonly CompositeDisposable _activitySubscribers = new CompositeDisposable();
         public CompositeDisposable ActivitySubscribers
         {
@@ -45,7 +57,7 @@ namespace Hyper.NodeServices
 
         private readonly HyperNodeMessageRequest _message;
         public HyperNodeMessageRequest Message { get { return _message; } }
-
+        
         private readonly HyperNodeMessageResponse _response;
         public HyperNodeMessageResponse Response { get { return _response; } }
 
@@ -137,8 +149,16 @@ namespace Hyper.NodeServices
                 if (this.Activity != null)
                     this.Activity.TrackTaskComplete(this.Response);
 
-                if (this.ActivitySubscribers != null)
-                    this.ActivitySubscribers.Dispose();
+                // Signal that we are done raising activity events to ensure that the queues for all of our schedulers don't keep having stuff appended to the end
+                // This also triggers the OnComplete() event for all subscribers, which should automatically trigger the scheduling of their disposal
+                _terminatingSequence.Connect().Dispose();
+
+                /*
+                 * If we dispose of our activity subscribers at this point, it's possible that some subscribers may be disposed before they've processed all of their queued items.
+                 * Currently, the only way I can think of for the disposal to NOT happen is if someone writes an infinite loop into their observer to prevent the OnNext() from
+                 * returning. If they've done this, I'm hoping the problem will be fairly obvious to the user. As it stands, I will not be manually disposing the activity
+                 * subscribers at this time; I will allow the automatic disposal scheduling to take care of it.
+                 */
 
                 if (_taskTokenSource != null)
                     _taskTokenSource.Dispose();

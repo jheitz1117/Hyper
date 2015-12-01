@@ -75,6 +75,7 @@ namespace HyperNodeTestClient
             this.lblRecipient = new System.Windows.Forms.Label();
             this.cboHyperNodeNames = new System.Windows.Forms.ComboBox();
             this.btnRefreshCommandList = new System.Windows.Forms.Button();
+            this.btnLoadTestAlice = new System.Windows.Forms.Button();
             this.grpBobActivityItems.SuspendLayout();
             this.grpBobResponseSummary.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spcHyperNodeActivity)).BeginInit();
@@ -553,6 +554,7 @@ namespace HyperNodeTestClient
             // 
             // pnlLeft
             // 
+            this.pnlLeft.Controls.Add(this.btnLoadTestAlice);
             this.pnlLeft.Controls.Add(this.lblRecipient);
             this.pnlLeft.Controls.Add(this.cboHyperNodeNames);
             this.pnlLeft.Controls.Add(this.btnRefreshCommandList);
@@ -600,6 +602,16 @@ namespace HyperNodeTestClient
             this.btnRefreshCommandList.Text = "Refresh";
             this.btnRefreshCommandList.UseVisualStyleBackColor = true;
             this.btnRefreshCommandList.Click += new System.EventHandler(this.btnRefreshCommandList_Click);
+            // 
+            // btnLoadTestAlice
+            // 
+            this.btnLoadTestAlice.Location = new System.Drawing.Point(96, 207);
+            this.btnLoadTestAlice.Name = "btnLoadTestAlice";
+            this.btnLoadTestAlice.Size = new System.Drawing.Size(115, 31);
+            this.btnLoadTestAlice.TabIndex = 25;
+            this.btnLoadTestAlice.Text = "Load Test Alice";
+            this.btnLoadTestAlice.UseVisualStyleBackColor = true;
+            this.btnLoadTestAlice.Click += new System.EventHandler(this.btnLoadTestAlice_Click);
             // 
             // MainForm
             // 
@@ -697,6 +709,7 @@ namespace HyperNodeTestClient
         private Button btnRefreshCommandList;
         private Label lblRecipient;
         private ComboBox cboHyperNodeNames;
+        private Button btnLoadTestAlice;
     }
 }
 
