@@ -47,42 +47,45 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
 
                     try
                     {
-                        // Discover grandchildren
-                        var childResponse = new HyperNodeClient(childNodeName).ProcessMessage(discoverRequest);
-
-                        // Check if the message was accepted, and that the command was recognized
-                        if (childResponse.NodeAction == HyperNodeActionType.Accepted)
+                        using (var client = new HyperNodeClient(childNodeName))
                         {
-                            context.Activity.TrackFormat("Child node '{0}' accepted the request.", childNodeName);
+                            // Discover grandchildren
+                            var childResponse = client.ProcessMessage(discoverRequest);
 
-                            // Check if the child node recognized the command. If not, skip to the next child
-                            if ((childResponse.ProcessStatusFlags & MessageProcessStatusFlags.InvalidCommand) == MessageProcessStatusFlags.InvalidCommand)
+                            // Check if the message was accepted, and that the command was recognized
+                            if (childResponse.NodeAction == HyperNodeActionType.Accepted)
                             {
-                                context.Activity.TrackFormat(
-                                    "Child node '{0}' did not recognize the command name '{1}'.",
-                                    childNodeName,
-                                    discoverRequest.CommandName
-                                );
+                                context.Activity.TrackFormat("Child node '{0}' accepted the request.", childNodeName);
 
-                                continue;
+                                // Check if the child node recognized the command. If not, skip to the next child
+                                if ((childResponse.ProcessStatusFlags & MessageProcessStatusFlags.InvalidCommand) == MessageProcessStatusFlags.InvalidCommand)
+                                {
+                                    context.Activity.TrackFormat(
+                                        "Child node '{0}' did not recognize the command name '{1}'.",
+                                        childNodeName,
+                                        discoverRequest.CommandName
+                                    );
+
+                                    continue;
+                                }
+
+                                // Deserialize discover response
+                                childDiscoverResponse = serializer.Deserialize(childResponse.CommandResponseString) as DiscoverResponse;
+
+                                // Add in any extra status flags imposed by the child call
+                                response.ProcessStatusFlags |= childResponse.ProcessStatusFlags;
                             }
-
-                            // Deserialize discover response
-                            childDiscoverResponse = serializer.Deserialize(childResponse.CommandResponseString) as DiscoverResponse;
-
-                            // Add in any extra status flags imposed by the child call
-                            response.ProcessStatusFlags |= childResponse.ProcessStatusFlags;
-                        }
-                        else
-                        {
-                            context.Activity.Track(
-                                "Child node '{0}' did not accept the request.",
-                                string.Format(
-                                    "The node action was '{0}' and the action reason was '{1}'.",
-                                    childResponse.NodeAction,
-                                    childResponse.NodeActionReason
+                            else
+                            {
+                                context.Activity.Track(
+                                    "Child node '{0}' did not accept the request.",
+                                    string.Format(
+                                        "The node action was '{0}' and the action reason was '{1}'.",
+                                        childResponse.NodeAction,
+                                        childResponse.NodeActionReason
                                     )
                                 );
+                            }
                         }
                     }
                     catch (Exception ex)

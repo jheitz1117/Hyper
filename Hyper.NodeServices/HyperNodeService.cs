@@ -166,7 +166,7 @@ namespace Hyper.NodeServices
 
             // Start our task-level stopwatch to track total time
             currentTaskInfo.StartStopwatch();
-            
+
             // Check if we should reject this request
             HyperNodeActivityItem rejectionActivityItem;
             var rejectionReason = GetRejectionReason(currentTaskInfo, out rejectionActivityItem);
@@ -305,7 +305,7 @@ namespace Hyper.NodeServices
                     if (ex is OperationCanceledException)
                         response.ProcessStatusFlags |= MessageProcessStatusFlags.Cancelled;
                     else
-                        response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
+                    response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
 
                     currentTaskInfo.Activity.TrackException(ex);
                 }
@@ -612,15 +612,15 @@ namespace Hyper.NodeServices
             var systemRejectionActivity = new HyperNodeActivityItem(this.HyperNodeName);
             if (!rejectionReason.HasValue)
             {
-                if (this.MaxConcurrentTasks > -1 && _liveTasks.Count >= this.MaxConcurrentTasks)
+            if (this.MaxConcurrentTasks > -1 && _liveTasks.Count >= this.MaxConcurrentTasks)
                 {
-                    rejectionReason = HyperNodeActionReasonType.MaxConcurrentTaskCountReached;
+                rejectionReason = HyperNodeActionReasonType.MaxConcurrentTaskCountReached;
                     systemRejectionActivity.EventDescription = string.Format("The maximum number of concurrent tasks ({0}) has been reached.", this.MaxConcurrentTasks);
                     systemRejectionActivity.EventDetail = "An attempted was made to start a new task when the maximum number of concurrent tasks were already running. Consider increasing the value of MaxConcurrentTasks or setting it to -1 (unlimited).";
                 }
-                else if (_masterTokenSource.IsCancellationRequested)
+            else if (_masterTokenSource.IsCancellationRequested)
                 {
-                    rejectionReason = HyperNodeActionReasonType.CancellationRequested;
+                rejectionReason = HyperNodeActionReasonType.CancellationRequested;
                     systemRejectionActivity.EventDescription = "The service is shutting down. No new tasks can be started.";
                     systemRejectionActivity.EventDetail = "The service-level cancellation token has been triggered. No new tasks are being spun up and all existing tasks are in the process of shutting down.";
                 }
@@ -652,9 +652,9 @@ namespace Hyper.NodeServices
                             this.TaskIdProvider.GetType().FullName
                         );
                     }
-                    else if (!_liveTasks.TryAdd(taskId, taskInfo))
+            else if (!_liveTasks.TryAdd(taskId, taskInfo))
                     {
-                        rejectionReason = HyperNodeActionReasonType.DuplicateTaskId;
+                rejectionReason = HyperNodeActionReasonType.DuplicateTaskId;
                         systemRejectionActivity.EventDescription = string.Format("A task with ID '{0}' is already running.", taskId);
                         systemRejectionActivity.EventDetail = "A duplicate task ID was generated. This can occur when a new instance of singleton task is started while an existing instance of that task is running. If you know the task will complete, please try again after the task is finished. You may also consider cancelling the task and then restarting it.";
                     }
@@ -705,11 +705,12 @@ namespace Hyper.NodeServices
                             {
                                 // By the time we get here, we must have guaranteed that a client endpoint exists with the specified name.
                                 forwardingParam.TaskInfo.Activity.TrackForwardingMessage(forwardingParam.ChildNodeName);
-                                response = new HyperNodeClient(
-                                    forwardingParam.ChildNodeName
-                                ).ProcessMessage(
-                                    forwardingParam.TaskInfo.Message
-                                );
+                                using (var client = new HyperNodeClient(forwardingParam.ChildNodeName))
+                                {
+                                    response = client.ProcessMessage(
+                                        forwardingParam.TaskInfo.Message
+                                    );
+                                }
                             }
                             catch (FaultException)
                             {
