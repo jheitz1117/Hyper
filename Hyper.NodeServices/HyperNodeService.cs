@@ -678,11 +678,13 @@ namespace Hyper.NodeServices
                             {
                                 // By the time we get here, we must have guaranteed that a client endpoint exists with the specified name.
                                 forwardingParam.TaskInfo.Activity.TrackForwarding(forwardingParam.ChildNodeName);
-                                response = new HyperNodeClient(
-                                    forwardingParam.ChildNodeName
-                                ).ProcessMessage(
-                                    forwardingParam.TaskInfo.Message
-                                );
+
+                                using (var client = new HyperNodeClient(forwardingParam.ChildNodeName))
+                                {
+                                    response = client.ProcessMessage(
+                                        forwardingParam.TaskInfo.Message
+                                    );    
+                                }
                             }
                             catch (FaultException)
                             {
