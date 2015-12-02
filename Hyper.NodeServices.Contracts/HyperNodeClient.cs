@@ -53,7 +53,7 @@ namespace Hyper.NodeServices.Contracts
         /// <summary>
         /// When overridden in a derived class, disposes of resources consumed by this instance.
         /// </summary>
-        /// <param name="disposing"><see cref="bool.True"/> if this method was called from the public <see cref="Dispose"/> method. Otherwise, false.</param>
+        /// <param name="disposing">True if managed resources should be disposed. Otherwise, false.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
