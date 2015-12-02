@@ -19,6 +19,8 @@ namespace Hyper.NodeServices.EventTracking
             _eventHandler = eventHandler;
         }
 
+        // TODO: Finish implementing these events
+
         public void TrackMessageReceived(IHyperNodeMessageContext messageContext, Action<string> rejectMessageAction)
         {
             try
@@ -42,12 +44,12 @@ namespace Hyper.NodeServices.EventTracking
         {
             try
             {
-                _eventHandler.OnTaskStarted(
-                    new TaskStartedEventArgs(
-                        _context,
-                        cancelTaskAction
-                    )
-                );
+                //_eventHandler.OnTaskStarted(
+                //    new TaskStartedEventArgs(
+                //        _context,
+                //        cancelTaskAction
+                //    )
+                //);
             }
             catch (Exception ex)
             {
@@ -60,12 +62,12 @@ namespace Hyper.NodeServices.EventTracking
         {
             try
             {
-                _eventHandler.OnMessageIgnored(
-                    new MessageIgnoredEventArgs(
-                        _context,
-                        reason
-                    )
-                );
+                //_eventHandler.OnMessageIgnored(
+                //    new MessageIgnoredEventArgs(
+                //        _context,
+                //        reason
+                //    )
+                //);
             }
             catch (Exception ex)
             {
@@ -78,11 +80,11 @@ namespace Hyper.NodeServices.EventTracking
         {
             try
             {
-                _eventHandler.OnMessageProcessed(
-                    new MessageProcessedEventArgs(
-                        _context
-                    )
-                );
+                //_eventHandler.OnMessageProcessed(
+                //    new MessageProcessedEventArgs(
+                //        _context
+                //    )
+                //);
             }
             catch (Exception ex)
             {
@@ -95,14 +97,14 @@ namespace Hyper.NodeServices.EventTracking
         {
             try
             {
-                _eventHandler.OnBeforeMessageForwarded(
-                    new BeforeMessageForwardedEventArgs(
-                        _context,
-                        recipient,
-                        cancelTaskAction,
-                        cancelForwardingAction
-                    )
-                );
+                //_eventHandler.OnBeforeMessageForwarded(
+                //    new BeforeMessageForwardedEventArgs(
+                //        _context,
+                //        recipient,
+                //        cancelTaskAction,
+                //        cancelForwardingAction
+                //    )
+                //);
             }
             catch (Exception ex)
             {
@@ -115,12 +117,12 @@ namespace Hyper.NodeServices.EventTracking
         {
             try
             {
-                _eventHandler.OnMessageSeen(
-                    new MessageSeenEventArgs(
-                        _context,
-                        cancelTaskAction
-                    )
-                );
+                //_eventHandler.OnMessageSeen(
+                //    new MessageSeenEventArgs(
+                //        _context,
+                //        cancelTaskAction
+                //    )
+                //);
             }
             catch (Exception ex)
             {
@@ -133,13 +135,13 @@ namespace Hyper.NodeServices.EventTracking
         {
             try
             {
-                _eventHandler.OnHyperNodeResponded(
-                    new HyperNodeRespondedEventArgs(
-                        _context,
-                        childHyperNodeName,
-                        childResponse
-                    )
-                );
+                //_eventHandler.OnHyperNodeResponded(
+                //    new HyperNodeRespondedEventArgs(
+                //        _context,
+                //        childHyperNodeName,
+                //        childResponse
+                //    )
+                //);
             }
             catch (Exception ex)
             {
@@ -152,12 +154,12 @@ namespace Hyper.NodeServices.EventTracking
         {
             try
             {
-                _eventHandler.OnTaskCompleted(
-                    new TaskCompletedEventArgs(
-                        _context,
-                        response
-                    )
-                );
+                //_eventHandler.OnTaskCompleted(
+                //    new TaskCompletedEventArgs(
+                //        _context,
+                //        response
+                //    )
+                //);
             }
             catch (Exception ex)
             {
@@ -167,7 +169,7 @@ namespace Hyper.NodeServices.EventTracking
         }
     }
 
-    // This is the class that contains the ability to perform diagnostic information. Needs to have a public-facing interface instead of being public
+    // TODO: This is the class that contains the ability to perform diagnostic information. Needs to have a public-facing interface instead of being public
     public class HyperNodeEventContext
     {
         private readonly string _hyperNodeName;
@@ -231,7 +233,7 @@ namespace Hyper.NodeServices.EventTracking
         }
     }
 
-    // These are created by the HyperNodeEventTracker and passed to each event. This class needs to set some properties somewhere that can be checked in the HyperNodeService so that the user can affect the behavior of the service.
+    // These are created by the HyperNodeEventTracker and passed to each event.
     public sealed class MessageReceivedEventArgs : EventArgs
     {
         private readonly Action<string> _rejectMessageAction;

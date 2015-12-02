@@ -112,7 +112,7 @@
     <Compile Include="HyperNodeTaskInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CommandModules\SystemCommands\GetCachedTaskProgressInfoCommand.cs" />
-    <Compile Include="TaskIdProviders\TaskIdCreationContext.cs" />
+    <Compile Include="HyperNodeMessageContext.cs" />
     <Compile Include="ThreadingParameters\ForwardingTaskParameter.cs" />
   </ItemGroup>
   <ItemGroup>

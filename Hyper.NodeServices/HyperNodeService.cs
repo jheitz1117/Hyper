@@ -585,10 +585,18 @@ namespace Hyper.NodeServices
         {
             HyperNodeActionReasonType? rejectionReason = null;
 
+            var messageContext = new HyperNodeMessageContext(taskInfo.Message.IntendedRecipientNodeNames, taskInfo.Message.SeenByNodeNames)
+            {
+                CommandName = taskInfo.Message.CommandName,
+                CreatedByAgentName = taskInfo.Message.CreatedByAgentName,
+                CreationDateTime = taskInfo.Message.CreationDateTime,
+                ProcessOptionFlags = taskInfo.Message.ProcessOptionFlags
+            };
+
             // Allow the user to reject the message if necessary
             HyperNodeActivityItem userRejectionActivity = null;
             this.EventTracker.TrackMessageReceived(
-                new TaskIdCreationContext(null, null), // TODO: Need to pass a real thing into this
+                messageContext,
                 r =>
                 {
                     rejectionReason = HyperNodeActionReasonType.Custom;
@@ -622,18 +630,11 @@ namespace Hyper.NodeServices
                     // may still have to reject the message due to being unable to get a task ID
 
                     string taskId = null;
-                    var taskIdCreationContext = new TaskIdCreationContext(taskInfo.Message.IntendedRecipientNodeNames, taskInfo.Message.SeenByNodeNames)
-                    {
-                        CommandName = taskInfo.Message.CommandName,
-                        CreatedByAgentName = taskInfo.Message.CreatedByAgentName,
-                        CreationDateTime = taskInfo.Message.CreationDateTime,
-                        ProcessOptionFlags = taskInfo.Message.ProcessOptionFlags
-                    };
-
+                    
                     try
                     {
                         // Try to use our custom task ID provider
-                        taskId = this.TaskIdProvider.CreateTaskId(taskIdCreationContext);
+                        taskId = this.TaskIdProvider.CreateTaskId(messageContext);
                     }
                     catch (Exception ex)
                     {

@@ -286,20 +286,22 @@ namespace Hyper.NodeServices
         {
             HyperNodeEventHandler eventHandler = null;
 
-            // Set our event handler if applicable, but if we have any problems creating the instance or casting to HyperNodeEventHandler, we deliberately want to fail out and make them fix the configuration
-            if (!string.IsNullOrWhiteSpace(config.HyperNodeEventHandlerType))
-            {
-                eventHandler = (HyperNodeEventHandler)Activator.CreateInstance(Type.GetType(config.HyperNodeEventHandlerType, true));
-                eventHandler.Initialize(); // TODO: Do we really need this?
-            }
+            // TODO: Finish this configuration piece
 
-            service.EventTracker = new HyperNodeEventTracker(
-                new HyperNodeEventContext(
-                    service.HyperNodeName,
-                    service.EnableDiagnostics
-                ),
-                eventHandler ?? DefaultEventHandler
-            );
+            //// Set our event handler if applicable, but if we have any problems creating the instance or casting to HyperNodeEventHandler, we deliberately want to fail out and make them fix the configuration
+            //if (!string.IsNullOrWhiteSpace(config.HyperNodeEventHandlerType))
+            //{
+            //    eventHandler = (HyperNodeEventHandler)Activator.CreateInstance(Type.GetType(config.HyperNodeEventHandlerType, true));
+            //    eventHandler.Initialize(); // TODO: Do we really need this?
+            //}
+
+            //service.EventTracker = new HyperNodeEventTracker(
+            //    new HyperNodeEventContext(
+            //        service.HyperNodeName,
+            //        service.EnableDiagnostics
+            //    ),
+            //    eventHandler ?? DefaultEventHandler
+            //);
         }
         
         #endregion Configuration
