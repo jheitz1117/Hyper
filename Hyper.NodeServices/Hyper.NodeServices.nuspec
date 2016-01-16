@@ -10,7 +10,6 @@
     <projectUrl>https://github.com/jheitz1117/Hyper</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Add XDT transforms for app.config.</releaseNotes>
     <copyright>$copyright$</copyright>
   </metadata>
   <files>
