@@ -10,7 +10,6 @@
     <projectUrl>https://github.com/jheitz1117/Hyper</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial release.</releaseNotes>
     <copyright>$copyright$</copyright>
   </metadata>
   <files>
