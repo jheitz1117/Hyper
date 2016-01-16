@@ -5,6 +5,7 @@ using System.Text;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
+using Hyper.NodeServices.EventTracking;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
@@ -72,6 +73,7 @@ namespace Hyper.NodeServices
             ConfigureTaskProvider(service, config);
             ConfigureActivityMonitors(service, config);
             ConfigureCommandModules(service, config);
+            ConfigureHyperNodeEventTracker(service, config);
 
             return service;
         }
@@ -280,6 +282,28 @@ namespace Hyper.NodeServices
             }
         }
 
+        private static void ConfigureHyperNodeEventTracker(HyperNodeService service, IHyperNodeConfiguration config)
+        {
+            HyperNodeEventHandler eventHandler = null;
+
+            // TODO: Finish this configuration piece
+
+            //// Set our event handler if applicable, but if we have any problems creating the instance or casting to HyperNodeEventHandler, we deliberately want to fail out and make them fix the configuration
+            //if (!string.IsNullOrWhiteSpace(config.HyperNodeEventHandlerType))
+            //{
+            //    eventHandler = (HyperNodeEventHandler)Activator.CreateInstance(Type.GetType(config.HyperNodeEventHandlerType, true));
+            //    eventHandler.Initialize(); // TODO: Do we really need this?
+            //}
+
+            //service.EventTracker = new HyperNodeEventTracker(
+            //    new HyperNodeEventContext(
+            //        service.HyperNodeName,
+            //        service.EnableDiagnostics
+            //    ),
+            //    eventHandler ?? DefaultEventHandler
+            //);
+        }
+        
         #endregion Configuration
     }
 }

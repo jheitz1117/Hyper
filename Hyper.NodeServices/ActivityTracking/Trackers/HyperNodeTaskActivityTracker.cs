@@ -1,17 +1,74 @@
 ﻿using System;
 using Hyper.ActivityTracking;
+using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.ActivityTracking
 {
-    internal class HyperNodeTaskActivityTracker : HyperActivityTracker, ITaskActivityTracker
+    internal sealed class HyperNodeTaskActivityTracker : HyperActivityTracker, ITaskActivityTracker
     {
-        private readonly HyperNodeActivityContext _context;
-        
-        public HyperNodeTaskActivityTracker(HyperNodeActivityContext context)
+        private readonly TaskActivityEventContext _context;
+
+        public HyperNodeTaskActivityTracker(TaskActivityEventContext context)
         {
             _context = context;
         }
+
+        public void TrackTaskStarted()
+        {
+            Track("Task started.");
+            _context.EventTracker.TrackTaskStarted(_context.CancelTaskAction);
+        }
+
+        public void TrackMessageIgnored(string reason)
+        {
+            Track("Message ignored.", reason);
+            _context.EventTracker.TrackMessageIgnored(reason);
+        }
+
+        public void TrackMessageProcessed()
+        {
+            Track("Message processed.");
+            _context.EventTracker.TrackMessageProcessed();
+        }
+
+        public void TrackForwardingMessage(string recipient)
+        {
+            TrackFormat("Forwarding message to HyperNode '{0}'.", recipient);
+            _context.EventTracker.TrackForwardingMessage(recipient);
+        }
+
+        public void TrackMessageSeen()
+        {
+            Track("Message seen.");
+            _context.EventTracker.TrackMessageSeen(_context.CancelTaskAction);
+        }
+
+        public void TrackHyperNodeResponded(string childHyperNodeName, HyperNodeMessageResponse response)
+        {
+            var eventDescription = string.Format("Response received from HyperNode '{0}'.", childHyperNodeName);
+            var eventDetail = string.Join(
+                Environment.NewLine,
+                string.Format("NodeAction: {0}", response.NodeAction),
+                string.Format("NodeActionReason: {0}", response.NodeActionReason),
+                string.Format("ProcessStatusFlags: {0}", response.ProcessStatusFlags)
+            );
+
+            Track(eventDescription, eventDetail, response);
+            _context.EventTracker.TrackHyperNodeResponded(childHyperNodeName, response);
+        }
+
+        /// <summary>
+        /// This method should only ever be called once at the very end of a HyperNode's processing of a message after all of the child threads have completed.
+        /// </summary>
+        /// <param name="response">The complete <see cref="HyperNodeMessageResponse"/> object to report.</param>
+        public void TrackTaskComplete(HyperNodeMessageResponse response)
+        {
+            Track("Task complete.", null, response);
+            _context.EventTracker.TrackTaskComplete(response);
+        }
+
+        #region ITaskActivityTracker Implementation
 
         public void Track(string eventDescription)
         {
@@ -68,5 +125,7 @@ namespace Hyper.NodeServices.ActivityTracking
         {
             Track(exception.Message, exception.ToString());
         }
+
+        #endregion ITaskActivityTracker Implementation
     }
 }
