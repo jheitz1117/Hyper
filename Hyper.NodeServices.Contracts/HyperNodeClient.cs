@@ -1,13 +1,15 @@
-﻿using System.ServiceModel;
-using Hyper.NodeServices.Contracts;
+﻿using System;
+using System.Collections.Concurrent;
+using System.ServiceModel;
 
 namespace Hyper.NodeServices.Contracts
 {
     /// <summary>
     /// Communicates with a remote implementation of the <see cref="IHyperNodeService"/> service contract.
     /// </summary>
-    public class HyperNodeClient : IHyperNodeService
+    public class HyperNodeClient : IHyperNodeService, IDisposable
     {
+        private static readonly ConcurrentDictionary<string, ChannelFactory<IHyperNodeService>> ChannelFactories = new ConcurrentDictionary<string, ChannelFactory<IHyperNodeService>>();
         private readonly IHyperNodeService _channel;
 
         /// <summary>
@@ -23,7 +25,11 @@ namespace Hyper.NodeServices.Contracts
         /// <param name="nodeName">The name of the <see cref="IHyperNodeService"/> endpoint to use.</param>
         public HyperNodeClient(string nodeName)
         {
-            _channel = new ChannelFactory<IHyperNodeService>(nodeName).CreateChannel();
+            // Only construct a factory if necessary. Otherwise, grab the cached one.
+            var factory = ChannelFactories.GetOrAdd(nodeName, key => new ChannelFactory<IHyperNodeService>(key));
+
+            // Each instance gets its own channel.
+            _channel = factory.CreateChannel();
         }
 
         /// <summary>
@@ -34,6 +40,42 @@ namespace Hyper.NodeServices.Contracts
         public HyperNodeMessageResponse ProcessMessage(HyperNodeMessageRequest message)
         {
             return _channel.ProcessMessage(message);
+        }
+
+        /// <summary>
+        /// Disposes the internal <see cref="IClientChannel"/> associated with this instance.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        /// <summary>
+        /// When overridden in a derived class, disposes of resources consumed by this instance.
+        /// </summary>
+        /// <param name="disposing">True if managed resources should be disposed. Otherwise, false.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                var client = _channel as IClientChannel;
+
+                try
+                {
+                    if (client != null)
+                        client.Close();
+                }
+                catch
+                {
+                    if (client != null)
+                        client.Abort();
+                }
+                finally
+                {
+                    if (client != null)
+                        client.Dispose();
+                }
+            }
         }
     }
 }

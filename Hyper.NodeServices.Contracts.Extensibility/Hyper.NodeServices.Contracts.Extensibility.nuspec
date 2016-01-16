@@ -6,11 +6,10 @@
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
-    <licenseUrl>https://github.com/jheitz1117/Hyper/blob/develop/LICENSE.txt</licenseUrl>
+    <licenseUrl>http://opensource.org/licenses/GPL-3.0</licenseUrl>
     <projectUrl>https://github.com/jheitz1117/Hyper</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial release.</releaseNotes>
     <copyright>$copyright$</copyright>
   </metadata>
   <files>

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 
@@ -119,6 +120,15 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         public static bool IsSystemCommand(string commandName)
         {
             return SystemCommands.Contains(commandName);
+        }
+
+        /// <summary>
+        /// Returns an <see cref="IEnumerable{T}"/> containing all system command names.
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<string> GetAll()
+        {
+            return SystemCommands;
         }
     }
 }

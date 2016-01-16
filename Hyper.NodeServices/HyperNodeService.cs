@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Hyper.ActivityTracking;
 using Hyper.NodeServices.ActivityTracking;
 using Hyper.NodeServices.CommandModules;
-using Hyper.NodeServices.CommandModules.SystemCommands;
 using Hyper.NodeServices.Configuration;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
@@ -21,8 +20,7 @@ using Hyper.NodeServices.Contracts.Extensibility.Serializers;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
-using Hyper.NodeServices.Extensibility.Exceptions;
-using Hyper.NodeServices.SystemCommands.Contracts;
+using Hyper.NodeServices.Extensibility.Configuration;
 using Hyper.NodeServices.TaskIdProviders;
 
 // TODO: (Phase 2 - see comments below) ClearActivityCache 
@@ -83,21 +81,22 @@ namespace Hyper.NodeServices
         ConcurrencyMode = ConcurrencyMode.Multiple,
         InstanceContextMode = InstanceContextMode.Single
     )]
-    public sealed class HyperNodeService : IHyperNodeService, IDisposable
+    public sealed partial class HyperNodeService : IHyperNodeService, IDisposable
     {
         #region Defaults
 
         private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
         private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
+        private static readonly IHyperNodeConfigurationProvider DefaultConfigurationProvider = new HyperNodeSectionConfigurationProvider();
 
         #endregion Defaults
 
         #region Private Members
 
-        private const string HyperNodeConfigurationSectionName = "hyperSoa/hyperNode";
+        private static readonly object Lock = new object();
+
         private readonly string _hyperNodeName;
-        private readonly object _lock = new object();
         private readonly TaskProgressCacheMonitor _taskProgressCacheMonitor = new TaskProgressCacheMonitor();
         private readonly List<HyperNodeServiceActivityMonitor> _customActivityMonitors = new List<HyperNodeServiceActivityMonitor>();
         private readonly ConcurrentDictionary<string, CommandModuleConfiguration> _commandModuleConfigurations = new ConcurrentDictionary<string, CommandModuleConfiguration>();
@@ -136,7 +135,13 @@ namespace Hyper.NodeServices
         /// </summary>
         public static HyperNodeService Instance
         {
-            get { return _instance ?? (_instance = Create()); }
+            get
+            {
+                if (_instance == null)
+                    CreateAndConfigure(DefaultConfigurationProvider);
+
+                return _instance;
+            }
         } private static HyperNodeService _instance;
 
         #endregion Properties
@@ -368,11 +373,62 @@ namespace Hyper.NodeServices
         }
 
         /// <summary>
+        /// Creates the singleton instance of <see cref="HyperNodeService"/> using the specified <see cref="IHyperNodeConfigurationProvider"/>.
+        /// </summary>
+        /// <param name="configProvider">The <see cref="IHyperNodeConfigurationProvider"/> to use to configure the service.</param>
+        public static void CreateAndConfigure(IHyperNodeConfigurationProvider configProvider)
+        {
+            if (_instance == null)
+            {
+                lock (Lock)
+                {
+                    if (_instance == null)
+                        _instance = Create(configProvider);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds the specified <see cref="Type"/> as an enabled command module with the specified command name. Command modules
+        /// added using this method do not have <see cref="ICommandRequestSerializer"/> or <see cref="ICommandResponseSerializer"/>
+        /// imlementations defined.
+        /// </summary>
+        /// <param name="commandName">The name of the command.</param>
+        /// <param name="commandModuleType">The <see cref="Type"/> of the command module.</param>
+        public void AddCommandModuleConfiguration(string commandName, Type commandModuleType)
+        {
+            AddCommandModuleConfiguration(commandName, commandModuleType, true, null, null);
+        }
+
+        /// <summary>
+        /// Adds the specified <see cref="Type"/> as a command module with the specified command name and configuration options.
+        /// </summary>
+        /// <param name="commandName">The name of the command.</param>
+        /// <param name="commandModuleType">The <see cref="Type"/> of the command module.</param>
+        /// <param name="enabled">Indicates whether the command will be enabled immediately.</param>
+        /// <param name="requestSerializer">The <see cref="ICommandRequestSerializer"/> implementation to use to serialize and deserialize request objects. This parameter can be null.</param>
+        /// <param name="responseSerializer">The <see cref="ICommandResponseSerializer"/> implementation to use to serialize and deserialize response objects. This parameter can be null.</param>
+        public void AddCommandModuleConfiguration(string commandName, Type commandModuleType, bool enabled, ICommandRequestSerializer requestSerializer, ICommandResponseSerializer responseSerializer)
+        {
+            AddCommandModuleConfiguration(
+                new CommandModuleConfiguration
+                {
+                    CommandName = commandName,
+                    CommandModuleType = commandModuleType,
+                    Enabled = enabled,
+                    RequestSerializer = requestSerializer,
+                    ResponseSerializer = responseSerializer
+                }
+            );
+        }
+
+        /// <summary>
         /// Initiates a cancellation request.
         /// </summary>
         public void Cancel()
         {
-            _masterTokenSource.Cancel();
+            if (!_masterTokenSource.IsCancellationRequested)
+                _masterTokenSource.Cancel();
         }
 
         /// <summary>
@@ -485,6 +541,7 @@ namespace Hyper.NodeServices
                     a => a.EventArgs.ActivityItem as IHyperNodeActivityEventItem // Cast all our activity items as IHyperNodeActivityEventItem
                 );
 
+                var systemActivityMonitors = new List<HyperNodeServiceActivityMonitor>();
                 /*****************************************************************************************************************
                  * Subscribe our task progress cache monitor to our event stream only if the client requested it and the feature is actually enabled. There is currently no built-in
                  * functionality to support long-running task tracing other than the memory cache. If the client opts to disable the memory cache to save resources,
@@ -493,13 +550,7 @@ namespace Hyper.NodeServices
                  * activity.
                  *****************************************************************************************************************/
                 if (this.EnableTaskProgressCache && currentTaskInfo.Message.CacheTaskProgress)
-                {
-                    currentTaskInfo.ActivitySubscribers.Add(
-                        liveEvents
-                            .Where(a => _taskProgressCacheMonitor.ShouldTrack(a))
-                            .Subscribe(_taskProgressCacheMonitor)
-                    );
-                }
+                    systemActivityMonitors.Add(_taskProgressCacheMonitor);
 
                 /*****************************************************************************************************************
                  * If we want a task trace returned, that's fine, but the task trace in the real-time response would only ever contain events recorded during the current
@@ -511,14 +562,7 @@ namespace Hyper.NodeServices
                  * complete" message would not have occured before the method returned.
                  *****************************************************************************************************************/
                 if (currentTaskInfo.Message.ReturnTaskTrace)
-                {
-                    var responseTaskTraceMonitor = new ResponseTaskTraceMonitor(currentTaskInfo.Response);
-                    currentTaskInfo.ActivitySubscribers.Add(
-                        liveEvents
-                            .Where(a => responseTaskTraceMonitor.ShouldTrack(a))
-                            .Subscribe(responseTaskTraceMonitor)
-                    );
-                }
+                    systemActivityMonitors.Add(new ResponseTaskTraceMonitor(currentTaskInfo.Response));
 
                 /*****************************************************************************************************************
                  * Concurrent tasks cannot return anything meaningful in the real-time response because the main thread gets to the return statement long before the
@@ -541,11 +585,22 @@ namespace Hyper.NodeServices
                  * intended recipients and the corresponding "main" task IDs to use to request status updates. This would be exclusively for the cache. If the
                  * user wanted to use something other than the cache, they would have to determine the task IDs their own way.
                  *****************************************************************************************************************/
-                var childNodeResponseMonitor = new ChildNodeResponseMonitor(currentTaskInfo.Response);
+                systemActivityMonitors.Add(new ChildNodeResponseMonitor(currentTaskInfo.Response));
+
+                /*****************************************************************************************************************
+                 * Subscribe our system activity monitors to the event stream first
+                 *****************************************************************************************************************/
                 currentTaskInfo.ActivitySubscribers.Add(
-                    liveEvents
-                        .Where(a => childNodeResponseMonitor.ShouldTrack(a))
-                        .Subscribe(childNodeResponseMonitor)
+                    new CompositeDisposable(
+                        systemActivityMonitors.Select(
+                            m => new HyperNodeActivityObserver(
+                                m,
+                                liveEvents,
+                                Scheduler.CurrentThread,
+                                currentTaskInfo
+                            )
+                        )
+                    )
                 );
 
                 /*****************************************************************************************************************
@@ -556,38 +611,13 @@ namespace Hyper.NodeServices
                 currentTaskInfo.ActivitySubscribers.Add(
                     new CompositeDisposable(
                         from monitor in _customActivityMonitors
-                        where monitor.Enabled
-                        // Make sure the monitors are enabled
-                        select liveEvents
-                            .Where(
-                                e =>
-                                {
-                                    var shouldTrack = false;
-
-                                    try
-                                    {
-                                        // ...for activity items matching the specified criteria
-                                        shouldTrack = monitor.ShouldTrack(e);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        // This is legal at this point because we already setup our cache and task trace monitors earlier
-                                        currentTaskInfo.Activity.TrackException(
-                                            new ActivityMonitorSubscriptionException(
-                                                string.Format(
-                                                    "Unable to subscribe activity monitor '{0}' because its ShouldTrack() method threw an exception.",
-                                                    monitor.Name
-                                                ),
-                                                ex
-                                            )
-                                        );
-                                    }
-
-                                    return shouldTrack;
-                                }
-                            )
-                            .ObserveOn(ThreadPoolScheduler.Instance) // Force custom activity monitors to run on the threadpool in case they are long-running and/or ill-behaved
-                            .Subscribe(monitor)
+                        where monitor.Enabled // Only add the monitors that are enabled
+                        select new HyperNodeActivityObserver(
+                            monitor,
+                            liveEvents,
+                            Scheduler.CurrentThread,
+                            currentTaskInfo
+                        )
                     )
                 );
             }
@@ -648,11 +678,13 @@ namespace Hyper.NodeServices
                             {
                                 // By the time we get here, we must have guaranteed that a client endpoint exists with the specified name.
                                 forwardingParam.TaskInfo.Activity.TrackForwarding(forwardingParam.ChildNodeName);
-                                response = new HyperNodeClient(
-                                    forwardingParam.ChildNodeName
-                                ).ProcessMessage(
-                                    forwardingParam.TaskInfo.Message
-                                );
+
+                                using (var client = new HyperNodeClient(forwardingParam.ChildNodeName))
+                                {
+                                    response = client.ProcessMessage(
+                                        forwardingParam.TaskInfo.Message
+                                    );    
+                                }
                             }
                             catch (FaultException)
                             {
@@ -874,6 +906,22 @@ namespace Hyper.NodeServices
             args.Response.ProcessStatusFlags = commandResponse.ProcessStatusFlags;
         }
 
+        private void AddCommandModuleConfiguration(CommandModuleConfiguration commandConfig)
+        {
+            if (commandConfig == null)
+                throw new ArgumentNullException("commandConfig");
+
+            if (string.IsNullOrWhiteSpace(commandConfig.CommandName))
+                throw new ArgumentException("The CommandName property of the commandConfig parameter must not be null or whitespace.", "commandConfig");
+
+            if (!_commandModuleConfigurations.TryAdd(commandConfig.CommandName, commandConfig))
+            {
+                throw new DuplicateCommandException(
+                    string.Format("A command already exists with the name '{0}'.", commandConfig.CommandName)
+                );
+            }
+        }
+
         /// <summary>
         /// Removes the task with the specified <paramref name="taskId"/> from the internal dictionary of tasks and calls Dispose() on it.
         /// </summary>
@@ -893,372 +941,6 @@ namespace Hyper.NodeServices
             );
         }
 
-        #region Configuration
-
-        private static HyperNodeService Create()
-        {
-            var config = (HyperNodeConfigurationSection)ConfigurationManager.GetSection(HyperNodeConfigurationSectionName);
-            if (config == null)
-                throw new HyperNodeConfigurationException(string.Format("The configuration does not contain a {0} section.", HyperNodeConfigurationSectionName));
-            
-            var service = new HyperNodeService(config.HyperNodeName)
-            {
-                EnableTaskProgressCache = config.EnableTaskProgressCache,
-                EnableDiagnostics = config.EnableDiagnostics,
-                TaskProgressCacheDuration = TimeSpan.FromMinutes(config.TaskProgressCacheDurationMinutes),
-                MaxConcurrentTasks = config.MaxConcurrentTasks
-            };
-
-            ConfigureSystemCommands(service, config);
-            ConfigureTaskProvider(service, config);
-            ConfigureActivityMonitors(service, config);
-            ConfigureCommandModules(service, config);
-
-            return service;
-        }
-
-        private static void ConfigureSystemCommands(HyperNodeService service, HyperNodeConfigurationSection config)
-        {
-            // Grab our user-defined default for system commands being enabled or disabled
-            bool? userDefinedSystemCommandsEnabledDefault = null;
-            var systemCommandsCollection = config.SystemCommands;
-            if (systemCommandsCollection != null)
-                userDefinedSystemCommandsEnabledDefault = systemCommandsCollection.Enabled;
-
-            // If the user didn't turn on the system commands, they simply won't be available.
-            var actualDefaultEnabled = userDefinedSystemCommandsEnabledDefault ?? false;
-
-            // Make all commands enabled or disabled according to the user-defined default, or the HyperNode's default if the user did not define a default
-            var systemCommandConfigs = new List<CommandModuleConfiguration>
-            {
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.GetCachedTaskProgressInfo,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(GetCachedTaskProgressInfoCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.GetNodeStatus,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(GetNodeStatusCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.GetChildNodes,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(GetChildNodesCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.Discover,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(DiscoverCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.Echo,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(EchoCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.EnableCommand,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(EnableCommandModuleCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.EnableActivityMonitor,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(EnableActivityMonitorCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.RenameActivityMonitor,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(RenameActivityMonitorCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.EnableTaskProgressCache,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(EnableTaskProgressCacheCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.EnableDiagnostics,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(EnableDiagnosticsCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.CancelTask,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(CancelTaskCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.SetTaskProgressCacheDuration,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(SetTaskProgressCacheDurationCommand)
-                }
-            };
-
-            foreach (var systemCommandConfig in systemCommandConfigs)
-            {
-                // Allow each system command to be enabled or disabled individually. This takes precedence over any defaults defined previously
-                if (config.SystemCommands != null && config.SystemCommands[systemCommandConfig.CommandName] != null)
-                    systemCommandConfig.Enabled = config.SystemCommands[systemCommandConfig.CommandName].Enabled;
-
-                // Finally, try to add this system command to our collection
-                if (!service._commandModuleConfigurations.TryAdd(systemCommandConfig.CommandName, systemCommandConfig))
-                {
-                    throw new DuplicateCommandException(
-                        string.Format("A command already exists with the name '{0}'.", systemCommandConfig.CommandName)
-                    );
-                }
-            }
-        }
-
-        private static void ConfigureTaskProvider(HyperNodeService service, HyperNodeConfigurationSection config)
-        {
-            ITaskIdProvider taskIdProvider = null;
-
-            // Set our task id provider if applicable, but if we have any problems creating the instance or casting to ITaskIdProvider, we deliberately want to fail out and make them fix the app.config
-            if (!string.IsNullOrWhiteSpace(config.TaskIdProviderType))
-            {
-                taskIdProvider = (ITaskIdProvider)Activator.CreateInstance(Type.GetType(config.TaskIdProviderType, true));
-                taskIdProvider.Initialize();
-            }
-
-            service.TaskIdProvider = taskIdProvider ?? DefaultTaskIdProvider;
-        }
-
-        private static void ConfigureActivityMonitors(HyperNodeService service, HyperNodeConfigurationSection config)
-        {
-            // Instantiate our activity monitors
-            foreach (var monitorConfig in config.ActivityMonitors)
-            {
-                // If we have any problems creating the instance or casting to HyperNodeServiceActivityMonitor, we deliberately want to fail out and make them fix the app.config
-                var monitor = (HyperNodeServiceActivityMonitor)Activator.CreateInstance(Type.GetType(monitorConfig.Type, true));
-                if (monitor != null)
-                {
-                    monitor.Name = monitorConfig.Name;
-                    monitor.Enabled = monitorConfig.Enabled;
-
-                    monitor.Initialize();
-
-                    lock (service._lock)
-                    {
-                        if (service._customActivityMonitors.Any(m => m.Name == monitorConfig.Name))
-                        {
-                            throw new DuplicateActivityMonitorException(
-                                string.Format("An activity monitor already exists with the name '{0}'.", monitorConfig.Name)
-                            );
-                        }
-
-                        service._customActivityMonitors.Add(monitor);
-                    }
-                }
-            }
-        }
-
-        private static void ConfigureCommandModules(HyperNodeService service, HyperNodeConfigurationSection config)
-        {
-            Type defaultRequestSerializerType = null;
-            Type defaultResponseSerializerType = null;
-
-            // First, see if we have any serializer types defined at the collection level
-            if (!string.IsNullOrWhiteSpace(config.CommandModules.RequestSerializerType))
-                defaultRequestSerializerType = Type.GetType(config.CommandModules.RequestSerializerType, true);
-            if (!string.IsNullOrWhiteSpace(config.CommandModules.ResponseSerializerType))
-                defaultResponseSerializerType = Type.GetType(config.CommandModules.ResponseSerializerType, true);
-
-            foreach (var commandModuleConfig in config.CommandModules)
-            {
-                var commandModuleType = Type.GetType(commandModuleConfig.Type, true);
-                if (commandModuleType.GetInterfaces().Contains(typeof(ICommandModule)))
-                {
-                    Type commandRequestSerializerType = null;
-                    Type commandResponseSerializerType = null;
-
-                    // Now check to see if we have any serializer types defined at the command level
-                    if (!string.IsNullOrWhiteSpace(commandModuleConfig.RequestSerializerType))
-                        commandRequestSerializerType = Type.GetType(commandModuleConfig.RequestSerializerType, true);
-                    if (!string.IsNullOrWhiteSpace(commandModuleConfig.ResponseSerializerType))
-                        commandResponseSerializerType = Type.GetType(commandModuleConfig.ResponseSerializerType, true);
-
-                    // Our final configuration allows command-level serializer types to take precedence, if available. Otherwise, the collection-level types are used.
-                    var configRequestSerializerType = commandRequestSerializerType ?? defaultRequestSerializerType;
-                    var configResponseSerializerType = commandResponseSerializerType ?? defaultResponseSerializerType;
-
-                    ICommandRequestSerializer configRequestSerializer = null;
-                    ICommandResponseSerializer configResponseSerializer = null;
-
-                    // Attempt construction of config-level serializer types
-                    if (configRequestSerializerType != null)
-                        configRequestSerializer = (ICommandRequestSerializer)Activator.CreateInstance(configRequestSerializerType);
-                    if (configResponseSerializerType != null)
-                        configResponseSerializer = (ICommandResponseSerializer)Activator.CreateInstance(configResponseSerializerType);
-
-                    // Finally, construct our command module configuration
-                    var commandConfig = new CommandModuleConfiguration
-                    {
-                        CommandName = commandModuleConfig.Name,
-                        Enabled = commandModuleConfig.Enabled,
-                        CommandModuleType = commandModuleType,
-                        RequestSerializer = configRequestSerializer ?? DefaultRequestSerializer,
-                        ResponseSerializer = configResponseSerializer ?? DefaultResponseSerializer
-                    };
-
-                    // If this fails, a command with the specified name already exists
-                    if (!service._commandModuleConfigurations.TryAdd(commandModuleConfig.Name, commandConfig))
-                    {
-                        throw new DuplicateCommandException(
-                            string.Format("A command already exists with the name '{0}'.", commandModuleConfig.Name)
-                        );
-                    }
-                }
-            }
-        }
-
-        #endregion Configuration
-
         #endregion Private Methods
-
-        #region Internal Helper Methods
-
-        internal HyperNodeTaskProgressInfo GetCachedTaskProgressInfo(string taskId)
-        {
-            return _taskProgressCacheMonitor.GetTaskProgressInfo(taskId);
-        }
-
-        internal IEnumerable<CommandStatus> GetCommandStatuses()
-        {
-            return _commandModuleConfigurations.Keys.Select(
-                commandName => new CommandStatus
-                {
-                    CommandName = commandName,
-                    CommandType = (SystemCommandName.IsSystemCommand(commandName) ? HyperNodeCommandType.SystemCommand : HyperNodeCommandType.CustomCommand),
-                    Enabled = _commandModuleConfigurations[commandName].Enabled
-                }
-            );
-        }
-
-        internal IEnumerable<ActivityMonitorStatus> GetActivityMonitorStatuses()
-        {
-            lock (_lock)
-            {
-                return _customActivityMonitors.Select(
-                    m => new ActivityMonitorStatus
-                    {
-                        Name = m.Name,
-                        Enabled = m.Enabled
-                    }
-                );
-            }
-        }
-
-        internal IEnumerable<LiveTaskStatus> GetLiveTaskStatuses()
-        {
-            return _liveTasks.Keys.Select(
-                taskId => new LiveTaskStatus
-                {
-                    TaskID = taskId,
-                    CommandName = _liveTasks[taskId].Message.CommandName,
-                    IsCancellationRequested = _liveTasks[taskId].Token.IsCancellationRequested,
-                    Elapsed = _liveTasks[taskId].Elapsed
-                }
-            );
-        }
-
-        internal IEnumerable<string> GetChildNodes()
-        {
-            var childNodes = new List<string>();
-
-            // Check the app.config for client endpoints for the IHyperNodeService interface
-            var configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            var serviceModelGroup = ServiceModelSectionGroup.GetSectionGroup(configuration);
-            if (serviceModelGroup != null)
-            {
-                childNodes.AddRange(
-                    serviceModelGroup.Client.Endpoints
-                        .Cast<ChannelEndpointElement>()
-                        .Where(e => e.Contract == typeof(IHyperNodeService).FullName)
-                        .Select(e => e.Name)
-                );
-            }
-
-            return childNodes;
-        }
-
-        internal bool IsKnownCommand(string commandName)
-        {
-            return _commandModuleConfigurations.ContainsKey(commandName ?? "");
-        }
-
-        internal bool IsKnownActivityMonitor(string activityMonitorName)
-        {
-            return _customActivityMonitors.Any(a => a.Name == activityMonitorName);
-        }
-
-        internal bool EnableCommandModule(string commandName, bool enable)
-        {
-            var result = false;
-
-            CommandModuleConfiguration commandConfig;
-            if (_commandModuleConfigurations.TryGetValue(commandName, out commandConfig) && commandConfig != null)
-            {
-                commandConfig.Enabled = enable;
-                result = true;
-            }
-
-            return result;
-        }
-
-        internal bool EnableActivityMonitor(string activityMonitorName, bool enable)
-        {
-            var result = false;
-
-            var activityMonitor = _customActivityMonitors.FirstOrDefault(a => a.Name == activityMonitorName);
-            if (activityMonitor != null)
-            {
-                activityMonitor.Enabled = enable;
-                result = true;
-            }
-
-            return result;
-        }
-
-        internal bool RenameActivityMonitor(string oldName, string newName)
-        {
-            var result = false;
-
-            var activityMonitor = _customActivityMonitors.FirstOrDefault(a => a.Name == oldName);
-            if (activityMonitor != null)
-            {
-                activityMonitor.Name = newName;
-                result = true;
-            }
-
-            return result;
-        }
-
-        internal bool CancelTask(string taskId)
-        {
-            var result = false;
-
-            HyperNodeTaskInfo taskInfo;
-            if (_liveTasks.TryGetValue(taskId, out taskInfo) && taskInfo != null)
-            {
-                taskInfo.Cancel();
-                result = true;
-            }
-
-            return result;
-        }
-        
-        #endregion Internal Helper Methods
     }
 }

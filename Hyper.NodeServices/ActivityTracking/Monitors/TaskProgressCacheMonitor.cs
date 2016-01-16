@@ -71,6 +71,25 @@ namespace Hyper.NodeServices.ActivityTracking
             taskProgressInfo.ProgressTotal = activity.ProgressTotal ?? taskProgressInfo.ProgressTotal;
         }
 
+        public override void OnActivityReportingError(Exception exception)
+        {
+            // First add a new cache item or get the existing cache item with the specified key
+            var taskProgressInfo = AddOrGetExisting("Error", () => new HyperNodeTaskProgressInfo());
+
+            // Now add our specific item to our list of activity items. Need lock because list is not thread-safe
+            lock (Lock)
+            {
+                taskProgressInfo.Activity.Add(
+                    new HyperNodeActivityItem("Error")
+                    {
+                        EventDateTime = DateTime.Now,
+                        EventDescription = exception.Message,
+                        EventDetail = exception.ToString()
+                    }
+                );
+            }
+        }
+
         /// <summary>
         /// Gets the <see cref="HyperNodeTaskProgressInfo"/> object from the cache with the specified task ID. If no cache item exists with the specified task ID, return null.
         /// </summary>

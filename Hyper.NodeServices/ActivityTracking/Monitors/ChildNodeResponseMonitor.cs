@@ -1,4 +1,5 @@
-﻿using Hyper.NodeServices.Contracts;
+﻿using System;
+using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.ActivityTracking
@@ -34,6 +35,11 @@ namespace Hyper.NodeServices.ActivityTracking
             var response = activity.EventData as HyperNodeMessageResponse;
             if (response != null)
                 _target.ChildResponses.TryAdd(response.RespondingNodeName, response);
+        }
+
+        public override void OnActivityReportingError(Exception exception)
+        {
+            // There's nothing reasonable we can do here. Just eat the exception and let another observer record the error.
         }
     }
 }

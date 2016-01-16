@@ -24,7 +24,7 @@ namespace HyperNodeTestClient
         public MainForm()
         {
             InitializeComponent();
-            
+
             tvwRealTimeTaskTrace.BeforeExpand += tvwTaskTrace_OnBeforeExpand;
             tvwAliceTaskTrace.BeforeExpand += tvwTaskTrace_OnBeforeExpand;
             tvwBobTaskTrace.BeforeExpand += tvwTaskTrace_OnBeforeExpand;
@@ -44,22 +44,25 @@ namespace HyperNodeTestClient
                     CommandName = SystemCommandName.Discover
                 };
 
-                var response = new HyperNodeClient("Alice").ProcessMessage(msg);
-
-                if (!string.IsNullOrWhiteSpace(response.CommandResponseString))
+                using (var client = new HyperNodeClient("Alice"))
                 {
-                    var aliceDiscoverResponse = ((ICommandResponseSerializer)serializer).Deserialize(response.CommandResponseString) as DiscoverResponse;
-                    if (aliceDiscoverResponse != null)
+                    var response = client.ProcessMessage(msg);
+
+                    if (!string.IsNullOrWhiteSpace(response.CommandResponseString))
                     {
-                        cboHyperNodeNames.DataSource = new[]
+                        var aliceDiscoverResponse = ((ICommandResponseSerializer)serializer).Deserialize(response.CommandResponseString) as DiscoverResponse;
+                        if (aliceDiscoverResponse != null)
                         {
-                            new []
+                            cboHyperNodeNames.DataSource = new[]
                             {
-                                "Alice"
-                            },
-                            aliceDiscoverResponse.ChildNodes.Keys
-                        }.SelectMany(l => l)
-                        .ToList();
+                                new []
+                                {
+                                    "Alice"
+                                },
+                                aliceDiscoverResponse.ChildNodes.Keys
+                            }.SelectMany(l => l)
+                            .ToList();
+                        }
                     }
                 }
             }
@@ -86,22 +89,25 @@ namespace HyperNodeTestClient
                     ForwardingPath = GetForwardingPathFromAliceToBob()
                 };
 
-                var response = new HyperNodeClient("Alice").ProcessMessage(msg);
-
-                // TODO: Recursively find the response we're actually interested in
-
-                if (!string.IsNullOrWhiteSpace(response.CommandResponseString))
+                using (var client = new HyperNodeClient("Alice"))
                 {
-                    var commandResponse =
+                    var response = client.ProcessMessage(msg);
+
+                    // TODO: Recursively find the response we're actually interested in
+
+                    if (!string.IsNullOrWhiteSpace(response.CommandResponseString))
+                    {
+                        var commandResponse =
                         ((ICommandResponseSerializer)serializer).Deserialize(response.CommandResponseString) as
-                            GetNodeStatusResponse;
-                    if (commandResponse != null)
-                        cboCommandNames.DataSource =
-                            commandResponse.Commands.Select(c => c.CommandName).OrderBy(cn => cn).ToList();
-                }
-                else
-                {
-                    MessageBox.Show(response.RespondingNodeName + " did not send back a command response string.");
+                                GetNodeStatusResponse;
+                        if (commandResponse != null)
+                            cboCommandNames.DataSource =
+                                commandResponse.Commands.Select(c => c.CommandName).OrderBy(cn => cn).ToList();
+                    }
+                    else
+                    {
+                        MessageBox.Show(response.RespondingNodeName + " did not send back a command response string.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -144,13 +150,17 @@ namespace HyperNodeTestClient
                 if (cboHyperNodeNames.Text == "Bob")
                     msg.ForwardingPath = GetForwardingPathFromAliceToBob();
 
-                var response = new HyperNodeClient("Alice").ProcessMessage(msg);
+                using (var client = new HyperNodeClient("Alice"))
+                {
+                    var response = client.ProcessMessage(msg);
 
-                PopulateResponseSummary(lstRealTimeResponse, response);
-                PopulateTaskTrace(tvwRealTimeTaskTrace, response);
+                    PopulateResponseSummary(lstRealTimeResponse, response);
+                    PopulateTaskTrace(tvwRealTimeTaskTrace, response);
 
-                if (response.NodeAction != HyperNodeActionType.Rejected && msg.CacheTaskProgress)
-                    StartAliceProgressTracking(response.TaskId);
+                    if (response.NodeAction != HyperNodeActionType.Rejected && msg.CacheTaskProgress)
+                        StartAliceProgressTracking(response.TaskId);
+                }
+
             }
             catch (Exception ex)
             {
@@ -163,39 +173,41 @@ namespace HyperNodeTestClient
             var progressTimer = new Stopwatch();
             progressTimer.Start();
 
-            var alice = new HyperNodeClient("Alice");
-            var request = (HyperNodeMessageRequest)e.Argument;
             var taskProgressInfo = new HyperNodeTaskProgressInfo();
-            ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<GetCachedTaskProgressInfoResponse>();
-
-            while (!taskProgressInfo.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
+            using (var alice = new HyperNodeClient("Alice"))
             {
-                var aliceResponse = alice.ProcessMessage(request);
-                if (aliceResponse == null)
-                    break;
+                var request = (HyperNodeMessageRequest)e.Argument;
+                ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<GetCachedTaskProgressInfoResponse>();
 
-                var targetResponse = aliceResponse;
-                if (string.IsNullOrWhiteSpace(targetResponse.CommandResponseString))
-                    break;
-
-                var commandResponse = (GetCachedTaskProgressInfoResponse)serializer.Deserialize(targetResponse.CommandResponseString);
-                taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo();
-                if (!commandResponse.TaskProgressCacheEnabled)
+                while (!taskProgressInfo.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
                 {
-                    taskProgressInfo.Activity.Add(
-                        new HyperNodeActivityItem(ClientAgentName)
-                        {
-                            EventDescription = string.Format("Warning: Task progress cache is not enabled for HyperNode 'Alice'.")
-                        }
-                    );
+                    var aliceResponse = alice.ProcessMessage(request);
+                    if (aliceResponse == null)
+                        break;
 
-                    // Make sure we exit the loop, since we're not going to get anything useful in this case.
-                    taskProgressInfo.IsComplete = true;
+                    var targetResponse = aliceResponse;
+                    if (string.IsNullOrWhiteSpace(targetResponse.CommandResponseString))
+                        break;
+
+                    var commandResponse = (GetCachedTaskProgressInfoResponse)serializer.Deserialize(targetResponse.CommandResponseString);
+                    taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo();
+                    if (!commandResponse.TaskProgressCacheEnabled)
+                    {
+                        taskProgressInfo.Activity.Add(
+                            new HyperNodeActivityItem(ClientAgentName)
+                            {
+                                EventDescription = "Warning: Task progress cache is not enabled for HyperNode \'Alice\'."
+                            }
+                        );
+
+                        // Make sure we exit the loop, since we're not going to get anything useful in this case.
+                        taskProgressInfo.IsComplete = true;
+                    }
+
+                    ((BackgroundWorker)sender).ReportProgress(Convert.ToInt32(taskProgressInfo.ProgressPercentage), taskProgressInfo);
+
+                    Task.Delay(500).Wait();
                 }
-
-                ((BackgroundWorker)sender).ReportProgress(Convert.ToInt32(taskProgressInfo.ProgressPercentage), taskProgressInfo);
-
-                Task.Delay(500).Wait();
             }
 
             progressTimer.Stop();
@@ -234,39 +246,41 @@ namespace HyperNodeTestClient
             var progressTimer = new Stopwatch();
             progressTimer.Start();
 
-            var alice = new HyperNodeClient("Alice");
-            var request = (HyperNodeMessageRequest)e.Argument;
             var taskProgressInfo = new HyperNodeTaskProgressInfo();
-            ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<GetCachedTaskProgressInfoResponse>();
-
-            while (!taskProgressInfo.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
+            using (var alice = new HyperNodeClient("Alice"))
             {
-                var aliceResponse = alice.ProcessMessage(request);
-                if (aliceResponse == null || !aliceResponse.ChildResponses.ContainsKey("Bob"))
-                    break;
+                var request = (HyperNodeMessageRequest)e.Argument;
+                ICommandResponseSerializer serializer = new NetDataContractResponseSerializer<GetCachedTaskProgressInfoResponse>();
 
-                var targetResponse = aliceResponse.ChildResponses["Bob"];
-                if (string.IsNullOrWhiteSpace(targetResponse.CommandResponseString))
-                    break;
-
-                var commandResponse = (GetCachedTaskProgressInfoResponse)serializer.Deserialize(targetResponse.CommandResponseString);
-                taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo();
-                if (!commandResponse.TaskProgressCacheEnabled)
+                while (!taskProgressInfo.IsComplete && progressTimer.Elapsed <= TimeSpan.FromMinutes(2))
                 {
-                    taskProgressInfo.Activity.Add(
-                        new HyperNodeActivityItem(ClientAgentName)
-                        {
-                            EventDescription = string.Format("Warning: Task progress cache is not enabled for HyperNode 'Bob'.")
-                        }
-                    );
+                    var aliceResponse = alice.ProcessMessage(request);
+                    if (aliceResponse == null || !aliceResponse.ChildResponses.ContainsKey("Bob"))
+                        break;
 
-                    // Make sure we exit the loop, since we're not going to get anything useful in this case.
-                    taskProgressInfo.IsComplete = true;
+                    var targetResponse = aliceResponse.ChildResponses["Bob"];
+                    if (string.IsNullOrWhiteSpace(targetResponse.CommandResponseString))
+                        break;
+
+                    var commandResponse = (GetCachedTaskProgressInfoResponse)serializer.Deserialize(targetResponse.CommandResponseString);
+                    taskProgressInfo = commandResponse.TaskProgressInfo ?? new HyperNodeTaskProgressInfo();
+                    if (!commandResponse.TaskProgressCacheEnabled)
+                    {
+                        taskProgressInfo.Activity.Add(
+                            new HyperNodeActivityItem(ClientAgentName)
+                            {
+                                EventDescription = "Warning: Task progress cache is not enabled for HyperNode \'Bob\'."
+                            }
+                        );
+
+                        // Make sure we exit the loop, since we're not going to get anything useful in this case.
+                        taskProgressInfo.IsComplete = true;
+                    }
+
+                    ((BackgroundWorker)sender).ReportProgress(Convert.ToInt32(taskProgressInfo.ProgressPercentage), taskProgressInfo);
+
+                    Task.Delay(500).Wait();
                 }
-
-                ((BackgroundWorker)sender).ReportProgress(Convert.ToInt32(taskProgressInfo.ProgressPercentage), taskProgressInfo);
-
-                Task.Delay(500).Wait();
             }
 
             progressTimer.Stop();
@@ -525,5 +539,29 @@ namespace HyperNodeTestClient
         }
 
         #endregion Private Methods
+
+        private void btnLoadTestAlice_Click(object sender, EventArgs e)
+        {
+            Parallel.For(0, 10000, i =>
+            {
+                using (var client = new HyperNodeClient("Alice"))
+                {
+                    try
+                    {
+                        client.ProcessMessage(
+                            new HyperNodeMessageRequest(ClientAgentName)
+                            {
+                                CommandName = SystemCommandName.Echo,
+                                CommandRequestString = "Hello!"
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        //MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            });
+        }
     }
 }

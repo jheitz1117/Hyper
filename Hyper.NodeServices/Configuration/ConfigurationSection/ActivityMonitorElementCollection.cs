@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using Hyper.NodeServices.Extensibility.Configuration;
 
 namespace Hyper.NodeServices.Configuration
 {
-    internal sealed class ActivityMonitorElementCollection : ConfigurationElementCollection, IEnumerable<ActivityMonitorElement>
+    internal sealed class ActivityMonitorElementCollection : ConfigurationElementCollection, IActivityMonitorConfigurationCollection
     {
         public ActivityMonitorElement this[int index]
         {
@@ -35,10 +36,10 @@ namespace Hyper.NodeServices.Configuration
 
         protected override object GetElementKey(ConfigurationElement element)
         {
-            return ((ActivityMonitorElement)element).Name;
+            return ((ActivityMonitorElement)element).MonitorName;
         }
 
-        public new IEnumerator<ActivityMonitorElement> GetEnumerator()
+        public new IEnumerator<IActivityMonitorConfiguration> GetEnumerator()
         {
             return this.OfType<ActivityMonitorElement>().GetEnumerator();
         }

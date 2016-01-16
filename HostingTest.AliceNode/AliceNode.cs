@@ -15,7 +15,6 @@ namespace HostingTest.AliceNode
 
             var tokenSource = new CancellationTokenSource();
 
-            //TODO: Need to write HOWTO article on hosting a HyperNode. First, start with naive hosting. Then present problems and show how the use of Hyper.WcfHosting takes care of those problems. Can then slowly build up to HyperServiceHostContainer and then make recommendations on WaitAll settings and stuch.
             var container = new HyperServiceHostContainer(
                 () =>
                 {
