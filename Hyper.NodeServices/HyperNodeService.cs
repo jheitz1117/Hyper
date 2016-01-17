@@ -176,8 +176,8 @@ namespace Hyper.NodeServices
                 response.ProcessStatusFlags = MessageProcessStatusFlags.Cancelled;
                 response.TaskId = null;
 
-                // TODO: I believe we originally did this because the tracker wasn't initialized yet and we couldn't track the rejection activity containing the event description and detail as to why the message was rejected, so we just added it to the task trace so the user would have some idea of why the message was rejected. However,
-                // now that we're going to have a hypernode event tracker, is there a better way to handle this?
+                // At this point in the game, we don't have an activity tracker yet because we don't have a task ID. Without an activity tracker, we can't track the rejection activity item.
+                // Instead, we'll just add the information to the task trace of the response object and send that back so the caller knows what happened.
                 response.TaskTrace.Add(rejectionActivityItem);
 
                 // If the message was rejected, then the HyperNodeTaskInfo was not added to the list of live events, which means it will never be disposed unless we do so here.
@@ -590,19 +590,9 @@ namespace Hyper.NodeServices
                 ProcessOptionFlags = taskInfo.Message.ProcessOptionFlags
             };
 
-            // TODO: I really don't want to have to call OnMessageReceived manually. See comments below for details.
-
-            /* The HyperNodeService should only ever interface with the HyperNodeTaskActivityTracker, never the EventTracker. Then the
-             * HyperNodeTaskActivityTracker interfaces with the EventTracker.
-		           - This is mostly true except for the OnMessageReceived, which, at this time, is called directly (below) because the tracker hasn't
-		             been created yet. However, if I'm able to implement some sort of tracker that can buffer those activity events, I might
-		             be able to figure out a way to conform to the pattern of the rest of the events.
-             */
-
             HyperNodeActivityItem userRejectionActivity = null;
             try
             {
-                // TODO: Is this really how we want to handle this? Should this event really be special?
                 // Allow the user to reject the message if necessary
                 this.EventHandler.OnMessageReceived(
                     new MessageReceivedEventArgs(
@@ -622,7 +612,7 @@ namespace Hyper.NodeServices
             }
             catch (Exception ex)
             {
-                // Failed to get a Task ID, so reject the message
+                // User-defined event handler threw an exception, so assume the worst and reject the message.
                 rejectionReason = HyperNodeActionReasonType.Custom;
                 userRejectionActivity = new HyperNodeActivityItem(this.HyperNodeName)
                 {
