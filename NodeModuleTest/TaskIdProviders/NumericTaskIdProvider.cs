@@ -9,7 +9,7 @@ namespace NodeModuleTest.TaskIdProviders
         private static long _counter;
         private static readonly object Lock = new object();
 
-        public override string CreateTaskId(IHyperNodeMessageContext context)
+        public override string CreateTaskId(IReadOnlyHyperNodeMessageInfo message)
         {
             lock (Lock)
             {

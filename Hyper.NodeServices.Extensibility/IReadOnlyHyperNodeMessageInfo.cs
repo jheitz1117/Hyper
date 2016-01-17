@@ -7,7 +7,7 @@ namespace Hyper.NodeServices.Extensibility
     /// <summary>
     /// Contains information from <see cref="HyperNodeMessageRequest"/> objects being processed by <see cref="IHyperNodeService"/> instances.
     /// </summary>
-    public interface IHyperNodeMessageContext
+    public interface IReadOnlyHyperNodeMessageInfo
     {
         /// <summary>
         /// The name of the command specified in the <see cref="HyperNodeMessageRequest"/>.

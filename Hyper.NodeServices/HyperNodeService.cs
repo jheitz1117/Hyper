@@ -193,11 +193,8 @@ namespace Hyper.NodeServices
 
                 try
                 {
-                    // Track that we've started a task to process the message
+                    // Track that we've started a task to process the message.
                     currentTaskInfo.Activity.TrackTaskStarted();
-
-                    // Check if user cancelled the message in the OnTaskStarted event
-                    currentTaskInfo.Token.ThrowIfCancellationRequested();
 
                     if (message.ExpirationDateTime <= DateTime.Now)
                     {
@@ -219,6 +216,7 @@ namespace Hyper.NodeServices
                         message.SeenByNodeNames.Add(this.HyperNodeName);
                         currentTaskInfo.Activity.TrackMessageSeen();
 
+                        // TODO: Check to make sure this cancellation thing works!
                         // Check if user cancelled the message in the OnMessageSeen event
                         currentTaskInfo.Token.ThrowIfCancellationRequested();
 
@@ -304,7 +302,7 @@ namespace Hyper.NodeServices
                     if (ex is OperationCanceledException)
                         response.ProcessStatusFlags |= MessageProcessStatusFlags.Cancelled;
                     else
-                    response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
+                        response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
 
                     currentTaskInfo.Activity.TrackException(ex);
                 }
@@ -468,14 +466,13 @@ namespace Hyper.NodeServices
             currentTaskInfo.Activity = new HyperNodeTaskActivityTracker(
                 new TaskEventContext(
                     this.HyperNodeName,
-                    currentTaskInfo.Message.CommandName,
+                    currentTaskInfo.Message,
                     currentTaskInfo.Response.TaskId,
                     currentTaskInfo.Message.ReturnTaskTrace || this.EnableDiagnostics
                 ),
                 this.EventHandler,
 
                 // Possible user actions
-                s => { }, // TODO: This is the message rejection action. Right now the OnMessageReceived event is never fired from the activity tracker because it's special. Should it really be done this way?
                 currentTaskInfo.Cancel
             );
 
@@ -585,14 +582,13 @@ namespace Hyper.NodeServices
         {
             HyperNodeActionReasonType? rejectionReason = null;
 
-            var messageContext = new HyperNodeMessageContext(taskInfo.Message.IntendedRecipientNodeNames, taskInfo.Message.SeenByNodeNames)
+            var messageInfo = new ReadOnlyHyperNodeMessageInfo(taskInfo.Message.IntendedRecipientNodeNames, taskInfo.Message.SeenByNodeNames)
             {
                 CommandName = taskInfo.Message.CommandName,
                 CreatedByAgentName = taskInfo.Message.CreatedByAgentName,
                 CreationDateTime = taskInfo.Message.CreationDateTime,
                 ProcessOptionFlags = taskInfo.Message.ProcessOptionFlags
             };
-
 
             // TODO: I really don't want to have to call OnMessageReceived manually. See comments below for details.
 
@@ -611,7 +607,7 @@ namespace Hyper.NodeServices
                 this.EventHandler.OnMessageReceived(
                     new MessageReceivedEventArgs(
                         this.HyperNodeName,
-                        messageContext,
+                        messageInfo,
                         r =>
                         {
                             rejectionReason = HyperNodeActionReasonType.Custom;
@@ -661,7 +657,7 @@ namespace Hyper.NodeServices
                     try
                     {
                         // Try to use our custom task ID provider
-                        taskId = this.TaskIdProvider.CreateTaskId(messageContext);
+                        taskId = this.TaskIdProvider.CreateTaskId(messageInfo);
                     }
                     catch (Exception ex)
                     {
@@ -712,80 +708,109 @@ namespace Hyper.NodeServices
             Task[] forwardingTasks = { };
 
             // Allow a null path to be passed. We can just treat it as an empty path and not forward the message to anyone
-            var children = GetConnectedHyperNodeChildren(
+            var remoteNodes = GetConnectedHyperNodes(
                 (taskInfo.Message.ForwardingPath ?? new HyperNodePath()).GetChildren(this.HyperNodeName).ToList(),
                 taskInfo.Activity
             );
 
-            if (children != null)
+            if (remoteNodes != null)
             {
-                forwardingTasks = children.Select(
-                    child => new ForwardingTaskParameter(child.Key, taskInfo)
+                forwardingTasks = remoteNodes.Select(
+                    remoteNode => new ForwardingTaskParameter(remoteNode.Key, taskInfo)
                 ).Select(
-                    childForwardingParam => Task.Factory.StartNew(
-                        param =>
-                        {
-                            var forwardingParam = (ForwardingTaskParameter)param;
-                            HyperNodeMessageResponse response = null;
-
-                            try
+                    childForwardingParam =>
+                    {
+                        // Track the message forwarding. This also gives the user a chance to skip a recipient if they wish.
+                        var shouldForward = true;
+                        childForwardingParam.TaskInfo.Activity.TrackForwardingMessage(
+                            childForwardingParam.RemoteNodeName,
+                            () =>
                             {
-                                // By the time we get here, we must have guaranteed that a client endpoint exists with the specified name.
-                                forwardingParam.TaskInfo.Activity.TrackForwardingMessage(forwardingParam.ChildNodeName);
-                                using (var client = new HyperNodeClient(forwardingParam.ChildNodeName))
+                                shouldForward = false;
+                                childForwardingParam.TaskInfo.Activity.TrackFormat("The message was not forwarded to HyperNode '{0}' because it was skipped by a user-defined event handler.", childForwardingParam.RemoteNodeName);
+                            }
+                        );
+
+                        // Check if user tried to cancel the task
+                        taskInfo.Token.ThrowIfCancellationRequested();
+
+                        Task childTask = null;
+                        if (shouldForward)
+                        {
+                            childTask = Task.Factory.StartNew(
+                                param =>
                                 {
-                                    response = client.ProcessMessage(
-                                        forwardingParam.TaskInfo.Message
-                                    );
-                                }
-                            }
-                            catch (FaultException)
-                            {
-                                // Rethrow fault exceptions to be handled by the continuation
-                                throw;
-                            }
-                            catch (Exception ex)
-                            {
-                                forwardingParam.TaskInfo.Activity.TrackException(ex);
-                            }
+                                    var forwardingParam = (ForwardingTaskParameter) param;
+                                    HyperNodeMessageResponse response = null;
 
-                            return response;
-                        },
-                        childForwardingParam,
-                        taskInfo.Token
-                    ).ContinueWith(
-                        (forwardingTask, param) =>
-                        {
-                            var forwardingParam = (ForwardingTaskParameter)param;
-
-                            // Check the status of the antecedent and report accordingly
-                            switch (forwardingTask.Status)
-                            {
-                                case TaskStatus.RanToCompletion:
-                                    if (forwardingTask.Result != null)
+                                    try
                                     {
-                                        forwardingParam.TaskInfo.Activity.TrackHyperNodeResponded(forwardingParam.ChildNodeName, forwardingTask.Result);
+                                        // By the time we get here, we have guaranteed that a client endpoint exists with the specified name.
+                                        using (var client = new HyperNodeClient(forwardingParam.RemoteNodeName))
+                                        {
+                                            response = client.ProcessMessage(forwardingParam.TaskInfo.Message);
+                                        }
                                     }
-                                    break;
-                                case TaskStatus.Faulted:
-                                    forwardingParam.TaskInfo.Activity.Track(
-                                        string.Format("An unhandled exception was thrown by HyperNode '{0}' as a fault.", forwardingParam.ChildNodeName),
-                                        "This is normally caused by an error thrown in the ProcessMessage() method, but could also be caused by an extension or plugin. Exception detail follows:\r\n" +
-                                        forwardingTask.Exception
-                                    );
-                                    break;
-                                default:
-                                    forwardingParam.TaskInfo.Activity.TrackFormat(
-                                        "Child task to forward message to HyperNode '{0}' completed with status '{1}'.",
-                                        forwardingParam.ChildNodeName,
-                                        forwardingTask.Status.ToString()
-                                    );
-                                    break;
-                            }
-                        },
-                        childForwardingParam,
-                        taskInfo.Token
-                    )
+                                    catch (FaultException)
+                                    {
+                                        // Rethrow fault exceptions to be handled by the continuation
+                                        throw;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        forwardingParam.TaskInfo.Activity.TrackException(ex);
+                                    }
+
+                                    // The response might be null if the user chose to skip this recipient.
+                                    return response;
+                                },
+                                childForwardingParam,
+                                taskInfo.Token
+                            ).ContinueWith(
+                                (forwardingTask, param) =>
+                                {
+                                    var forwardingParam = (ForwardingTaskParameter) param;
+
+                                    // Check the status of the antecedent and report accordingly
+                                    switch (forwardingTask.Status)
+                                    {
+                                        case TaskStatus.RanToCompletion:
+                                            if (forwardingTask.Result != null)
+                                            {
+                                                forwardingParam.TaskInfo.Activity.TrackHyperNodeResponded(
+                                                    forwardingParam.RemoteNodeName, forwardingTask.Result
+                                                );
+                                            }
+                                            break;
+                                        case TaskStatus.Faulted:
+                                            forwardingParam.TaskInfo.Activity.Track(
+                                                string.Format(
+                                                    "An unhandled exception was thrown by HyperNode '{0}' as a fault.",
+                                                    forwardingParam.RemoteNodeName
+                                                ),
+                                                "This is normally caused by an error thrown in the ProcessMessage() method, but could also be caused by an extension or plugin. Exception detail follows:\r\n" +
+                                                forwardingTask.Exception
+                                                );
+                                            break;
+                                        default:
+                                            forwardingParam.TaskInfo.Activity.TrackFormat(
+                                                "Child task to forward message to HyperNode '{0}' completed with status '{1}'.",
+                                                forwardingParam.RemoteNodeName,
+                                                forwardingTask.Status.ToString()
+                                            );
+                                            break;
+                                    }
+                                },
+                                childForwardingParam,
+                                taskInfo.Token
+                            );
+                        }
+
+                        // This could be null if the user opted to skip the recipient. If so, then we'll just weed out the nulls below
+                        return childTask;
+                    }
+                ).Where(
+                    t => t != null // Weed out the null tasks that result from skipping recipients
                 ).ToArray();
 
                 // If we're not running concurrently, then we are running synchronously, which means we need to wait for all the child nodes to return
@@ -812,7 +837,7 @@ namespace Hyper.NodeServices
                     {
                         taskInfo.Activity.Track(
                             string.Format("HyperNode '{0}' timed out at {1}.",
-                                forwardingArgs.ChildNodeName,
+                                forwardingArgs.RemoteNodeName,
                                 taskInfo.Message.ForwardingTimeout
                             ),
                             string.Format(
@@ -821,7 +846,7 @@ namespace Hyper.NodeServices
                                 "the message timeout attributes in your WCF configuration. If caching was enabled for this message, additional trace logs may be obtained " +
                                 "by querying the intended recipients directly. Additional trace logs may also be obtained by querying the data stores for any custom " +
                                 "activity monitors that may be attached to the intended recipients.",
-                                forwardingArgs.ChildNodeName,
+                                forwardingArgs.RemoteNodeName,
                                 taskInfo.Message.ForwardingTimeout
                             )
                         );
@@ -832,7 +857,7 @@ namespace Hyper.NodeServices
             return forwardingTasks;
         }
 
-        private static IEnumerable<HyperNodeVertex> GetConnectedHyperNodeChildren(List<HyperNodeVertex> vertices, ITaskActivityTracker activityTracker)
+        private static IEnumerable<HyperNodeVertex> GetConnectedHyperNodes(List<HyperNodeVertex> vertices, ITaskActivityTracker activityTracker)
         {
             // Check to see if the path specified any child nodes that don't have endpoints defined in the app.config
             var configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);

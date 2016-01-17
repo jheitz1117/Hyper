@@ -10,12 +10,15 @@ namespace Hyper.NodeServices.ActivityTracking
     internal sealed class HyperNodeTaskActivityTracker : HyperActivityTracker, ITaskActivityTracker
     {
         private readonly ITaskEventContext _taskContext;
-        private readonly HyperNodeEventTracker _eventTracker;
+        private readonly IHyperNodeEventHandler _eventHandler;
+        private readonly Action _cancelTaskAction;
 
-        public HyperNodeTaskActivityTracker(ITaskEventContext taskContext, IHyperNodeEventHandler eventHandler, Action<string> rejectMessageAction, Action cancelTaskAction)
+        public HyperNodeTaskActivityTracker(ITaskEventContext taskContext, IHyperNodeEventHandler eventHandler, Action cancelTaskAction)
         {
             _taskContext = taskContext;
-            _eventTracker = new HyperNodeEventTracker(this, taskContext, eventHandler, rejectMessageAction, cancelTaskAction);
+            _eventHandler = eventHandler;
+
+            _cancelTaskAction = cancelTaskAction;
         }
 
         public void TrackTaskStarted()
@@ -24,7 +27,9 @@ namespace Hyper.NodeServices.ActivityTracking
 
             try
             {
-                _eventTracker.TrackTaskStarted();
+                _eventHandler.OnTaskStarted(
+                    new HyperNodeEventArgs(this, _taskContext)
+                );
             }
             catch (Exception ex)
             {
@@ -38,7 +43,9 @@ namespace Hyper.NodeServices.ActivityTracking
 
             try
             {
-                _eventTracker.TrackMessageIgnored(reason);
+                _eventHandler.OnMessageIgnored(
+                    new MessageIgnoredEventArgs(this, _taskContext, reason)
+                );
             }
             catch (Exception ex)
             {
@@ -52,7 +59,9 @@ namespace Hyper.NodeServices.ActivityTracking
 
             try
             {
-                _eventTracker.TrackMessageProcessed();
+                _eventHandler.OnMessageProcessed(
+                    new HyperNodeEventArgs(this, _taskContext)
+                );
             }
             catch (Exception ex)
             {
@@ -60,13 +69,21 @@ namespace Hyper.NodeServices.ActivityTracking
             }
         }
 
-        public void TrackForwardingMessage(string recipient)
+        public void TrackForwardingMessage(string recipient, Action skipRecipientAction)
         {
             TrackFormat("Forwarding message to HyperNode '{0}'.", recipient);
 
             try
             {
-                _eventTracker.TrackForwardingMessage(recipient);
+                _eventHandler.OnForwardingMessage(
+                    new ForwardingMessageEventArgs(
+                        this,
+                        _taskContext,
+                        recipient,
+                        _cancelTaskAction,
+                        skipRecipientAction
+                    )
+                );
             }
             catch (Exception ex)
             {
@@ -80,7 +97,9 @@ namespace Hyper.NodeServices.ActivityTracking
 
             try
             {
-                _eventTracker.TrackMessageSeen();
+                _eventHandler.OnMessageSeen(
+                    new MessageSeenEventArgs(this, _taskContext, _cancelTaskAction)
+                );
             }
             catch (Exception ex)
             {
@@ -102,7 +121,23 @@ namespace Hyper.NodeServices.ActivityTracking
 
             try
             {
-                _eventTracker.TrackHyperNodeResponded(childHyperNodeName, response);
+                _eventHandler.OnHyperNodeResponded(
+                    new HyperNodeRespondedEventArgs(
+                        this,
+                        _taskContext,
+                        childHyperNodeName,
+                        new ReadOnlyHyperNodeResponseInfo(response.TaskTrace, response.ChildResponses)
+                        {
+                            TaskId = response.TaskId,
+                            CommandResponseString = response.CommandResponseString,
+                            NodeAction = response.NodeAction,
+                            NodeActionReason = response.NodeActionReason,
+                            ProcessStatusFlags = response.ProcessStatusFlags,
+                            RespondingNodeName = response.RespondingNodeName,
+                            TotalRunTime = response.TotalRunTime
+                        }
+                    )
+                );
             }
             catch (Exception ex)
             {
@@ -120,7 +155,22 @@ namespace Hyper.NodeServices.ActivityTracking
 
             try
             {
-                _eventTracker.TrackTaskComplete(response);
+                _eventHandler.OnTaskCompleted(
+                    new TaskCompletedEventArgs(
+                        this,
+                        _taskContext,
+                        new ReadOnlyHyperNodeResponseInfo(response.TaskTrace, response.ChildResponses)
+                        {
+                            TaskId = response.TaskId,
+                            CommandResponseString = response.CommandResponseString,
+                            NodeAction = response.NodeAction,
+                            NodeActionReason = response.NodeActionReason,
+                            ProcessStatusFlags = response.ProcessStatusFlags,
+                            RespondingNodeName = response.RespondingNodeName,
+                            TotalRunTime = response.TotalRunTime
+                        }
+                    )
+                );
             }
             catch (Exception ex)
             {

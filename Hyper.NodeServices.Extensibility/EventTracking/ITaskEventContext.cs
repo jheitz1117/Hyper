@@ -19,6 +19,11 @@ namespace Hyper.NodeServices.Extensibility.EventTracking
         string CommandName { get; }
 
         /// <summary>
+        /// The message being processed by the current task.
+        /// </summary>
+        IReadOnlyHyperNodeMessageInfo MessageInfo { get; }
+
+        /// <summary>
         /// The Task ID for the current task.
         /// </summary>
         string TaskId { get; }

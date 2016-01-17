@@ -81,11 +81,16 @@
     <Compile Include="Configuration\HyperNodeSectionConfigurationProvider.cs" />
     <Compile Include="Configuration\ConfigurationSection\SystemCommandElement.cs" />
     <Compile Include="Configuration\ConfigurationSection\SystemCommandElementCollection.cs" />
+    <Compile Include="EventTracking\ForwardingMessageEventArgs.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="EventTracking\HyperNodeEventArgs.cs" />
+    <Compile Include="EventTracking\TaskCompletedEventArgs.cs" />
+    <Compile Include="EventTracking\HyperNodeRespondedEventArgs.cs" />
+    <Compile Include="EventTracking\MessageIgnoredEventArgs.cs" />
     <Compile Include="EventTracking\TaskEventContext.cs" />
-    <Compile Include="EventTracking\HyperNodeEventTracker.cs" />
     <Compile Include="EventTracking\MessageReceivedEventArgs.cs" />
-    <Compile Include="EventTracking\TaskStartedEventArgs.cs" />
+    <Compile Include="EventTracking\MessageSeenEventArgs.cs" />
     <Compile Include="Exceptions\ActivityMonitorSubscriptionException.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -110,12 +115,13 @@
     <Compile Include="HyperNodeService.Configuration.cs">
       <DependentUpon>HyperNodeService.cs</DependentUpon>
     </Compile>
+    <Compile Include="ReadOnlyHyperNodeResponseInfo.cs" />
     <Compile Include="TaskIdProviders\GuidTaskIdProvider.cs" />
     <Compile Include="HyperNodeService.cs" />
     <Compile Include="HyperNodeTaskInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CommandModules\SystemCommands\GetCachedTaskProgressInfoCommand.cs" />
-    <Compile Include="HyperNodeMessageContext.cs" />
+    <Compile Include="ReadOnlyHyperNodeMessageInfo.cs" />
     <Compile Include="ThreadingParameters\ForwardingTaskParameter.cs" />
   </ItemGroup>
   <ItemGroup>

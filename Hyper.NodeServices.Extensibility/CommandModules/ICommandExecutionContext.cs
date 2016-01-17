@@ -8,7 +8,7 @@ namespace Hyper.NodeServices.Extensibility.CommandModules
     /// <summary>
     /// Defines properties describing the environment in which to execute an <see cref="ICommandModule"/>.
     /// </summary>
-    public interface ICommandExecutionContext : IHyperNodeMessageContext
+    public interface ICommandExecutionContext : IReadOnlyHyperNodeMessageInfo
     {
         /// <summary>
         /// The ID of the current task.

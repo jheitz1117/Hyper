@@ -15,7 +15,7 @@ namespace Hyper.NodeServices.Extensibility.EventTracking
         /// <summary>
         /// The message that was received.
         /// </summary>
-        IHyperNodeMessageContext MessageContext { get; }
+        IReadOnlyHyperNodeMessageInfo MessageInfo { get; }
 
         /// <summary>
         /// Causes the <see cref="IHyperNodeService"/> to reject the message.

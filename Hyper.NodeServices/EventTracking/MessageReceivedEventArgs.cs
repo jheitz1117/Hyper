@@ -8,15 +8,15 @@ namespace Hyper.NodeServices.Extensibility.EventTracking
 
         public string HyperNodeName { get; private set; }
 
-        public IHyperNodeMessageContext MessageContext
+        public IReadOnlyHyperNodeMessageInfo MessageInfo
         {
-            get { return _messageContext; }
-        } private readonly IHyperNodeMessageContext _messageContext;
+            get { return _messageInfo; }
+        } private readonly IReadOnlyHyperNodeMessageInfo _messageInfo;
 
-        public MessageReceivedEventArgs(string hyperNodeName, IHyperNodeMessageContext messageContext, Action<string> rejectMessageAction)
+        public MessageReceivedEventArgs(string hyperNodeName, IReadOnlyHyperNodeMessageInfo messageInfo, Action<string> rejectMessageAction)
         {
             this.HyperNodeName = hyperNodeName;
-            _messageContext = messageContext;
+            _messageInfo = messageInfo;
             _rejectMessageAction = rejectMessageAction;
         }
 
