@@ -16,7 +16,7 @@ namespace Hyper.NodeServices.Extensibility
         void Initialize();
 
         /// <summary>
-        /// Creates a Task ID using the specified <see cref="IHyperNodeMessageContext"/> object. This method must be overridden in a derived class.
+        /// Creates a Task ID using the specified <see cref="IHyperNodeMessageContext"/> object.
         /// </summary>
         /// <param name="context">The <see cref="IHyperNodeMessageContext"/> to use.</param>
         /// <returns></returns>

@@ -62,6 +62,13 @@ namespace Hyper.NodeServices.Configuration
             set { this["taskIdProviderType"] = value; }
         }
 
+        [ConfigurationProperty("hyperNodeEventHandlerType", IsRequired = false)]
+        public string HyperNodeEventHandlerType
+        {
+            get { return (string)this["hyperNodeEventHandlerType"]; }
+            set { this["hyperNodeEventHandlerType"] = value; }
+        }
+
         /// <summary>
         /// This property (and all such collection properties) must be defined with a return type that matches the <see cref="ConfigurationCollectionAttribute"/> to satisfy the .NET framework.
         /// As such, we have to explicitly (and separately) implement the collection properties for the <see cref="IHyperNodeConfiguration"/> interface.

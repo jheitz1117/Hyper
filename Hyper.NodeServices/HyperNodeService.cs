@@ -22,7 +22,7 @@ using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Configuration;
-using Hyper.NodeServices.TaskIdProviders;
+using Hyper.NodeServices.Extensibility.EventTracking;
 
 // TODO: (Phase 2 - see comments below) ClearActivityCache 
 /*************************************************************************************************************************************
@@ -86,7 +86,6 @@ namespace Hyper.NodeServices
     {
         #region Defaults
 
-        private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
         private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
         private static readonly IHyperNodeConfigurationProvider DefaultConfigurationProvider = new HyperNodeSectionConfigurationProvider();
@@ -126,7 +125,7 @@ namespace Hyper.NodeServices
         }
 
         private ITaskIdProvider TaskIdProvider { get; set; }
-        private HyperNodeEventTracker EventTracker { get; set; }
+        private IHyperNodeEventHandler EventHandler { get; set; }
         internal bool EnableDiagnostics { get; set; }
         internal int MaxConcurrentTasks { get; set; }
 
@@ -467,16 +466,17 @@ namespace Hyper.NodeServices
         private void InitializeActivityTracker(HyperNodeTaskInfo currentTaskInfo)
         {
             currentTaskInfo.Activity = new HyperNodeTaskActivityTracker(
-                new TaskActivityEventContext(
+                new TaskEventContext(
                     this.HyperNodeName,
-                    this.EventTracker,
                     currentTaskInfo.Message.CommandName,
                     currentTaskInfo.Response.TaskId,
-                    (currentTaskInfo.Message.ReturnTaskTrace || this.EnableDiagnostics),
+                    currentTaskInfo.Message.ReturnTaskTrace || this.EnableDiagnostics
+                ),
+                this.EventHandler,
 
-                    // Possible user actions
-                    currentTaskInfo.Cancel
-                )
+                // Possible user actions
+                s => { }, // TODO: This is the message rejection action. Right now the OnMessageReceived event is never fired from the activity tracker because it's special. Should it really be done this way?
+                currentTaskInfo.Cancel
             );
 
             try
@@ -593,34 +593,61 @@ namespace Hyper.NodeServices
                 ProcessOptionFlags = taskInfo.Message.ProcessOptionFlags
             };
 
-            // Allow the user to reject the message if necessary
+
+            // TODO: I really don't want to have to call OnMessageReceived manually. See comments below for details.
+
+            /* The HyperNodeService should only ever interface with the HyperNodeTaskActivityTracker, never the EventTracker. Then the
+             * HyperNodeTaskActivityTracker interfaces with the EventTracker.
+		           - This is mostly true except for the OnMessageReceived, which, at this time, is called directly (below) because the tracker hasn't
+		             been created yet. However, if I'm able to implement some sort of tracker that can buffer those activity events, I might
+		             be able to figure out a way to conform to the pattern of the rest of the events.
+             */
+
             HyperNodeActivityItem userRejectionActivity = null;
-            this.EventTracker.TrackMessageReceived(
-                messageContext,
-                r =>
+            try
+            {
+                // TODO: Is this really how we want to handle this? Should this event really be special?
+                // Allow the user to reject the message if necessary
+                this.EventHandler.OnMessageReceived(
+                    new MessageReceivedEventArgs(
+                        this.HyperNodeName,
+                        messageContext,
+                        r =>
+                        {
+                            rejectionReason = HyperNodeActionReasonType.Custom;
+                            userRejectionActivity = new HyperNodeActivityItem(this.HyperNodeName)
+                            {
+                                EventDescription = "The message was rejected by user-defined code. See the EventDetail property for the rejection reason.",
+                                EventDetail = r
+                            };
+                        }
+                    )
+                );
+            }
+            catch (Exception ex)
+            {
+                // Failed to get a Task ID, so reject the message
+                rejectionReason = HyperNodeActionReasonType.Custom;
+                userRejectionActivity = new HyperNodeActivityItem(this.HyperNodeName)
                 {
-                    rejectionReason = HyperNodeActionReasonType.Custom;
-                    userRejectionActivity = new HyperNodeActivityItem(this.HyperNodeName)
-                    {
-                        EventDescription = "The message was rejected by user-defined code. See the EventDetail property for the rejection reason.",
-                        EventDetail = r
-                    };
-                }
-            );
+                    EventDescription = "An exception was thrown by user-defined code while processing the OnMessageReceived event. See the EventDetail property for the exception details.",
+                    EventDetail = ex.ToString()
+                };
+            }
 
             // If the user didn't reject the message, give the system a chance to reject it
             var systemRejectionActivity = new HyperNodeActivityItem(this.HyperNodeName);
             if (!rejectionReason.HasValue)
             {
-            if (this.MaxConcurrentTasks > -1 && _liveTasks.Count >= this.MaxConcurrentTasks)
+                if (this.MaxConcurrentTasks > -1 && _liveTasks.Count >= this.MaxConcurrentTasks)
                 {
-                rejectionReason = HyperNodeActionReasonType.MaxConcurrentTaskCountReached;
+                    rejectionReason = HyperNodeActionReasonType.MaxConcurrentTaskCountReached;
                     systemRejectionActivity.EventDescription = string.Format("The maximum number of concurrent tasks ({0}) has been reached.", this.MaxConcurrentTasks);
                     systemRejectionActivity.EventDetail = "An attempted was made to start a new task when the maximum number of concurrent tasks were already running. Consider increasing the value of MaxConcurrentTasks or setting it to -1 (unlimited).";
                 }
-            else if (_masterTokenSource.IsCancellationRequested)
+                else if (_masterTokenSource.IsCancellationRequested)
                 {
-                rejectionReason = HyperNodeActionReasonType.CancellationRequested;
+                    rejectionReason = HyperNodeActionReasonType.CancellationRequested;
                     systemRejectionActivity.EventDescription = "The service is shutting down. No new tasks can be started.";
                     systemRejectionActivity.EventDetail = "The service-level cancellation token has been triggered. No new tasks are being spun up and all existing tasks are in the process of shutting down.";
                 }
@@ -652,9 +679,9 @@ namespace Hyper.NodeServices
                             this.TaskIdProvider.GetType().FullName
                         );
                     }
-            else if (!_liveTasks.TryAdd(taskId, taskInfo))
+                    else if (!_liveTasks.TryAdd(taskId, taskInfo))
                     {
-                rejectionReason = HyperNodeActionReasonType.DuplicateTaskId;
+                        rejectionReason = HyperNodeActionReasonType.DuplicateTaskId;
                         systemRejectionActivity.EventDescription = string.Format("A task with ID '{0}' is already running.", taskId);
                         systemRejectionActivity.EventDetail = "A duplicate task ID was generated. This can occur when a new instance of singleton task is started while an existing instance of that task is running. If you know the task will complete, please try again after the task is finished. You may also consider cancelling the task and then restarting it.";
                     }

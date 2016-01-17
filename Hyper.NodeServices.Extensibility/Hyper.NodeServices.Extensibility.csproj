@@ -59,6 +59,12 @@
     <Compile Include="Configuration\Validation\HyperNodeConfigurationValidator.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="EventTracking\HyperNodeEventHandlerBase.cs" />
+    <Compile Include="EventTracking\IHyperNodeEventArgs.cs" />
+    <Compile Include="EventTracking\ITaskEventContext.cs" />
+    <Compile Include="EventTracking\IHyperNodeEventHandler.cs" />
+    <Compile Include="EventTracking\IMessageReceivedEventArgs.cs" />
+    <Compile Include="EventTracking\ITaskStartedEventArgs.cs" />
     <Compile Include="Exceptions\HyperNodeConfigurationException.cs" />
     <Compile Include="Exceptions\InvalidCommandRequestTypeException.cs" />
     <Compile Include="ActivityTracking\HyperNodeServiceActivityMonitor.cs" />

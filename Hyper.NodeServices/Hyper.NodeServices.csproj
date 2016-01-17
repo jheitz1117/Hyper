@@ -62,7 +62,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActivityTracking\TaskActivityEventContext.cs" />
     <Compile Include="ActivityTracking\Trackers\HyperNodeTaskActivityTracker.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -82,7 +81,11 @@
     <Compile Include="Configuration\HyperNodeSectionConfigurationProvider.cs" />
     <Compile Include="Configuration\ConfigurationSection\SystemCommandElement.cs" />
     <Compile Include="Configuration\ConfigurationSection\SystemCommandElementCollection.cs" />
+    <Compile Include="EventTracking\HyperNodeEventArgs.cs" />
+    <Compile Include="EventTracking\TaskEventContext.cs" />
     <Compile Include="EventTracking\HyperNodeEventTracker.cs" />
+    <Compile Include="EventTracking\MessageReceivedEventArgs.cs" />
+    <Compile Include="EventTracking\TaskStartedEventArgs.cs" />
     <Compile Include="Exceptions\ActivityMonitorSubscriptionException.cs">
       <SubType>Code</SubType>
     </Compile>

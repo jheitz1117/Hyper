@@ -5,13 +5,14 @@ using System.Text;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
-using Hyper.NodeServices.EventTracking;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Configuration;
 using Hyper.NodeServices.Extensibility.Configuration.Validation;
+using Hyper.NodeServices.Extensibility.EventTracking;
 using Hyper.NodeServices.SystemCommands.Contracts;
+using Hyper.NodeServices.TaskIdProviders;
 
 namespace Hyper.NodeServices
 {
@@ -19,6 +20,8 @@ namespace Hyper.NodeServices
     {
         #region Defaults
 
+        private static readonly IHyperNodeEventHandler DefaultEventHandler = new HyperNodeEventHandlerBase();
+        private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         internal const bool DefaultTaskProgressCacheEnabled = false;
         internal const bool DefaultDiagnosticsEnabled = false;
         internal const int DefaultProgressCacheDurationMinutes = 60;
@@ -284,24 +287,16 @@ namespace Hyper.NodeServices
 
         private static void ConfigureHyperNodeEventTracker(HyperNodeService service, IHyperNodeConfiguration config)
         {
-            HyperNodeEventHandler eventHandler = null;
+            IHyperNodeEventHandler eventHandler = null;
 
-            // TODO: Finish this configuration piece
+            // Set our event handler if applicable, but if we have any problems creating the instance or casting to HyperNodeEventHandlerBase, we deliberately want to fail out and make them fix the configuration
+            if (!string.IsNullOrWhiteSpace(config.HyperNodeEventHandlerType))
+            {
+                eventHandler = (IHyperNodeEventHandler)Activator.CreateInstance(Type.GetType(config.HyperNodeEventHandlerType, true));
+                eventHandler.Initialize();
+            }
 
-            //// Set our event handler if applicable, but if we have any problems creating the instance or casting to HyperNodeEventHandler, we deliberately want to fail out and make them fix the configuration
-            //if (!string.IsNullOrWhiteSpace(config.HyperNodeEventHandlerType))
-            //{
-            //    eventHandler = (HyperNodeEventHandler)Activator.CreateInstance(Type.GetType(config.HyperNodeEventHandlerType, true));
-            //    eventHandler.Initialize(); // TODO: Do we really need this?
-            //}
-
-            //service.EventTracker = new HyperNodeEventTracker(
-            //    new HyperNodeEventContext(
-            //        service.HyperNodeName,
-            //        service.EnableDiagnostics
-            //    ),
-            //    eventHandler ?? DefaultEventHandler
-            //);
+            service.EventHandler = eventHandler ?? DefaultEventHandler;
         }
         
         #endregion Configuration

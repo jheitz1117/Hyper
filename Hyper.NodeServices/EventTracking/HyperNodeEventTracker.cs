@@ -1,264 +1,141 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility;
-using Hyper.NodeServices.Extensibility.Configuration.Validation;
+using Hyper.NodeServices.Extensibility.ActivityTracking;
+using Hyper.NodeServices.Extensibility.EventTracking;
 
 namespace Hyper.NodeServices.EventTracking
 {
-    // This is the class used by the hypernode to fire events
     internal sealed class HyperNodeEventTracker
     {
-        private readonly HyperNodeEventHandler _eventHandler;
-        private readonly HyperNodeEventContext _context;
+        private readonly IHyperNodeEventHandler _eventHandler;
+        private readonly ITaskEventContext _taskContext;
+        private readonly ITaskActivityTracker _activityTracker;
 
-        public HyperNodeEventTracker(HyperNodeEventContext context, HyperNodeEventHandler eventHandler)
+        private readonly Action<string> _rejectMessageAction;
+        private readonly Action _cancelTaskAction;
+
+        public HyperNodeEventTracker(ITaskActivityTracker activityTracker, ITaskEventContext taskContext, IHyperNodeEventHandler eventHandler, Action<string> rejectMessageAction, Action cancelTaskAction)
         {
-            _context = context;
             _eventHandler = eventHandler;
+            _taskContext = taskContext;
+            _activityTracker = activityTracker;
+            _rejectMessageAction = rejectMessageAction;
+            _cancelTaskAction = cancelTaskAction;
         }
 
         // TODO: Finish implementing these events
 
-        public void TrackMessageReceived(IHyperNodeMessageContext messageContext, Action<string> rejectMessageAction)
+        public void TrackMessageReceived(IHyperNodeMessageContext messageContext)
         {
-            try
-            {
-                _eventHandler.OnMessageReceived(
-                    new MessageReceivedEventArgs(
-                        _context, // TODO: This exposes an Elapsed property that is misleading. It is the elapsed time since the node started, which could be quite a while ago and may be null if diagnostics are turned off. Need to make this more clear.
-                        messageContext,
-                        rejectMessageAction
-                    )
-                );
-            }
-            catch (Exception ex)
-            {
-                // TODO: Figure out what to do in this situation...
-                throw;
-            }
+            // TODO: This event is special because it's the only one that doesn't have a ITaskEventContext, because no task ID has been created yet. It's also the only one called directly from the hypernode instead of from the activity tracker.
+            // TODO: Should this event really be treated special?
+            _eventHandler.OnMessageReceived(
+                new MessageReceivedEventArgs(
+                    _taskContext.HyperNodeName,
+                    messageContext,
+                    _rejectMessageAction
+                )
+            );
         }
 
-        public void TrackTaskStarted(Action cancelTaskAction)
+        public void TrackTaskStarted()
         {
-            try
-            {
-                //_eventHandler.OnTaskStarted(
-                //    new TaskStartedEventArgs(
-                //        _context,
-                //        cancelTaskAction
-                //    )
-                //);
-            }
-            catch (Exception ex)
-            {
-                // TODO: Figure out what to do in this situation...
-                throw;
-            }
+            _eventHandler.OnTaskStarted(
+                new TaskStartedEventArgs(_activityTracker, _taskContext, _cancelTaskAction)
+            );
         }
 
         public void TrackMessageIgnored(string reason)
         {
-            try
-            {
-                //_eventHandler.OnMessageIgnored(
-                //    new MessageIgnoredEventArgs(
-                //        _context,
-                //        reason
-                //    )
-                //);
-            }
-            catch (Exception ex)
-            {
-                // TODO: Figure out what to do in this situation...
-                throw;
-            }
+            //_eventHandler.OnMessageIgnored(
+            //    _taskContext,
+            //    new MessageIgnoredEventArgs(
+            //        reason
+            //    )
+            //);
         }
 
         public void TrackMessageProcessed()
         {
-            try
-            {
-                //_eventHandler.OnMessageProcessed(
-                //    new MessageProcessedEventArgs(
-                //        _context
-                //    )
-                //);
-            }
-            catch (Exception ex)
-            {
-                // TODO: Figure out what to do in this situation...
-                throw;
-            }
+            //_eventHandler.OnMessageProcessed(
+            //    _taskContext
+            //    new MessageProcessedEventArgs(
+            //    )
+            //);
         }
 
         public void TrackForwardingMessage(string recipient)
         {
-            try
-            {
-                //_eventHandler.OnBeforeMessageForwarded(
-                //    new BeforeMessageForwardedEventArgs(
-                //        _context,
-                //        recipient,
-                //        cancelTaskAction,
-                //        cancelForwardingAction
-                //    )
-                //);
-            }
-            catch (Exception ex)
-            {
-                // TODO: Figure out what to do in this situation...
-                throw;
-            }
+            //_eventHandler.OnBeforeMessageForwarded(
+            //    _taskContext,
+            //    new BeforeMessageForwardedEventArgs(
+            //        recipient,
+            //        cancelTaskAction,
+            //        cancelForwardingAction
+            //    )
+            //);
         }
 
-        public void TrackMessageSeen(Action cancelTaskAction)
+        public void TrackMessageSeen()
         {
-            try
-            {
-                //_eventHandler.OnMessageSeen(
-                //    new MessageSeenEventArgs(
-                //        _context,
-                //        cancelTaskAction
-                //    )
-                //);
-            }
-            catch (Exception ex)
-            {
-                // TODO: Figure out what to do in this situation...
-                throw;
-            }
+            //_eventHandler.OnMessageSeen(
+            //    _taskContext,
+            //    new MessageSeenEventArgs(
+            //        _cancelTaskAction
+            //    )
+            //);
         }
 
         public void TrackHyperNodeResponded(string childHyperNodeName, HyperNodeMessageResponse response)
         {
-            try
-            {
-                //_eventHandler.OnHyperNodeResponded(
-                //    new HyperNodeRespondedEventArgs(
-                //        _context,
-                //        childHyperNodeName,
-                //        childResponse
-                //    )
-                //);
-            }
-            catch (Exception ex)
-            {
-                // TODO: Figure out what to do in this situation...
-                throw;
-            }
+            //_eventHandler.OnHyperNodeResponded(
+            //    _taskContext,
+            //    new HyperNodeRespondedEventArgs(
+            //        childHyperNodeName,
+            //        childResponse
+            //    )
+            //);
         }
 
         public void TrackTaskComplete(HyperNodeMessageResponse response)
         {
-            try
-            {
-                //_eventHandler.OnTaskCompleted(
-                //    new TaskCompletedEventArgs(
-                //        _context,
-                //        response
-                //    )
-                //);
-            }
-            catch (Exception ex)
-            {
-                // TODO: Figure out what to do in this situation...
-                throw;
-            }
+            //_eventHandler.OnTaskCompleted(
+            //    _taskContext,
+            //    new TaskCompletedEventArgs(
+            //        response
+            //    )
+            //);
         }
     }
 
-    // TODO: This is the class that contains the ability to perform diagnostic information. Needs to have a public-facing interface instead of being public
-    public class HyperNodeEventContext
+    // Example of inherting HyperNodeEventHandlerBase...
+    public class UserDefinedHyperNodeEventHandler : HyperNodeEventHandlerBase
     {
-        private readonly string _hyperNodeName;
-        private readonly Stopwatch _stopwatch;
-
-        public string HyperNodeName { get { return _hyperNodeName; } }
-
-        public TimeSpan? Elapsed
+        public override void OnMessageReceived(IMessageReceivedEventArgs args)
         {
-            get
+
+            // TODO: Example of how a user might choose to use this event handler
+            if (args.MessageContext.CommandName == "SpeedyCommand")
             {
-                TimeSpan? elapsed = null;
-                
-                if (_stopwatch != null)
-                {
-                    elapsed = _stopwatch.Elapsed;
-
-                    // The reason we don't start the stopwatch *before* reporting the elapsed time is that we always want the very first
-                    // call to Elapsed to return 00:00:00
-                    if (!_stopwatch.IsRunning)
-                        _stopwatch.Start();
-                }
-
-                return elapsed;
+                args.RejectMessage("Node '" + args.HyperNodeName + "' took too long to process.");
             }
         }
 
-        public HyperNodeEventContext(string hyperNodeName, bool enableDiagnostics)
-        {
-            _hyperNodeName = hyperNodeName;
-
-            if (enableDiagnostics)
-                _stopwatch = new Stopwatch();
-        }
-    }
-
-    // This is the class users will inherit to process certain pieces of the events
-    public abstract class HyperNodeEventHandler
-    {
-        // TODO: The args will allow the user to affect the behavior of the hypernode
-        public virtual void OnMessageReceived(MessageReceivedEventArgs args) { }
-
-        // TODO: Create other events here...?
-        public virtual void OnOtherEvent(HyperNodeEventContext context) { }
-    }
-
-    // Example of inherting HyperNodeEventHandler...
-    public class UserDefinedHyperNodeEventHandler : HyperNodeEventHandler
-    {
-        public override void OnMessageReceived(MessageReceivedEventArgs args)
+        public override void OnTaskStarted(ITaskStartedEventArgs args)
         {
             // TODO: Example of how a user might choose to use this event handler
-            // TODO: Note the availability of both the HyperNode context AND the message context (stolen from ITaskIdProvider)
-            if (args.NodeContext.Elapsed.HasValue && args.NodeContext.Elapsed > TimeSpan.FromSeconds(30))
+
+            
+            args.Activity.Track("Checking elapsed time.");
+            if (args.TaskContext.Elapsed.HasValue && args.TaskContext.Elapsed > TimeSpan.FromSeconds(30))
             {
-                if (args.MessageContext.CommandName == "SpeedyCommand")
+                if (args.TaskContext.CommandName == "Oh No!")
                 {
-                    args.RejectMessage("Took too long to process.");
+                    args.CancelTask();
                 }
             }
-        }
-    }
-
-    // These are created by the HyperNodeEventTracker and passed to each event.
-    public sealed class MessageReceivedEventArgs : EventArgs
-    {
-        private readonly Action<string> _rejectMessageAction;
-
-        public HyperNodeEventContext NodeContext
-        {
-            get { return _nodeContext; }
-        } private readonly HyperNodeEventContext _nodeContext;
-
-        public IHyperNodeMessageContext MessageContext
-        {
-            get { return _messageContext; }
-        } private readonly IHyperNodeMessageContext _messageContext;
-
-        public MessageReceivedEventArgs(HyperNodeEventContext nodeContext, IHyperNodeMessageContext messageContext, Action<string> rejectMessageAction)
-        {
-            _nodeContext = nodeContext;
-            _messageContext = messageContext;
-            _rejectMessageAction = rejectMessageAction;
-        }
-
-        public void RejectMessage(string reason)
-        {
-            if (_rejectMessageAction != null)
-                _rejectMessageAction(reason);
+            args.Activity.Track("Time check complete.");
         }
     }
 }

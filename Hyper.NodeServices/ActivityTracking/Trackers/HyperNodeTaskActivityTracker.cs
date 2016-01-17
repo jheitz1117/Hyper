@@ -1,47 +1,91 @@
 ﻿using System;
 using Hyper.ActivityTracking;
 using Hyper.NodeServices.Contracts;
+using Hyper.NodeServices.EventTracking;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
+using Hyper.NodeServices.Extensibility.EventTracking;
 
 namespace Hyper.NodeServices.ActivityTracking
 {
     internal sealed class HyperNodeTaskActivityTracker : HyperActivityTracker, ITaskActivityTracker
     {
-        private readonly TaskActivityEventContext _context;
+        private readonly ITaskEventContext _taskContext;
+        private readonly HyperNodeEventTracker _eventTracker;
 
-        public HyperNodeTaskActivityTracker(TaskActivityEventContext context)
+        public HyperNodeTaskActivityTracker(ITaskEventContext taskContext, IHyperNodeEventHandler eventHandler, Action<string> rejectMessageAction, Action cancelTaskAction)
         {
-            _context = context;
+            _taskContext = taskContext;
+            _eventTracker = new HyperNodeEventTracker(this, taskContext, eventHandler, rejectMessageAction, cancelTaskAction);
         }
 
         public void TrackTaskStarted()
         {
             Track("Task started.");
-            _context.EventTracker.TrackTaskStarted(_context.CancelTaskAction);
+
+            try
+            {
+                _eventTracker.TrackTaskStarted();
+            }
+            catch (Exception ex)
+            {
+                TrackException(ex);
+            }
         }
 
         public void TrackMessageIgnored(string reason)
         {
             Track("Message ignored.", reason);
-            _context.EventTracker.TrackMessageIgnored(reason);
+
+            try
+            {
+                _eventTracker.TrackMessageIgnored(reason);
+            }
+            catch (Exception ex)
+            {
+                TrackException(ex);
+            }
         }
 
         public void TrackMessageProcessed()
         {
             Track("Message processed.");
-            _context.EventTracker.TrackMessageProcessed();
+
+            try
+            {
+                _eventTracker.TrackMessageProcessed();
+            }
+            catch (Exception ex)
+            {
+                TrackException(ex);
+            }
         }
 
         public void TrackForwardingMessage(string recipient)
         {
             TrackFormat("Forwarding message to HyperNode '{0}'.", recipient);
-            _context.EventTracker.TrackForwardingMessage(recipient);
+
+            try
+            {
+                _eventTracker.TrackForwardingMessage(recipient);
+            }
+            catch (Exception ex)
+            {
+                TrackException(ex);
+            }
         }
 
         public void TrackMessageSeen()
         {
             Track("Message seen.");
-            _context.EventTracker.TrackMessageSeen(_context.CancelTaskAction);
+
+            try
+            {
+                _eventTracker.TrackMessageSeen();
+            }
+            catch (Exception ex)
+            {
+                TrackException(ex);
+            }
         }
 
         public void TrackHyperNodeResponded(string childHyperNodeName, HyperNodeMessageResponse response)
@@ -55,7 +99,15 @@ namespace Hyper.NodeServices.ActivityTracking
             );
 
             Track(eventDescription, eventDetail, response);
-            _context.EventTracker.TrackHyperNodeResponded(childHyperNodeName, response);
+
+            try
+            {
+                _eventTracker.TrackHyperNodeResponded(childHyperNodeName, response);
+            }
+            catch (Exception ex)
+            {
+                TrackException(ex);
+            }
         }
 
         /// <summary>
@@ -65,7 +117,15 @@ namespace Hyper.NodeServices.ActivityTracking
         public void TrackTaskComplete(HyperNodeMessageResponse response)
         {
             Track("Task complete.", null, response);
-            _context.EventTracker.TrackTaskComplete(response);
+
+            try
+            {
+                _eventTracker.TrackTaskComplete(response);
+            }
+            catch (Exception ex)
+            {
+                TrackException(ex);
+            }
         }
 
         #region ITaskActivityTracker Implementation
@@ -101,10 +161,10 @@ namespace Hyper.NodeServices.ActivityTracking
                 new TrackActivityEventArgs(
                     new HyperNodeActivityEventItem
                     {
-                        Agent = _context.HyperNodeName,
-                        TaskId = _context.TaskId,
-                        CommandName = _context.CommandName,
-                        Elapsed = _context.Elapsed,
+                        Agent = _taskContext.HyperNodeName,
+                        TaskId = _taskContext.TaskId,
+                        CommandName = _taskContext.CommandName,
+                        Elapsed = _taskContext.Elapsed,
                         EventDateTime = DateTime.Now,
                         EventDescription = eventDescription,
                         EventDetail = eventDetail,
