@@ -76,7 +76,7 @@ namespace Hyper.NodeServices
             ConfigureTaskProvider(service, config);
             ConfigureActivityMonitors(service, config);
             ConfigureCommandModules(service, config);
-            ConfigureHyperNodeEventTracker(service, config);
+            ConfigureHyperNodeEventHandler(service, config);
 
             return service;
         }
@@ -285,7 +285,7 @@ namespace Hyper.NodeServices
             }
         }
 
-        private static void ConfigureHyperNodeEventTracker(HyperNodeService service, IHyperNodeConfiguration config)
+        private static void ConfigureHyperNodeEventHandler(HyperNodeService service, IHyperNodeConfiguration config)
         {
             IHyperNodeEventHandler eventHandler = null;
 

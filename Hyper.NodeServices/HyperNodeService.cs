@@ -305,6 +305,9 @@ namespace Hyper.NodeServices
                         response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
 
                     currentTaskInfo.Activity.TrackException(ex);
+
+                    // Make sure we clean up our task if any exceptions were thrown
+                    TaskCleanUp(currentTaskInfo.TaskId);
                 }
 
                 #endregion Process Message

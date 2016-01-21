@@ -15,8 +15,7 @@ namespace Hyper.NodeServices
     internal sealed class HyperNodeTaskInfo : IDisposable
     {
         private readonly Stopwatch _stopwatch = new Stopwatch();
-        private readonly CancellationToken _masterToken;
-        private CancellationTokenSource _taskTokenSource;
+        private readonly CancellationTokenSource _taskTokenSource;
         private readonly List<Task> _childTasks = new List<Task>();
 
         #region Properties
@@ -31,9 +30,6 @@ namespace Hyper.NodeServices
         {
             get
             {
-                if (_taskTokenSource == null)
-                    _taskTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_masterToken);
-
                 return _taskTokenSource.Token;
             }
         }
@@ -72,7 +68,7 @@ namespace Hyper.NodeServices
 
         public HyperNodeTaskInfo(CancellationToken masterToken, HyperNodeMessageRequest message, HyperNodeMessageResponse response)
         {
-            _masterToken = masterToken;
+            _taskTokenSource = CancellationTokenSource.CreateLinkedTokenSource(masterToken);
             _message = message;
             _response = response;
         }

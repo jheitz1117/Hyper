@@ -160,7 +160,6 @@ namespace HyperNodeTestClient
                     if (response.NodeAction != HyperNodeActionType.Rejected && msg.CacheTaskProgress)
                         StartAliceProgressTracking(response.TaskId);
                 }
-
             }
             catch (Exception ex)
             {
@@ -346,6 +345,49 @@ namespace HyperNodeTestClient
             }
         }
 
+        private void btnAliceCancelCurrentTask_Click(object sender, EventArgs e)
+        {
+            var targetTaskId = txtAliceTaskId.Text;
+            if (!string.IsNullOrWhiteSpace(targetTaskId))
+            {
+                // Create our message request
+                var msg = new HyperNodeMessageRequest(ClientAgentName)
+                {
+                    CommandName = SystemCommandName.CancelTask,
+                    CommandRequestString = targetTaskId
+                };
+
+                using (var client = new HyperNodeClient("Alice"))
+                {
+                    client.ProcessMessage(msg);
+                }
+            }
+        }
+
+        private void btnBobCancelCurrentTask_Click(object sender, EventArgs e)
+        {
+            var targetTaskId = txtBobTaskId.Text;
+            if (!string.IsNullOrWhiteSpace(targetTaskId))
+            {
+                // Create our message request
+                var msg = new HyperNodeMessageRequest(ClientAgentName)
+                {
+                    CommandName = SystemCommandName.CancelTask,
+                    IntendedRecipientNodeNames = new List<string>
+                    {
+                        "Bob"
+                    },
+                    ForwardingPath = GetForwardingPathFromAliceToBob(),
+                    CommandRequestString = targetTaskId
+                };
+
+                using (var client = new HyperNodeClient("Alice"))
+                {
+                    client.ProcessMessage(msg);
+                }
+            }
+        }
+
         #endregion Events
 
         #region Private Methods
@@ -374,22 +416,26 @@ namespace HyperNodeTestClient
             return (
                 from a in activity
                 orderby a.EventDateTime
-                select string.Format(
-                    "{0:G} {1}{2} - {3}",
-                    a.EventDateTime,
-                    a.Agent,
-                    (a.ProgressPercentage.HasValue || a.Elapsed.HasValue
-                     ? string.Format(
-                        " ({0}{1}{2:P})",
-                        a.Elapsed,
-                        (a.Elapsed.HasValue && a.ProgressPercentage.HasValue ? " " : ""),
-                        a.ProgressPercentage
-                       )
-                     : ""
-                    ),
-                    a.EventDescription
-                )
+                select FormatActivityItem(a)
             ).ToArray();
+        }
+
+        private static string FormatActivityItem(HyperNodeActivityItem item)
+        {
+            return string.Format(
+                "{0:G} {1}{2} - {3}",
+                item.EventDateTime,
+                item.Agent,
+                item.ProgressPercentage.HasValue || item.Elapsed.HasValue
+                    ? string.Format(
+                        " ({0}{1}{2:P})",
+                        item.Elapsed,
+                        item.Elapsed.HasValue && item.ProgressPercentage.HasValue ? " " : "",
+                        item.ProgressPercentage
+                    )
+                    : "",
+                item.EventDescription
+            );
         }
 
         private void StartAliceProgressTracking(string taskId)
@@ -500,7 +546,7 @@ namespace HyperNodeTestClient
                 {
                     new TreeNode(
                         response.RespondingNodeName,
-                        GetActivityStrings(response.TaskTrace).Select(s=>new TreeNode(s)).ToArray()
+                        response.TaskTrace.Select(i => new TreeNode(FormatActivityItem(i), string.IsNullOrWhiteSpace(i.EventDetail) ? new TreeNode[0] : new [] { new TreeNode(i.EventDetail) })).ToArray()
                     )
                     {
                         Tag = response
