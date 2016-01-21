@@ -3,6 +3,7 @@ using System.Linq;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
+using Hyper.NodeServices.Extensibility.EventTracking;
 using Hyper.NodeServices.SystemCommands.Contracts;
 
 // Keep in mind now that we're going to have two levels of validation (XSD and manual validation), we'll have to keep them in sync.
@@ -61,6 +62,10 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             // TaskIdProviderType is not required, but if it is specified, it must implement the correct interface
             if (!string.IsNullOrWhiteSpace(config.TaskIdProviderType))
                 ValidateTypeImplementsInterface(config.TaskIdProviderType, typeof(ITaskIdProvider));
+
+            // HyperNodeEventHandlerType is not required, but if it is specified, it must implement the correct interface
+            if (!string.IsNullOrWhiteSpace(config.HyperNodeEventHandlerType))
+                ValidateTypeImplementsInterface(config.HyperNodeEventHandlerType, typeof(IHyperNodeEventHandler));
 
             if (config.ActivityMonitors != null)
             {

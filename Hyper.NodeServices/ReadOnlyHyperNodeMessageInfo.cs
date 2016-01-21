@@ -4,12 +4,12 @@ using System.Collections.ObjectModel;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility;
 
-namespace Hyper.NodeServices.TaskIdProviders
+namespace Hyper.NodeServices
 {
     /// <summary>
-    /// This class provides a read-only version of a <see cref="HyperNodeMessageRequest"/> for use in user-defined implementations of the <see cref="ITaskIdProvider"/> interface.
+    /// This class provides a read-only version of a <see cref="HyperNodeMessageRequest"/> for use in user-defined code.
     /// </summary>
-    internal class TaskIdCreationContext : IHyperNodeMessageContext
+    internal class ReadOnlyHyperNodeMessageInfo : IReadOnlyHyperNodeMessageInfo
     {
         public string CommandName { get; set; }
         public string CreatedByAgentName { get; set; }
@@ -18,7 +18,7 @@ namespace Hyper.NodeServices.TaskIdProviders
         public IReadOnlyList<string> SeenByNodeNames { get; set; }
         public MessageProcessOptionFlags ProcessOptionFlags { get; set; }
 
-        public TaskIdCreationContext(IList<string> intendedRecipientNodeNames, IList<string> seenByNodeNames)
+        public ReadOnlyHyperNodeMessageInfo(IList<string> intendedRecipientNodeNames, IList<string> seenByNodeNames)
         {
             // Copy in the info from our top-level message and response. We're avoiding assignment so that
             // if the user changes anything, it doesn't affect the top-level message

@@ -17,11 +17,12 @@ using Hyper.NodeServices.Configuration;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Contracts.Extensibility.Serializers;
+using Hyper.NodeServices.EventTracking;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Configuration;
-using Hyper.NodeServices.TaskIdProviders;
+using Hyper.NodeServices.Extensibility.EventTracking;
 
 // TODO: (Phase 2 - see comments below) ClearActivityCache 
 /*************************************************************************************************************************************
@@ -85,7 +86,6 @@ namespace Hyper.NodeServices
     {
         #region Defaults
 
-        private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         private static readonly ICommandRequestSerializer DefaultRequestSerializer = new PassThroughSerializer();
         private static readonly ICommandResponseSerializer DefaultResponseSerializer = new PassThroughSerializer();
         private static readonly IHyperNodeConfigurationProvider DefaultConfigurationProvider = new HyperNodeSectionConfigurationProvider();
@@ -112,15 +112,11 @@ namespace Hyper.NodeServices
             get { return _hyperNodeName; }
         }
 
-        private ITaskIdProvider TaskIdProvider { get; set; }
-
         internal bool EnableTaskProgressCache
         {
             get { return _taskProgressCacheMonitor.Enabled; }
             set { _taskProgressCacheMonitor.Enabled = value; }
         }
-
-        internal bool EnableDiagnostics { get; set; }
 
         internal TimeSpan TaskProgressCacheDuration
         {
@@ -128,6 +124,9 @@ namespace Hyper.NodeServices
             set { _taskProgressCacheMonitor.CacheDuration = value; }
         }
 
+        private ITaskIdProvider TaskIdProvider { get; set; }
+        private IHyperNodeEventHandler EventHandler { get; set; }
+        internal bool EnableDiagnostics { get; set; }
         internal int MaxConcurrentTasks { get; set; }
 
         /// <summary>
@@ -162,61 +161,14 @@ namespace Hyper.NodeServices
                 ProcessStatusFlags = MessageProcessStatusFlags.None
             };
 
-            #region Create Task ID
+            var currentTaskInfo = new HyperNodeTaskInfo(_masterTokenSource.Token, message, response);
 
-            var taskId = "";
-            HyperNodeActivityItem illBehavedTaskIdProviderActivityItem = null;
-            var taskIdCreationContext = new TaskIdCreationContext(message.IntendedRecipientNodeNames, message.SeenByNodeNames)
-            {
-                CommandName = message.CommandName,
-                CreatedByAgentName = message.CreatedByAgentName,
-                CreationDateTime = message.CreationDateTime,
-                ProcessOptionFlags = message.ProcessOptionFlags
-            };
+            // Start our task-level stopwatch to track total time
+            currentTaskInfo.StartStopwatch();
 
-            try
-            {
-                // Try to use our custom task ID provider
-                taskId = this.TaskIdProvider.CreateTaskId(taskIdCreationContext);
-
-                // Check for a blank task ID
-                if (string.IsNullOrWhiteSpace(taskId))
-                {
-                    illBehavedTaskIdProviderActivityItem = new HyperNodeActivityItem(this.HyperNodeName)
-                    {
-                        EventDescription = string.Format(
-                            "The class '{0}' created a blank task ID.",
-                            this.TaskIdProvider.GetType().FullName
-                        )
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-                // Custom task ID provider threw an exception, so we'll just use our default provider to recover
-                illBehavedTaskIdProviderActivityItem = new HyperNodeActivityItem(this.HyperNodeName)
-                {
-                    EventDescription = "An exception was thrown while attempting to create a task ID.",
-                    EventDetail = ex.ToString()
-                };
-            }
-
-            // Check if we had an ill-behaved task ID provider. If so, use our default task ID provider instead.
-            if (illBehavedTaskIdProviderActivityItem != null)
-            {
-                taskId = DefaultTaskIdProvider.CreateTaskId(taskIdCreationContext);
-
-                illBehavedTaskIdProviderActivityItem.EventDescription += " The default task ID provider was used to generate a non-blank task ID instead.";
-                response.TaskTrace.Add(illBehavedTaskIdProviderActivityItem);
-            }
-
-            #endregion Create Task ID
-
-            // Now that we have a valid task ID, try to add it to our dictionary
-            var currentTaskInfo = new HyperNodeTaskInfo(_masterTokenSource.Token);
-
-            // Check if we should reject this request for any reason
-            var rejectionReason = GetRejectionReason(taskId, currentTaskInfo);
+            // Check if we should reject this request
+            HyperNodeActivityItem rejectionActivityItem;
+            var rejectionReason = GetRejectionReason(currentTaskInfo, out rejectionActivityItem);
             if (rejectionReason.HasValue)
             {
                 response.NodeAction = HyperNodeActionType.Rejected;
@@ -224,35 +176,16 @@ namespace Hyper.NodeServices
                 response.ProcessStatusFlags = MessageProcessStatusFlags.Cancelled;
                 response.TaskId = null;
 
-                var rejectionActivityItem = new HyperNodeActivityItem(this.HyperNodeName);
-                switch (rejectionReason.Value)
-                {
-                    case HyperNodeActionReasonType.MaxConcurrentTaskCountReached:
-                        rejectionActivityItem.EventDescription = string.Format("The maximum number of concurrent tasks ({0}) has been reached.", this.MaxConcurrentTasks);
-                        rejectionActivityItem.EventDetail = "An attempted was made to start a new task when the maximum number of concurrent tasks were already running. Consider increasing the value of MaxConcurrentTasks or setting it to -1 (unlimited).";
-                        break;
-                    case HyperNodeActionReasonType.CancellationRequested:
-                        rejectionActivityItem.EventDescription = "The service is shutting down. No new tasks can be started.";
-                        rejectionActivityItem.EventDetail = "The service-level cancellation token has been triggered. No new tasks are being spun up and all existing tasks are in the process of shutting down.";
-                        break;
-                    case HyperNodeActionReasonType.DuplicateTaskId:
-                        rejectionActivityItem.EventDescription = string.Format("A task with ID '{0}' is already running.", taskId);
-                        rejectionActivityItem.EventDetail = "A duplicate task ID was generated. This can occur when a new instance of singleton task is started while an existing instance of that task is running. If you know the task will complete, please try again after the task is finished. You may also consider cancelling the task and then restarting it.";
-                        break;
-                }
-
+                // At this point in the game, we don't have an activity tracker yet because we don't have a task ID. Without an activity tracker, we can't track the rejection activity item.
+                // Instead, we'll just add the information to the task trace of the response object and send that back so the caller knows what happened.
                 response.TaskTrace.Add(rejectionActivityItem);
+
+                // If the message was rejected, then the HyperNodeTaskInfo was not added to the list of live events, which means it will never be disposed unless we do so here.
+                // This will also set the TotalRunTime on the response so we know how long it took to reject the message
+                currentTaskInfo.Dispose();
             }
             else
             {
-                // In this case, we've confirmed that the new task was added, so start our task-level stopwatch and set our response task ID
-                currentTaskInfo.StartStopwatch();
-                response.TaskId = taskId;
-
-                // Allows the task info to track the message and response
-                currentTaskInfo.Message = message;
-                currentTaskInfo.Response = response;
-
                 // Initialize our activity tracker so we can track progress
                 InitializeActivityTracker(currentTaskInfo);
 
@@ -260,28 +193,32 @@ namespace Hyper.NodeServices
 
                 try
                 {
-                    // Confirm receipt of the message
-                    currentTaskInfo.Activity.TrackReceived();
+                    // Track that we've started a task to process the message.
+                    currentTaskInfo.Activity.TrackTaskStarted();
 
                     if (message.ExpirationDateTime <= DateTime.Now)
                     {
                         // Message has expired, so ignore it and do not forward it
                         response.NodeAction = HyperNodeActionType.Ignored;
                         response.NodeActionReason = HyperNodeActionReasonType.MessageExpired;
-                        currentTaskInfo.Activity.TrackIgnored("Message expired on " + message.ExpirationDateTime.ToString("G") + ".");
+                        currentTaskInfo.Activity.TrackMessageIgnored("Message expired on " + message.ExpirationDateTime.ToString("G") + ".");
                     }
                     else if (message.SeenByNodeNames.Contains(this.HyperNodeName))
                     {
                         // Message was already processed by this node, so ignore it and do not forward it (since it would have been forwarded the first time)
                         response.NodeAction = HyperNodeActionType.Ignored;
                         response.NodeActionReason = HyperNodeActionReasonType.PreviouslySeen;
-                        currentTaskInfo.Activity.TrackIgnored("Message previously seen.");
+                        currentTaskInfo.Activity.TrackMessageIgnored("Message previously seen.");
                     }
                     else
                     {
                         // Add this node to the list of nodes who have seen this message
                         message.SeenByNodeNames.Add(this.HyperNodeName);
-                        currentTaskInfo.Activity.TrackSeen();
+                        currentTaskInfo.Activity.TrackMessageSeen();
+
+                        // TODO: Check to make sure this cancellation thing works!
+                        // Check if user cancelled the message in the OnMessageSeen event
+                        currentTaskInfo.Token.ThrowIfCancellationRequested();
 
                         // Check if this message has a list of intended recipients, and if this node was one of them.
                         // An empty recipients list means means the message is indended for all nodes in the forwarding path.
@@ -290,7 +227,7 @@ namespace Hyper.NodeServices
                             // This node was not an intended recipient, so ignore the message, but still forward it if possible.
                             response.NodeAction = HyperNodeActionType.Ignored;
                             response.NodeActionReason = HyperNodeActionReasonType.UnintendedRecipient;
-                            currentTaskInfo.Activity.TrackIgnored("Message not intended for agent.");
+                            currentTaskInfo.Activity.TrackMessageIgnored("Message not intended for agent.");
                         }
                         else
                         {
@@ -321,7 +258,7 @@ namespace Hyper.NodeServices
                                     }
                                     finally
                                     {
-                                        args.Activity.TrackProcessed();
+                                        args.Activity.TrackMessageProcessed();
                                     }
                                 }
                             );
@@ -351,19 +288,26 @@ namespace Hyper.NodeServices
                     if (message.RunConcurrently)
                     {
                         // If we're running concurrently, we want to return immediately and allow the clean up to occur as a continuation after the tasks are finished.
-                        currentTaskInfo.WhenChildTasks().ContinueWith(t => TaskCleanUp(taskId));
+                        currentTaskInfo.WhenChildTasks().ContinueWith(t => TaskCleanUp(currentTaskInfo.TaskId));
                     }
                     else
                     {
                         // Otherwise, if we're running synchronously, we want to block until all our child threads are done, then clean up.
                         currentTaskInfo.WaitChildTasks(_masterTokenSource.Token);
-                        TaskCleanUp(taskId);
+                        TaskCleanUp(currentTaskInfo.TaskId);
                     }
                 }
                 catch (Exception ex)
                 {
-                    response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
+                    if (ex is OperationCanceledException)
+                        response.ProcessStatusFlags |= MessageProcessStatusFlags.Cancelled;
+                    else
+                        response.ProcessStatusFlags = MessageProcessStatusFlags.Failure;
+
                     currentTaskInfo.Activity.TrackException(ex);
+
+                    // Make sure we clean up our task if any exceptions were thrown
+                    TaskCleanUp(currentTaskInfo.TaskId);
                 }
 
                 #endregion Process Message
@@ -522,13 +466,17 @@ namespace Hyper.NodeServices
 
         private void InitializeActivityTracker(HyperNodeTaskInfo currentTaskInfo)
         {
-            currentTaskInfo.Activity = new HyperNodeServiceActivityTracker(
-                new HyperNodeActivityContext(
+            currentTaskInfo.Activity = new HyperNodeTaskActivityTracker(
+                new TaskEventContext(
                     this.HyperNodeName,
-                    currentTaskInfo.Message.CommandName,
+                    currentTaskInfo.Message,
                     currentTaskInfo.Response.TaskId,
-                    (currentTaskInfo.Message.ReturnTaskTrace || this.EnableDiagnostics)
-                )
+                    currentTaskInfo.Message.ReturnTaskTrace || this.EnableDiagnostics
+                ),
+                this.EventHandler,
+
+                // Possible user actions
+                currentTaskInfo.Cancel
             );
 
             try
@@ -633,17 +581,112 @@ namespace Hyper.NodeServices
             }
         }
 
-        private HyperNodeActionReasonType? GetRejectionReason(string taskId, HyperNodeTaskInfo taskInfo)
+        private HyperNodeActionReasonType? GetRejectionReason(HyperNodeTaskInfo taskInfo, out HyperNodeActivityItem rejectionActivity)
         {
             HyperNodeActionReasonType? rejectionReason = null;
 
-            // Check the reason why we are rejecting
-            if (this.MaxConcurrentTasks > -1 && _liveTasks.Count >= this.MaxConcurrentTasks)
-                rejectionReason = HyperNodeActionReasonType.MaxConcurrentTaskCountReached;
-            else if (_masterTokenSource.IsCancellationRequested)
-                rejectionReason = HyperNodeActionReasonType.CancellationRequested;
-            else if (!_liveTasks.TryAdd(taskId, taskInfo))
-                rejectionReason = HyperNodeActionReasonType.DuplicateTaskId;
+            var messageInfo = new ReadOnlyHyperNodeMessageInfo(taskInfo.Message.IntendedRecipientNodeNames, taskInfo.Message.SeenByNodeNames)
+            {
+                CommandName = taskInfo.Message.CommandName,
+                CreatedByAgentName = taskInfo.Message.CreatedByAgentName,
+                CreationDateTime = taskInfo.Message.CreationDateTime,
+                ProcessOptionFlags = taskInfo.Message.ProcessOptionFlags
+            };
+
+            HyperNodeActivityItem userRejectionActivity = null;
+            try
+            {
+                // Allow the user to reject the message if necessary
+                this.EventHandler.OnMessageReceived(
+                    new MessageReceivedEventArgs(
+                        this.HyperNodeName,
+                        messageInfo,
+                        r =>
+                        {
+                            rejectionReason = HyperNodeActionReasonType.Custom;
+                            userRejectionActivity = new HyperNodeActivityItem(this.HyperNodeName)
+                            {
+                                EventDescription = "The message was rejected by user-defined code. See the EventDetail property for the rejection reason.",
+                                EventDetail = r
+                            };
+                        }
+                    )
+                );
+            }
+            catch (Exception ex)
+            {
+                // User-defined event handler threw an exception, so assume the worst and reject the message.
+                rejectionReason = HyperNodeActionReasonType.Custom;
+                userRejectionActivity = new HyperNodeActivityItem(this.HyperNodeName)
+                {
+                    EventDescription = "An exception was thrown by user-defined code while processing the OnMessageReceived event. See the EventDetail property for the exception details.",
+                    EventDetail = ex.ToString()
+                };
+            }
+
+            // If the user didn't reject the message, give the system a chance to reject it
+            var systemRejectionActivity = new HyperNodeActivityItem(this.HyperNodeName);
+            if (!rejectionReason.HasValue)
+            {
+                if (this.MaxConcurrentTasks > -1 && _liveTasks.Count >= this.MaxConcurrentTasks)
+                {
+                    rejectionReason = HyperNodeActionReasonType.MaxConcurrentTaskCountReached;
+                    systemRejectionActivity.EventDescription = string.Format("The maximum number of concurrent tasks ({0}) has been reached.", this.MaxConcurrentTasks);
+                    systemRejectionActivity.EventDetail = "An attempted was made to start a new task when the maximum number of concurrent tasks were already running. Consider increasing the value of MaxConcurrentTasks or setting it to -1 (unlimited).";
+                }
+                else if (_masterTokenSource.IsCancellationRequested)
+                {
+                    rejectionReason = HyperNodeActionReasonType.CancellationRequested;
+                    systemRejectionActivity.EventDescription = "The service is shutting down. No new tasks can be started.";
+                    systemRejectionActivity.EventDetail = "The service-level cancellation token has been triggered. No new tasks are being spun up and all existing tasks are in the process of shutting down.";
+                }
+                else
+                {
+                    // If we get this far, there's a good chance the message will not be rejected. However, if the ITaskIdProvider is ill-behaved (throws an exception), then we
+                    // may still have to reject the message due to being unable to get a task ID
+
+                    string taskId = null;
+                    
+                    try
+                    {
+                        // Try to use our custom task ID provider
+                        taskId = this.TaskIdProvider.CreateTaskId(messageInfo);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Failed to get a Task ID, so reject the message
+                        rejectionReason = HyperNodeActionReasonType.TaskIdProviderThrewException;
+                        systemRejectionActivity.EventDescription = "An exception was thrown while attempting to create a task ID.";
+                        systemRejectionActivity.EventDetail = ex.ToString();
+                    }
+
+                    if (string.IsNullOrWhiteSpace(taskId))
+                    {
+                        rejectionReason = HyperNodeActionReasonType.InvalidTaskId;
+                        systemRejectionActivity.EventDescription = string.Format(
+                            "The class '{0}' created a blank task ID.",
+                            this.TaskIdProvider.GetType().FullName
+                        );
+                    }
+                    else if (!_liveTasks.TryAdd(taskId, taskInfo))
+                    {
+                        rejectionReason = HyperNodeActionReasonType.DuplicateTaskId;
+                        systemRejectionActivity.EventDescription = string.Format("A task with ID '{0}' is already running.", taskId);
+                        systemRejectionActivity.EventDetail = "A duplicate task ID was generated. This can occur when a new instance of singleton task is started while an existing instance of that task is running. If you know the task will complete, please try again after the task is finished. You may also consider cancelling the task and then restarting it.";
+                    }
+                    else
+                    {
+                        // In this case we don't want to reject the message after all
+                        systemRejectionActivity = null;
+
+                        // Don't forget to set the task ID in our task info object
+                        taskInfo.TaskId = taskId;
+                    }
+                }
+            }
+
+            // Set the rejection activity here, and let the user-defined rejection take precedence over the system-defined rejection
+            rejectionActivity = userRejectionActivity ?? systemRejectionActivity;
 
             return rejectionReason;
         }
@@ -658,81 +701,109 @@ namespace Hyper.NodeServices
             Task[] forwardingTasks = { };
 
             // Allow a null path to be passed. We can just treat it as an empty path and not forward the message to anyone
-            var children = GetConnectedHyperNodeChildren(
+            var remoteNodes = GetConnectedHyperNodes(
                 (taskInfo.Message.ForwardingPath ?? new HyperNodePath()).GetChildren(this.HyperNodeName).ToList(),
                 taskInfo.Activity
             );
 
-            if (children != null)
+            if (remoteNodes != null)
             {
-                forwardingTasks = children.Select(
-                    child => new ForwardingTaskParameter(child.Key, taskInfo)
+                forwardingTasks = remoteNodes.Select(
+                    remoteNode => new ForwardingTaskParameter(remoteNode.Key, taskInfo)
                 ).Select(
-                    childForwardingParam => Task.Factory.StartNew(
-                        param =>
-                        {
-                            var forwardingParam = (ForwardingTaskParameter)param;
-                            HyperNodeMessageResponse response = null;
-
-                            try
+                    childForwardingParam =>
+                    {
+                        // Track the message forwarding. This also gives the user a chance to skip a recipient if they wish.
+                        var shouldForward = true;
+                        childForwardingParam.TaskInfo.Activity.TrackForwardingMessage(
+                            childForwardingParam.RemoteNodeName,
+                            () =>
                             {
-                                // By the time we get here, we must have guaranteed that a client endpoint exists with the specified name.
-                                forwardingParam.TaskInfo.Activity.TrackForwarding(forwardingParam.ChildNodeName);
+                                shouldForward = false;
+                                childForwardingParam.TaskInfo.Activity.TrackFormat("The message was not forwarded to HyperNode '{0}' because it was skipped by a user-defined event handler.", childForwardingParam.RemoteNodeName);
+                            }
+                        );
 
-                                using (var client = new HyperNodeClient(forwardingParam.ChildNodeName))
+                        // Check if user tried to cancel the task
+                        taskInfo.Token.ThrowIfCancellationRequested();
+
+                        Task childTask = null;
+                        if (shouldForward)
+                        {
+                            childTask = Task.Factory.StartNew(
+                                param =>
                                 {
-                                    response = client.ProcessMessage(
-                                        forwardingParam.TaskInfo.Message
-                                    );    
-                                }
-                            }
-                            catch (FaultException)
-                            {
-                                // Rethrow fault exceptions to be handled by the continuation
-                                throw;
-                            }
-                            catch (Exception ex)
-                            {
-                                forwardingParam.TaskInfo.Activity.TrackException(ex);
-                            }
+                                    var forwardingParam = (ForwardingTaskParameter) param;
+                                    HyperNodeMessageResponse response = null;
 
-                            return response;
-                        },
-                        childForwardingParam,
-                        taskInfo.Token
-                    ).ContinueWith(
-                        (forwardingTask, param) =>
-                        {
-                            var forwardingParam = (ForwardingTaskParameter)param;
-
-                            // Check the status of the antecedent and report accordingly
-                            switch (forwardingTask.Status)
-                            {
-                                case TaskStatus.RanToCompletion:
-                                    if (forwardingTask.Result != null)
+                                    try
                                     {
-                                        forwardingParam.TaskInfo.Activity.TrackHyperNodeResponded(forwardingParam.ChildNodeName, forwardingTask.Result);
+                                        // By the time we get here, we have guaranteed that a client endpoint exists with the specified name.
+                                        using (var client = new HyperNodeClient(forwardingParam.RemoteNodeName))
+                                        {
+                                            response = client.ProcessMessage(forwardingParam.TaskInfo.Message);
+                                        }
                                     }
-                                    break;
-                                case TaskStatus.Faulted:
-                                    forwardingParam.TaskInfo.Activity.Track(
-                                        string.Format("An unhandled exception was thrown by HyperNode '{0}' as a fault.", forwardingParam.ChildNodeName),
-                                        "This is normally caused by an error thrown in the ProcessMessage() method, but could also be caused by an extension or plugin. Exception detail follows:\r\n" +
-                                        forwardingTask.Exception
-                                    );
-                                    break;
-                                default:
-                                    forwardingParam.TaskInfo.Activity.TrackFormat(
-                                        "Child task to forward message to HyperNode '{0}' completed with status '{1}'.",
-                                        forwardingParam.ChildNodeName,
-                                        forwardingTask.Status.ToString()
-                                    );
-                                    break;
-                            }
-                        },
-                        childForwardingParam,
-                        taskInfo.Token
-                    )
+                                    catch (FaultException)
+                                    {
+                                        // Rethrow fault exceptions to be handled by the continuation
+                                        throw;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        forwardingParam.TaskInfo.Activity.TrackException(ex);
+                                    }
+
+                                    // The response might be null if the user chose to skip this recipient.
+                                    return response;
+                                },
+                                childForwardingParam,
+                                taskInfo.Token
+                            ).ContinueWith(
+                                (forwardingTask, param) =>
+                                {
+                                    var forwardingParam = (ForwardingTaskParameter) param;
+
+                                    // Check the status of the antecedent and report accordingly
+                                    switch (forwardingTask.Status)
+                                    {
+                                        case TaskStatus.RanToCompletion:
+                                            if (forwardingTask.Result != null)
+                                            {
+                                                forwardingParam.TaskInfo.Activity.TrackHyperNodeResponded(
+                                                    forwardingParam.RemoteNodeName, forwardingTask.Result
+                                                );
+                                            }
+                                            break;
+                                        case TaskStatus.Faulted:
+                                            forwardingParam.TaskInfo.Activity.Track(
+                                                string.Format(
+                                                    "An unhandled exception was thrown by HyperNode '{0}' as a fault.",
+                                                    forwardingParam.RemoteNodeName
+                                                ),
+                                                "This is normally caused by an error thrown in the ProcessMessage() method, but could also be caused by an extension or plugin. Exception detail follows:\r\n" +
+                                                forwardingTask.Exception
+                                                );
+                                            break;
+                                        default:
+                                            forwardingParam.TaskInfo.Activity.TrackFormat(
+                                                "Child task to forward message to HyperNode '{0}' completed with status '{1}'.",
+                                                forwardingParam.RemoteNodeName,
+                                                forwardingTask.Status.ToString()
+                                            );
+                                            break;
+                                    }
+                                },
+                                childForwardingParam,
+                                taskInfo.Token
+                            );
+                        }
+
+                        // This could be null if the user opted to skip the recipient. If so, then we'll just weed out the nulls below
+                        return childTask;
+                    }
+                ).Where(
+                    t => t != null // Weed out the null tasks that result from skipping recipients
                 ).ToArray();
 
                 // If we're not running concurrently, then we are running synchronously, which means we need to wait for all the child nodes to return
@@ -759,7 +830,7 @@ namespace Hyper.NodeServices
                     {
                         taskInfo.Activity.Track(
                             string.Format("HyperNode '{0}' timed out at {1}.",
-                                forwardingArgs.ChildNodeName,
+                                forwardingArgs.RemoteNodeName,
                                 taskInfo.Message.ForwardingTimeout
                             ),
                             string.Format(
@@ -768,7 +839,7 @@ namespace Hyper.NodeServices
                                 "the message timeout attributes in your WCF configuration. If caching was enabled for this message, additional trace logs may be obtained " +
                                 "by querying the intended recipients directly. Additional trace logs may also be obtained by querying the data stores for any custom " +
                                 "activity monitors that may be attached to the intended recipients.",
-                                forwardingArgs.ChildNodeName,
+                                forwardingArgs.RemoteNodeName,
                                 taskInfo.Message.ForwardingTimeout
                             )
                         );
@@ -779,7 +850,7 @@ namespace Hyper.NodeServices
             return forwardingTasks;
         }
 
-        private static IEnumerable<HyperNodeVertex> GetConnectedHyperNodeChildren(List<HyperNodeVertex> vertices, ITaskActivityTracker activityTracker)
+        private static IEnumerable<HyperNodeVertex> GetConnectedHyperNodes(List<HyperNodeVertex> vertices, ITaskActivityTracker activityTracker)
         {
             // Check to see if the path specified any child nodes that don't have endpoints defined in the app.config
             var configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);

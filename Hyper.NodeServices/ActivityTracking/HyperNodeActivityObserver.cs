@@ -5,11 +5,6 @@ using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.ActivityTracking
 {
-    /* TODO: We might want to consider support for auto-disabling a user-defined observer if it throws too many exceptions. I suppose we could include that as a setting that
-     * counts the number of exceptions thrown by observers, keyed by type. So for the lifetime of the service, it continually counts the exceptions, and then if the
-     * count is greater than the user-specified setting, then permantently disable the monitor.
-     */
-
     /// <summary>
     /// When disposed, uses the specified <see cref="IScheduler"/> to schedule the disposal of itself and the specified <see cref="HyperNodeServiceActivityMonitor"/>.
     /// </summary>

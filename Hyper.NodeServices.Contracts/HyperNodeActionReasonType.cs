@@ -15,45 +15,63 @@ namespace Hyper.NodeServices.Contracts
         Unknown = 0,
 
         /// <summary>
+        /// Indicates that the message was rejected by user-defined code for a user-defined reason.
+        /// </summary>
+        [EnumMember]
+        Custom = 1,
+
+        /// <summary>
         /// Indicates that the message expired before it could be processed by the receiving <see cref="IHyperNodeService"/>.
         /// </summary>
         [EnumMember]
-        MessageExpired = 1,
+        MessageExpired = 2,
 
         /// <summary>
         /// Indicates that the receiving <see cref="IHyperNodeService"/> had already seen the message.
         /// </summary>
         [EnumMember]
-        PreviouslySeen = 2,
+        PreviouslySeen = 3,
 
         /// <summary>
         /// Indicates that the receiving <see cref="IHyperNodeService"/> was not an intended recipient.
         /// </summary>
         [EnumMember]
-        UnintendedRecipient = 3,
+        UnintendedRecipient = 4,
 
         /// <summary>
         /// Indicates that the receiving <see cref="IHyperNodeService"/> was an intended recipient.
         /// </summary>
         [EnumMember]
-        IntendedRecipient = 4,
+        IntendedRecipient = 5,
 
         /// <summary>
         /// Indicates that the receiving <see cref="IHyperNodeService"/> generated a task ID for a task that was already running.
         /// </summary>
         [EnumMember]
-        DuplicateTaskId = 5,
+        DuplicateTaskId = 6,
 
         /// <summary>
         /// Indicates that the receiving <see cref="IHyperNodeService"/> has already reached its maximum number of concurrent tasks.
         /// </summary>
         [EnumMember]
-        MaxConcurrentTaskCountReached = 6,
+        MaxConcurrentTaskCountReached = 7,
 
         /// <summary>
         /// Indicates that the Cancel() method has been called on the receiving <see cref="IHyperNodeService"/> and no new tasks are being started.
         /// </summary>
         [EnumMember]
-        CancellationRequested = 7
+        CancellationRequested = 8,
+
+        /// <summary>
+        /// Indicates that the <see cref="ITaskIdProvider"/> implementation threw an exception while generating a task ID.
+        /// </summary>
+        [EnumMember]
+        TaskIdProviderThrewException = 9,
+
+        /// <summary>
+        /// Indicates that the <see cref="ITaskIdProvider"/> implementation generated an invalid task ID.
+        /// </summary>
+        [EnumMember]
+        InvalidTaskId = 10
     }
 }

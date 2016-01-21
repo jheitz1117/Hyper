@@ -1,6 +1,7 @@
 ﻿using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
+using Hyper.NodeServices.Extensibility.EventTracking;
 
 namespace Hyper.NodeServices.Extensibility.Configuration
 {
@@ -43,6 +44,12 @@ namespace Hyper.NodeServices.Extensibility.Configuration
         /// implementation is used by the <see cref="IHyperNodeService"/>. Otherwise, an instance of the specified type will be used instead.
         /// </summary>
         string TaskIdProviderType { get; }
+
+        /// <summary>
+        /// The assembly qualified name of a type that derives from <see cref="HyperNodeEventHandlerBase"/>. If this property is not supplied, a default
+        /// implementation is used by the <see cref="IHyperNodeService"/>. Otherwise, an instance of the specified type will be used instead.
+        /// </summary>
+        string HyperNodeEventHandlerType { get; }
 
         /// <summary>
         /// A collection of <see cref="IActivityMonitorConfiguration"/> objects specifying how user-defined <see cref="HyperNodeServiceActivityMonitor"/> objects should be configured in the <see cref="IHyperNodeService"/>.

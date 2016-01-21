@@ -15,24 +15,26 @@ namespace Hyper.NodeServices
     internal sealed class HyperNodeTaskInfo : IDisposable
     {
         private readonly Stopwatch _stopwatch = new Stopwatch();
-        private readonly CancellationToken _masterToken;
-        private CancellationTokenSource _taskTokenSource;
+        private readonly CancellationTokenSource _taskTokenSource;
         private readonly List<Task> _childTasks = new List<Task>();
 
         #region Properties
+
+        public string TaskId
+        {
+            get { return _response.TaskId; }
+            set { _response.TaskId = value; }
+        }
 
         public CancellationToken Token
         {
             get
             {
-                if (_taskTokenSource == null)
-                    _taskTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_masterToken);
-
                 return _taskTokenSource.Token;
             }
         }
 
-        public HyperNodeServiceActivityTracker Activity { get; set; }
+        public HyperNodeTaskActivityTracker Activity { get; set; }
 
         private readonly IConnectableObservable<Unit> _terminatingSequence = Observable.Return(Unit.Default).Publish();
         public IConnectableObservable<Unit> TerminatingSequence
@@ -49,9 +51,11 @@ namespace Hyper.NodeServices
             get { return _activitySubscribers; }
         }
 
-        public HyperNodeMessageRequest Message { get; set; }
-
-        public HyperNodeMessageResponse Response { get; set; }
+        private readonly HyperNodeMessageRequest _message;
+        public HyperNodeMessageRequest Message { get { return _message; } }
+        
+        private readonly HyperNodeMessageResponse _response;
+        public HyperNodeMessageResponse Response { get { return _response; } }
 
         public TimeSpan Elapsed
         {
@@ -62,9 +66,11 @@ namespace Hyper.NodeServices
 
         #region Public Methods
 
-        public HyperNodeTaskInfo(CancellationToken masterToken)
+        public HyperNodeTaskInfo(CancellationToken masterToken, HyperNodeMessageRequest message, HyperNodeMessageResponse response)
         {
-            _masterToken = masterToken;
+            _taskTokenSource = CancellationTokenSource.CreateLinkedTokenSource(masterToken);
+            _message = message;
+            _response = response;
         }
 
         public void StartStopwatch()
@@ -137,7 +143,7 @@ namespace Hyper.NodeServices
                  * updates must know when the service is done sending updates. Make sure we pass the final, completed response object in case we have
                  * any monitors that are watching for it. */
                 if (this.Activity != null)
-                    this.Activity.TrackFinished(this.Response);
+                    this.Activity.TrackTaskComplete(this.Response);
 
                 // Signal that we are done raising activity events to ensure that the queues for all of our schedulers don't keep having stuff appended to the end
                 // This also triggers the OnComplete() event for all subscribers, which should automatically trigger the scheduling of their disposal

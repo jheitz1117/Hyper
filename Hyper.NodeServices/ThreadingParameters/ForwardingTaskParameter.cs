@@ -2,12 +2,12 @@
 {
     internal class ForwardingTaskParameter
     {
-        public string ChildNodeName { get; private set; }
+        public string RemoteNodeName { get; private set; }
         public HyperNodeTaskInfo TaskInfo { get; private set; }
 
-        public ForwardingTaskParameter(string childNodeName, HyperNodeTaskInfo taskInfo)
+        public ForwardingTaskParameter(string remoteNodeName, HyperNodeTaskInfo taskInfo)
         {
-            this.ChildNodeName = childNodeName;
+            this.RemoteNodeName = remoteNodeName;
             this.TaskInfo = taskInfo;
         }
     }

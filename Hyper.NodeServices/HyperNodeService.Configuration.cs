@@ -10,7 +10,9 @@ using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Configuration;
 using Hyper.NodeServices.Extensibility.Configuration.Validation;
+using Hyper.NodeServices.Extensibility.EventTracking;
 using Hyper.NodeServices.SystemCommands.Contracts;
+using Hyper.NodeServices.TaskIdProviders;
 
 namespace Hyper.NodeServices
 {
@@ -18,6 +20,8 @@ namespace Hyper.NodeServices
     {
         #region Defaults
 
+        private static readonly IHyperNodeEventHandler DefaultEventHandler = new HyperNodeEventHandlerBase();
+        private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         internal const bool DefaultTaskProgressCacheEnabled = false;
         internal const bool DefaultDiagnosticsEnabled = false;
         internal const int DefaultProgressCacheDurationMinutes = 60;
@@ -72,6 +76,7 @@ namespace Hyper.NodeServices
             ConfigureTaskProvider(service, config);
             ConfigureActivityMonitors(service, config);
             ConfigureCommandModules(service, config);
+            ConfigureHyperNodeEventHandler(service, config);
 
             return service;
         }
@@ -280,6 +285,20 @@ namespace Hyper.NodeServices
             }
         }
 
+        private static void ConfigureHyperNodeEventHandler(HyperNodeService service, IHyperNodeConfiguration config)
+        {
+            IHyperNodeEventHandler eventHandler = null;
+
+            // Set our event handler if applicable, but if we have any problems creating the instance or casting to HyperNodeEventHandlerBase, we deliberately want to fail out and make them fix the configuration
+            if (!string.IsNullOrWhiteSpace(config.HyperNodeEventHandlerType))
+            {
+                eventHandler = (IHyperNodeEventHandler)Activator.CreateInstance(Type.GetType(config.HyperNodeEventHandlerType, true));
+                eventHandler.Initialize();
+            }
+
+            service.EventHandler = eventHandler ?? DefaultEventHandler;
+        }
+        
         #endregion Configuration
     }
 }

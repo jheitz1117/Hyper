@@ -43,6 +43,7 @@
     <Compile Include="ActivityMonitors\TaskActivityTracer.cs" />
     <Compile Include="CommandModules\ComplexCommandModule.cs" />
     <Compile Include="CommandModules\DisposableCommandModule.cs" />
+    <Compile Include="EventHandlers\TestEventHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TaskIdProviders\NumericTaskIdProvider.cs" />
   </ItemGroup>

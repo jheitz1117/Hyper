@@ -72,7 +72,7 @@ namespace Hyper.Test
                         new HyperNodeConfiguration
                         {
                             HyperNodeName = "UnitTestNode",
-                            TaskIdProviderType = "BadType"
+                            TaskIdProviderType = typeString
                         }
                     )
                 );
@@ -98,6 +98,56 @@ namespace Hyper.Test
                         {
                             HyperNodeName = "UnitTestNode",
                             TaskIdProviderType = typeString
+                        }
+                    )
+                );
+
+                Assert.Fail("HyperNodeService should throw an exception indicating that the type '" + typeString + "' doesn't implement the correct interface.");
+            }
+            catch
+            {
+                // Success, since we threw an expected exception
+            }
+        }
+
+        [TestMethod]
+        public void InvalidHyperNodeEventHandlerTypeStringTest()
+        {
+            const string typeString = "BadType";
+
+            try
+            {
+                HyperNodeService.CreateAndConfigure(
+                    new HyperNodeMockConfigurationProvider(
+                        new HyperNodeConfiguration
+                        {
+                            HyperNodeName = "UnitTestNode",
+                            HyperNodeEventHandlerType = typeString
+                        }
+                    )
+                );
+
+                Assert.Fail("HyperNodeService should throw an exception indicating that the type '" + typeString + "' cannot be parsed into a valid type.");
+            }
+            catch (HyperNodeConfigurationException)
+            {
+                // Success, since we threw an expected exception
+            }
+        }
+
+        [TestMethod]
+        public void HyperNodeEventHandlerStringDoesNotImplementInterfaceTest()
+        {
+            const string typeString = "Hyper.Test.HyperNodeMockConfigurationProvider, Hyper.Test";
+
+            try
+            {
+                HyperNodeService.CreateAndConfigure(
+                    new HyperNodeMockConfigurationProvider(
+                        new HyperNodeConfiguration
+                        {
+                            HyperNodeName = "UnitTestNode",
+                            HyperNodeEventHandlerType = typeString
                         }
                     )
                 );

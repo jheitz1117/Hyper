@@ -72,10 +72,12 @@ namespace HyperNodeTestClient
             this.pnlHyperNodeActivityTop = new System.Windows.Forms.Panel();
             this.grpHyperNodeActivity = new System.Windows.Forms.GroupBox();
             this.pnlLeft = new System.Windows.Forms.Panel();
+            this.btnLoadTestAlice = new System.Windows.Forms.Button();
             this.lblRecipient = new System.Windows.Forms.Label();
             this.cboHyperNodeNames = new System.Windows.Forms.ComboBox();
             this.btnRefreshCommandList = new System.Windows.Forms.Button();
-            this.btnLoadTestAlice = new System.Windows.Forms.Button();
+            this.btnAliceCancelCurrentTask = new System.Windows.Forms.Button();
+            this.btnBobCancelCurrentTask = new System.Windows.Forms.Button();
             this.grpBobActivityItems.SuspendLayout();
             this.grpBobResponseSummary.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spcHyperNodeActivity)).BeginInit();
@@ -384,6 +386,7 @@ namespace HyperNodeTestClient
             // pnlAliceTop
             // 
             this.pnlAliceTop.Controls.Add(this.txtAliceTaskId);
+            this.pnlAliceTop.Controls.Add(this.btnAliceCancelCurrentTask);
             this.pnlAliceTop.Controls.Add(this.lblAliceTaskId);
             this.pnlAliceTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlAliceTop.Location = new System.Drawing.Point(3, 16);
@@ -398,7 +401,7 @@ namespace HyperNodeTestClient
             this.txtAliceTaskId.Location = new System.Drawing.Point(51, 3);
             this.txtAliceTaskId.Name = "txtAliceTaskId";
             this.txtAliceTaskId.ReadOnly = true;
-            this.txtAliceTaskId.Size = new System.Drawing.Size(519, 20);
+            this.txtAliceTaskId.Size = new System.Drawing.Size(444, 20);
             this.txtAliceTaskId.TabIndex = 1;
             // 
             // lblAliceTaskId
@@ -481,6 +484,7 @@ namespace HyperNodeTestClient
             // pnlBobTop
             // 
             this.pnlBobTop.Controls.Add(this.txtBobTaskId);
+            this.pnlBobTop.Controls.Add(this.btnBobCancelCurrentTask);
             this.pnlBobTop.Controls.Add(this.lblBobTaskId);
             this.pnlBobTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlBobTop.Location = new System.Drawing.Point(3, 16);
@@ -495,7 +499,7 @@ namespace HyperNodeTestClient
             this.txtBobTaskId.Location = new System.Drawing.Point(51, 3);
             this.txtBobTaskId.Name = "txtBobTaskId";
             this.txtBobTaskId.ReadOnly = true;
-            this.txtBobTaskId.Size = new System.Drawing.Size(514, 20);
+            this.txtBobTaskId.Size = new System.Drawing.Size(439, 20);
             this.txtBobTaskId.TabIndex = 1;
             // 
             // lblBobTaskId
@@ -575,6 +579,16 @@ namespace HyperNodeTestClient
             this.pnlLeft.Size = new System.Drawing.Size(369, 682);
             this.pnlLeft.TabIndex = 25;
             // 
+            // btnLoadTestAlice
+            // 
+            this.btnLoadTestAlice.Location = new System.Drawing.Point(96, 207);
+            this.btnLoadTestAlice.Name = "btnLoadTestAlice";
+            this.btnLoadTestAlice.Size = new System.Drawing.Size(115, 31);
+            this.btnLoadTestAlice.TabIndex = 25;
+            this.btnLoadTestAlice.Text = "Load Test Alice";
+            this.btnLoadTestAlice.UseVisualStyleBackColor = true;
+            this.btnLoadTestAlice.Click += new System.EventHandler(this.btnLoadTestAlice_Click);
+            // 
             // lblRecipient
             // 
             this.lblRecipient.AutoSize = true;
@@ -603,15 +617,27 @@ namespace HyperNodeTestClient
             this.btnRefreshCommandList.UseVisualStyleBackColor = true;
             this.btnRefreshCommandList.Click += new System.EventHandler(this.btnRefreshCommandList_Click);
             // 
-            // btnLoadTestAlice
+            // btnAliceCancelCurrentTask
             // 
-            this.btnLoadTestAlice.Location = new System.Drawing.Point(96, 207);
-            this.btnLoadTestAlice.Name = "btnLoadTestAlice";
-            this.btnLoadTestAlice.Size = new System.Drawing.Size(115, 31);
-            this.btnLoadTestAlice.TabIndex = 25;
-            this.btnLoadTestAlice.Text = "Load Test Alice";
-            this.btnLoadTestAlice.UseVisualStyleBackColor = true;
-            this.btnLoadTestAlice.Click += new System.EventHandler(this.btnLoadTestAlice_Click);
+            this.btnAliceCancelCurrentTask.Dock = System.Windows.Forms.DockStyle.Right;
+            this.btnAliceCancelCurrentTask.Location = new System.Drawing.Point(495, 3);
+            this.btnAliceCancelCurrentTask.Name = "btnAliceCancelCurrentTask";
+            this.btnAliceCancelCurrentTask.Size = new System.Drawing.Size(75, 20);
+            this.btnAliceCancelCurrentTask.TabIndex = 2;
+            this.btnAliceCancelCurrentTask.Text = "Cancel";
+            this.btnAliceCancelCurrentTask.UseVisualStyleBackColor = true;
+            this.btnAliceCancelCurrentTask.Click += new System.EventHandler(this.btnAliceCancelCurrentTask_Click);
+            // 
+            // btnBobCancelCurrentTask
+            // 
+            this.btnBobCancelCurrentTask.Dock = System.Windows.Forms.DockStyle.Right;
+            this.btnBobCancelCurrentTask.Location = new System.Drawing.Point(490, 3);
+            this.btnBobCancelCurrentTask.Name = "btnBobCancelCurrentTask";
+            this.btnBobCancelCurrentTask.Size = new System.Drawing.Size(75, 20);
+            this.btnBobCancelCurrentTask.TabIndex = 3;
+            this.btnBobCancelCurrentTask.Text = "Cancel";
+            this.btnBobCancelCurrentTask.UseVisualStyleBackColor = true;
+            this.btnBobCancelCurrentTask.Click += new System.EventHandler(this.btnBobCancelCurrentTask_Click);
             // 
             // MainForm
             // 
@@ -710,6 +736,8 @@ namespace HyperNodeTestClient
         private Label lblRecipient;
         private ComboBox cboHyperNodeNames;
         private Button btnLoadTestAlice;
+        private Button btnAliceCancelCurrentTask;
+        private Button btnBobCancelCurrentTask;
     }
 }
 
