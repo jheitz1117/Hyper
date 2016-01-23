@@ -7,8 +7,8 @@
 
         public ForwardingTaskParameter(string remoteNodeName, HyperNodeTaskInfo taskInfo)
         {
-            this.RemoteNodeName = remoteNodeName;
-            this.TaskInfo = taskInfo;
+            RemoteNodeName = remoteNodeName;
+            TaskInfo = taskInfo;
         }
     }
 }

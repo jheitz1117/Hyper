@@ -13,22 +13,17 @@ namespace Hyper.UI.Validation
     /// </summary>
     public class CustomValidationStep : ValidationStepBase
     {
-        private Func<bool> _validationFunction = null;
+        private readonly Func<bool> _validationFunction;
 
         protected CustomValidationStep() { } // required so that the generic class ValueValidationStep can inherit from this class
         public CustomValidationStep(Func<bool> validationFunction)
         {
-            this._validationFunction = validationFunction;
+            _validationFunction = validationFunction;
         }
 
         public override bool IsValid()
         {
-            if (_validationFunction != null)
-            {
-                return _validationFunction();
-            }
-
-            return base.IsValid();
+            return _validationFunction?.Invoke() ?? base.IsValid();
         }
     }
 }

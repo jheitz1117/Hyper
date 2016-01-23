@@ -9,27 +9,13 @@ namespace Hyper.NodeServices.EventTracking
     internal class TaskEventContext : ITaskEventContext
     {
         private readonly HyperNodeMessageRequest _message;
-        private readonly string _hyperNodeName;
         private readonly Stopwatch _stopwatch;
-        private readonly string _taskId;
 
-        public string HyperNodeName { get { return _hyperNodeName; } }
-        public string CommandName { get { return _message.CommandName; } }
-        public string TaskId { get { return _taskId; } }
-        public IReadOnlyHyperNodeMessageInfo MessageInfo
-        {
-            get
-            {
-                // Return a new message context each time, since the message may change over time
-                return new ReadOnlyHyperNodeMessageInfo(_message.IntendedRecipientNodeNames, _message.SeenByNodeNames)
-                {
-                    CommandName = _message.CommandName,
-                    CreatedByAgentName = _message.CreatedByAgentName,
-                    CreationDateTime = _message.CreationDateTime,
-                    ProcessOptionFlags = _message.ProcessOptionFlags
-                };
-            }
-        }
+        public string HyperNodeName { get; }
+        public string TaskId { get; }
+        public string CommandName => _message.CommandName;
+
+        public IReadOnlyHyperNodeMessageInfo MessageInfo => new ReadOnlyHyperNodeMessageInfo(_message);
 
         public TimeSpan? Elapsed
         {
@@ -53,9 +39,10 @@ namespace Hyper.NodeServices.EventTracking
 
         public TaskEventContext(string hyperNodeName, HyperNodeMessageRequest message, string taskId, bool enableDiagnostics)
         {
-            _hyperNodeName = hyperNodeName;
             _message = message;
-            _taskId = taskId;
+
+            HyperNodeName = hyperNodeName;
+            TaskId = taskId;
 
             if (enableDiagnostics)
                 _stopwatch = new Stopwatch();

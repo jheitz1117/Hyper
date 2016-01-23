@@ -2,14 +2,14 @@
 
 namespace Hyper.NACHA
 {
-    internal class AlphabeticNACHADataField : StringFixedWidthField
+    internal class AlphabeticNachaDataField : StringFixedWidthField
     {
-        public AlphabeticNACHADataField() { }
-        public AlphabeticNACHADataField(string value)
+        public AlphabeticNachaDataField() { }
+        public AlphabeticNachaDataField(string value)
         {
             Value = value;
         }
-        public AlphabeticNACHADataField(string value, int length)
+        public AlphabeticNachaDataField(string value, int length)
             : this(value)
         {
             Length = length;
@@ -17,7 +17,7 @@ namespace Hyper.NACHA
 
         protected override object GetValue()
         {
-            return (Value ?? "");
+            return Value ?? "";
         }
     }
 }

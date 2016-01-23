@@ -37,7 +37,7 @@ namespace Hyper.FileProcessing.Parsing
                 return _columns;
             }
             set {
-                value = (value ?? new List<string>());
+                value = value ?? new List<string>();
                 _columns = value;
             }
         }
@@ -52,7 +52,7 @@ namespace Hyper.FileProcessing.Parsing
         #region Public Methods
 
         public FlatFileTemplate() {
-            Delimiters = new string[] { "," };
+            Delimiters = new[] { "," };
             HasFieldsEnclosedInQuotes = true;
             TextFieldType = FieldType.Delimited;
             TrimWhiteSpace = true;
@@ -69,11 +69,11 @@ namespace Hyper.FileProcessing.Parsing
         } // end FeedFileTemplate()
 
         public FlatFileTemplate(string delimiter)
-            : this(new string[] { delimiter }) {
+            : this(new[] { delimiter }) {
         } // end FeedFileTemplate()
 
         public FlatFileTemplate(string delimiter, bool hasFieldsEnclosedInQuotes)
-            : this(new string[] { delimiter }, hasFieldsEnclosedInQuotes) {
+            : this(new[] { delimiter }, hasFieldsEnclosedInQuotes) {
         } // end FeedFileTemplate()
 
         #endregion Public Methods

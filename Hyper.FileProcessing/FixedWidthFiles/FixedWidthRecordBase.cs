@@ -7,8 +7,8 @@ namespace Hyper.FileProcessing.FixedWidthFiles
     {
         protected List<IFixedWidthField> Fields { get; set; }
         public abstract int Length { get; } // Delegate the record length to the subclasses
-        public virtual FixedWidthJustifyType JustifyType { get { return FixedWidthJustifyType.Left; } }
-        public virtual char PaddingChar { get { return ' '; } } // Default record-level padding is a space
+        public virtual FixedWidthJustifyType JustifyType => FixedWidthJustifyType.Left;
+        public virtual char PaddingChar => ' '; // Default record-level padding is a space
 
         public override string ToString()
         {

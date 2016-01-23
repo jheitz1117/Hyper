@@ -13,9 +13,9 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
             if (request == null)
                 throw new InvalidCommandRequestTypeException(typeof(CommandRequestString), context.Request.GetType());
 
-            var echoString = string.Format("HyperNode '{0}' says, \"{1}\".", context.ExecutingNodeName, request.RequestString);
+            var echoString = $"HyperNode '{context.ExecutingNodeName}' says, \"{request.RequestString}\".";
             
-            context.Activity.TrackFormat(echoString);
+            context.Activity.Track(echoString);
 
             return new CommandResponseString(MessageProcessStatusFlags.Success, echoString);
         }

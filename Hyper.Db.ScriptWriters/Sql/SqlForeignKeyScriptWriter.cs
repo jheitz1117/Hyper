@@ -22,13 +22,9 @@ namespace Hyper.Db.ScriptWriters.Sql
             writer.WriteLine(
                 string.Join(
                     "," + writer.NewLine,
-                    this.Source.KeyColumns.Zip(
-                        Enumerable.Range(1, this.Source.KeyColumns.Count()),
-                        (s, i) => string.Format("({0}, '{1}', '{2}', '{3}')",
-                            i,
-                            s.ForeignKeyColumnName,
-                            this.Source.ReferencedTableName,
-                            s.ReferencedColumnName)
+                    Source.KeyColumns.Zip(
+                        Enumerable.Range(1, Source.KeyColumns.Count()),
+                        (s, i) => $"({i}, '{s.ForeignKeyColumnName}', '{Source.ReferencedTableName}', '{s.ReferencedColumnName}')"
                     )
                 )
             );
@@ -60,9 +56,9 @@ namespace Hyper.Db.ScriptWriters.Sql
             writer.WriteLine("        and [tc].[CONSTRAINT_SCHEMA]      = [rc].[CONSTRAINT_SCHEMA]");
             writer.WriteLine("        and [tc].[CONSTRAINT_NAME]        = [rc].[CONSTRAINT_NAME]");
             writer.WriteLine("        and [tc].[CONSTRAINT_TYPE]        = '{0}'", SqlConstraintTypes.ForeignKey);
-            writer.WriteLine("        and [tc].[TABLE_SCHEMA]           = '{0}'", this.DefaultSchemaName);
-            writer.WriteLine("        and [tc].[TABLE_NAME]             = '{0}'", this.Source.TableSource.TableName);
-            writer.WriteLine("        and [tc].[CONSTRAINT_NAME]        = '{0}'", this.Source.ForeignKeyName);
+            writer.WriteLine("        and [tc].[TABLE_SCHEMA]           = '{0}'", DefaultSchemaName);
+            writer.WriteLine("        and [tc].[TABLE_NAME]             = '{0}'", Source.TableSource.TableName);
+            writer.WriteLine("        and [tc].[CONSTRAINT_NAME]        = '{0}'", Source.ForeignKeyName);
             writer.WriteLine("    left join @XmlFKColumns [xfk] on");
             writer.WriteLine("            [xfk].[ColumnName]            = [kcu].[COLUMN_NAME]");
             writer.WriteLine("        and [xfk].[OrdinalPosition]       = [kcu].[ORDINAL_POSITION]");
@@ -92,25 +88,25 @@ namespace Hyper.Db.ScriptWriters.Sql
         {
             var builder = new StringBuilder();
 
-            if (!string.IsNullOrWhiteSpace(this.Source.ForeignKeyName))
-                builder.AppendFormat("constraint [{0}] ", this.Source.ForeignKeyName);
+            if (!string.IsNullOrWhiteSpace(Source.ForeignKeyName))
+                builder.AppendFormat("constraint [{0}] ", Source.ForeignKeyName);
 
             builder.Append("foreign key (");
             builder.Append(
                 string.Join(
                     ",",
-                    this.Source.KeyColumns.Select(k =>
-                        string.Format("[{0}]", k.ForeignKeyColumnName)
+                    Source.KeyColumns.Select(k =>
+                        $"[{k.ForeignKeyColumnName}]"
                     )
                 )
             );
             builder.Append(")");
-            builder.AppendFormat(" references [{0}].[{1}](", this.DefaultSchemaName, this.Source.ReferencedTableName);
+            builder.AppendFormat(" references [{0}].[{1}](", DefaultSchemaName, Source.ReferencedTableName);
             builder.Append(
                 string.Join(
                     ",",
-                    this.Source.KeyColumns.Select(k =>
-                        string.Format("[{0}]", k.ReferencedColumnName)
+                    Source.KeyColumns.Select(k =>
+                        $"[{k.ReferencedColumnName}]"
                     )
                 )
             );
@@ -121,20 +117,12 @@ namespace Hyper.Db.ScriptWriters.Sql
 
         private string GetCreateForeignKeyScript()
         {
-            return string.Format("alter table [{0}].[{1}] add {2}",
-                this.DefaultSchemaName,
-                this.Source.TableSource.TableName,
-                GetForeignKeyDefinition()
-            );
+            return $"alter table [{DefaultSchemaName}].[{Source.TableSource.TableName}] add {GetForeignKeyDefinition()}";
         }
 
         private string GetDropForeignKeyScript()
         {
-            return string.Format("alter table [{0}].[{1}] drop constraint [{2}]",
-                this.DefaultSchemaName,
-                this.Source.TableSource.TableName,
-                this.Source.ForeignKeyName
-            );
+            return $"alter table [{DefaultSchemaName}].[{Source.TableSource.TableName}] drop constraint [{Source.ForeignKeyName}]";
         }
 
         private static string GetNoMatchingForeignKeyExistsCondition()
@@ -149,7 +137,7 @@ namespace Hyper.Db.ScriptWriters.Sql
 
         private string GetColumnCountChangeCondition()
         {
-            return string.Format("(@ExistingFKColumnCount <> {0})", this.Source.KeyColumns.Count());
+            return $"(@ExistingFKColumnCount <> {Source.KeyColumns.Count()})";
         }
 
         private static string GetColumnNameChangeCondition()

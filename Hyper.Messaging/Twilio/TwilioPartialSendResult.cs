@@ -12,19 +12,13 @@ namespace Hyper.Messaging.Twilio
             set;
         }
 
-        public string SMSString
+        public string SmsString
         {
             get;
             internal set;
         }
 
-        public bool SendAttempted
-        {
-            get
-            {
-                return (SendResult != null);
-            }
-        }
+        public bool SendAttempted => SendResult != null;
 
         public int SendAttempts
         {
@@ -32,13 +26,7 @@ namespace Hyper.Messaging.Twilio
             internal set;
         }
 
-        public bool SendSuccess
-        {
-            get
-            {
-                return (SendAttempted && SendResult.RestException == null);
-            }
-        }
+        public bool SendSuccess => SendAttempted && SendResult.RestException == null;
 
         public SMSMessage SendResult
         {
@@ -46,24 +34,15 @@ namespace Hyper.Messaging.Twilio
             internal set;
         }
 
-        private string _detail = null;
+        private string _detail;
         public string Detail
         {
             get
             {
-                string detail = _detail;
+                var detail = _detail;
 
                 if (SendAttempted)
-                {
-                    if (SendSuccess)
-                    {
-                        detail = SendResult.Sid;
-                    }
-                    else
-                    {
-                        detail = SendResult.RestException.Message;
-                    }
-                }
+                    detail = SendSuccess ? SendResult.Sid : SendResult.RestException.Message;
 
                 return detail;
             }
@@ -77,15 +56,13 @@ namespace Hyper.Messaging.Twilio
 
         #region Public Methods
 
-        public TwilioPartialSendResult()
-        {
-        }
+        public TwilioPartialSendResult() { }
 
         public TwilioPartialSendResult(int sendOrder, string smsString)
             : this()
         {
             SendOrder = sendOrder;
-            SMSString = smsString;
+            SmsString = smsString;
         }
 
         #endregion Public Methods

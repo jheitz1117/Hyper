@@ -62,18 +62,15 @@ namespace Hyper.NodeServices.Contracts
 
                 try
                 {
-                    if (client != null)
-                        client.Close();
+                    client?.Close();
                 }
                 catch
                 {
-                    if (client != null)
-                        client.Abort();
+                    client?.Abort();
                 }
                 finally
                 {
-                    if (client != null)
-                        client.Dispose();
+                    client?.Dispose();
                 }
             }
         }

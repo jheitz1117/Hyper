@@ -4,22 +4,19 @@ using Hyper.FileProcessing.FixedWidthFiles;
 
 namespace Hyper.NACHA
 {
-    internal class NACHAFileControlRecord : NACHARecord
+    internal class NachaFileControlRecord : NachaRecord
     {
-        public override NACHARecordType RecordTypeCode
-        {
-            get { return (Fields[0] as EnumeratedFixedWidthField<NACHARecordType>).Value; }
-        }
+        public override NachaRecordType RecordTypeCode => ((EnumeratedFixedWidthField<NachaRecordType>) Fields[0]).Value;
 
         public long BatchCount
         {
             get
             {
-                return (Fields[1] as NumericNACHADataField).Value;
+                return ((NumericNachaDataField) Fields[1]).Value;
             }
             set
             {
-                (Fields[1] as NumericNACHADataField).Value = value;
+                ((NumericNachaDataField) Fields[1]).Value = value;
             }
         }
 
@@ -27,11 +24,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[2] as NumericNACHADataField).Value;
+                return ((NumericNachaDataField) Fields[2]).Value;
             }
             set
             {
-                (Fields[2] as NumericNACHADataField).Value = value;
+                ((NumericNachaDataField) Fields[2]).Value = value;
             }
         }
 
@@ -39,11 +36,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[3] as NumericNACHADataField).Value;
+                return ((NumericNachaDataField) Fields[3]).Value;
             }
             set
             {
-                (Fields[3] as NumericNACHADataField).Value = value;
+                ((NumericNachaDataField) Fields[3]).Value = value;
             }
         }
 
@@ -51,11 +48,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[4] as NumericNACHADataField).Value;
+                return ((NumericNachaDataField) Fields[4]).Value;
             }
             set
             {
-                (Fields[4] as NumericNACHADataField).Value = value;
+                ((NumericNachaDataField) Fields[4]).Value = value;
             }
         }
 
@@ -69,7 +66,7 @@ namespace Hyper.NACHA
             set
             {
                 _totalDebitAmount = value;
-                (Fields[5] as NumericNACHADataField).Value = (long)Math.Round(value * 100, 0);
+                ((NumericNachaDataField) Fields[5]).Value = (long)Math.Round(value * 100, 0);
             }
         }
 
@@ -83,22 +80,22 @@ namespace Hyper.NACHA
             set
             {
                 _totalCreditAmount = value;
-                (Fields[6] as NumericNACHADataField).Value = (long)Math.Round(value * 100, 0);
+                ((NumericNachaDataField) Fields[6]).Value = (long)Math.Round(value * 100, 0);
             }
         }
 
-        public NACHAFileControlRecord()
+        public NachaFileControlRecord()
         {
             // Define fields along with their type and length
             Fields = new List<IFixedWidthField>() {
-                new EnumeratedFixedWidthField<NACHARecordType>(NACHARecordType.FileControl, 1), // Record Type Code
-                new NumericNACHADataField(0, 6), // Batch Count - Per NACHA docs, value must be equal to the number of CompanyBatchControl (8) records
-                new NumericNACHADataField(0, 6), // Block Count - Per NACHA docs, value must be equal to the total number of blocks in the file, including the file header and file control records
-                new NumericNACHADataField(0, 8), // Entry/Addenda Count - Per NACHA docs, value must be equal to the total number of EntryDetail (6) and Addenda (7) records
-                new NumericNACHADataField(0, 10), // Entry Hash - Per NACHA docs, value must be equal to the total number of Receiving Depository Financial Institutions in each EntryDetail (6) record. If sum is more than 10 digits, truncate the leftmost digits
-                new NumericNACHADataField(0, 12), // Total Debit Entry Dollar Amount in File - Total of all Debit amounts in CompanyBatchControl (8) records
-                new NumericNACHADataField(0, 12), // Total Credit Entry Dollar Amount in File - Total of all Credit amounts in CompanyBatchControl (8) records
-                new AlphabeticNACHADataField("", 39) // Reserved - Per NACHA docs, filled with blanks
+                new EnumeratedFixedWidthField<NachaRecordType>(NachaRecordType.FileControl, 1), // Record Type Code
+                new NumericNachaDataField(0, 6), // Batch Count - Per NACHA docs, value must be equal to the number of CompanyBatchControl (8) records
+                new NumericNachaDataField(0, 6), // Block Count - Per NACHA docs, value must be equal to the total number of blocks in the file, including the file header and file control records
+                new NumericNachaDataField(0, 8), // Entry/Addenda Count - Per NACHA docs, value must be equal to the total number of EntryDetail (6) and Addenda (7) records
+                new NumericNachaDataField(0, 10), // Entry Hash - Per NACHA docs, value must be equal to the total number of Receiving Depository Financial Institutions in each EntryDetail (6) record. If sum is more than 10 digits, truncate the leftmost digits
+                new NumericNachaDataField(0, 12), // Total Debit Entry Dollar Amount in File - Total of all Debit amounts in CompanyBatchControl (8) records
+                new NumericNachaDataField(0, 12), // Total Credit Entry Dollar Amount in File - Total of all Credit amounts in CompanyBatchControl (8) records
+                new AlphabeticNachaDataField("", 39) // Reserved - Per NACHA docs, filled with blanks
             };
         }
     }

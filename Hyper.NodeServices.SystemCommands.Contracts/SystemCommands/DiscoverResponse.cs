@@ -21,14 +21,6 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         /// A dictionary containing the descendants of the <see cref="IHyperNodeService"/>.
         /// </summary>
         [DataMember]
-        public ConcurrentDictionary<string, DiscoverResponse> ChildNodes { get; set; }
-
-        /// <summary>
-        /// Initializes an instance of <see cref="DiscoverResponse"/>.
-        /// </summary>
-        public DiscoverResponse()
-        {
-            this.ChildNodes = new ConcurrentDictionary<string, DiscoverResponse>();
-        }
+        public ConcurrentDictionary<string, DiscoverResponse> ChildNodes { get; set; } = new ConcurrentDictionary<string, DiscoverResponse>();
     }
 }

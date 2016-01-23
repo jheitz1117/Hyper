@@ -6,24 +6,20 @@ namespace Hyper.NodeServices.Extensibility.EventTracking
     {
         private readonly Action<string> _rejectMessageAction;
 
-        public string HyperNodeName { get; private set; }
+        public string HyperNodeName { get; }
 
-        public IReadOnlyHyperNodeMessageInfo MessageInfo
-        {
-            get { return _messageInfo; }
-        } private readonly IReadOnlyHyperNodeMessageInfo _messageInfo;
+        public IReadOnlyHyperNodeMessageInfo MessageInfo { get; }
 
         public MessageReceivedEventArgs(string hyperNodeName, IReadOnlyHyperNodeMessageInfo messageInfo, Action<string> rejectMessageAction)
         {
-            this.HyperNodeName = hyperNodeName;
-            _messageInfo = messageInfo;
+            HyperNodeName = hyperNodeName;
+            MessageInfo = messageInfo;
             _rejectMessageAction = rejectMessageAction;
         }
 
         public void RejectMessage(string reason)
         {
-            if (_rejectMessageAction != null)
-                _rejectMessageAction(reason);
+            _rejectMessageAction?.Invoke(reason);
         }
     }
 }

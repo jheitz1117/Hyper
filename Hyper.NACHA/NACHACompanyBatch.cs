@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace Hyper.NACHA
 {
-    public class NACHACompanyBatch
+    public class NachaCompanyBatch
     {
         /// <summary>
         /// Defines the type of entries contained in the batch.
         /// </summary>
-        public NACHAServiceClassCodeType ServiceClassCode
+        public NachaServiceClassCodeType ServiceClassCode
         {
             get
             {
@@ -46,16 +46,16 @@ namespace Hyper.NACHA
             }
         }
 
-        public string CompanyID
+        public string CompanyId
         {
             get
             {
-                return _companyBatchHeader.CompanyID;
+                return _companyBatchHeader.CompanyId;
             }
             set
             {
-                _companyBatchHeader.CompanyID = value;
-                _companyBatchControl.CompanyID = value;
+                _companyBatchHeader.CompanyId = value;
+                _companyBatchControl.CompanyId = value;
             }
         }
 
@@ -104,12 +104,12 @@ namespace Hyper.NACHA
             set
             {
                 // null check, pad on the left with zeros to 9 places, truncate to 9 places
-                string input = (value ?? "").Trim().PadLeft(9, '0').Substring(0, 9);
+                var input = (value ?? "").Trim().PadLeft(9, '0').Substring(0, 9);
 
                 // ensure 9 consecutive digits
                 if (Regex.IsMatch(input, @"^\d{9}$"))
                 {
-                    OriginatingDFIID = Convert.ToInt64(input.Substring(0, 8));
+                    OriginatingDfiId = Convert.ToInt64(input.Substring(0, 8));
                     _originatingRoutingNumber = value;
                 }
                 else
@@ -119,13 +119,13 @@ namespace Hyper.NACHA
             }
         } private string _originatingRoutingNumber = "111111118";
 
-        public long OriginatingDFIID
+        public long OriginatingDfiId
         {
-            get { return _companyBatchHeader.OriginatingDFIID; }
+            get { return _companyBatchHeader.OriginatingDfiId; }
             set
             {
-                _companyBatchHeader.OriginatingDFIID = value;
-                _companyBatchControl.OriginatingDFIID = value;
+                _companyBatchHeader.OriginatingDfiId = value;
+                _companyBatchControl.OriginatingDfiId = value;
             }
         }
 
@@ -139,41 +139,39 @@ namespace Hyper.NACHA
             }
         }
 
-        private readonly NACHACompanyBatchHeaderRecord _companyBatchHeader;
-        private readonly NACHACompanyBatchControlRecord _companyBatchControl;
-        private readonly List<NACHAEntryDetailRecord> _entries = new List<NACHAEntryDetailRecord>();
+        private readonly NachaCompanyBatchHeaderRecord _companyBatchHeader;
+        private readonly NachaCompanyBatchControlRecord _companyBatchControl;
+        private readonly List<NachaEntryDetailRecord> _entries = new List<NachaEntryDetailRecord>();
 
-        public NACHACompanyBatch()
+        public NachaCompanyBatch()
         {
-            _companyBatchHeader = new NACHACompanyBatchHeaderRecord();
-            _companyBatchControl = new NACHACompanyBatchControlRecord();
+            _companyBatchHeader = new NachaCompanyBatchHeaderRecord();
+            _companyBatchControl = new NachaCompanyBatchControlRecord();
         }
-        public NACHACompanyBatch(long batchNumber)
+        public NachaCompanyBatch(long batchNumber)
             : this()
         {
             BatchNumber = batchNumber;
         }
-        public NACHACompanyBatch(long batchNumber, DateTime effectiveEntryDate)
+        public NachaCompanyBatch(long batchNumber, DateTime effectiveEntryDate)
             : this(batchNumber)
         {
             EffectiveEntryDate = effectiveEntryDate;
         }
 
-        public void AddEntry(NACHAEntryDetailRecord entry)
+        public void AddEntry(NachaEntryDetailRecord entry)
         {
             _entries.Add(entry);
         }
 
-        public void RemoveEntry(NACHAEntryDetailRecord entry)
+        public void RemoveEntry(NachaEntryDetailRecord entry)
         {
             _entries.Remove(entry);
         }
 
-        internal List<NACHARecord> GetBatchRecords()
+        internal List<NachaRecord> GetBatchRecords()
         {
-            var records = new List<NACHARecord>();
-
-            records.Add(_companyBatchHeader);
+            var records = new List<NachaRecord> {_companyBatchHeader};
 
             var hasCredits = false;
             var hasDebits = false;
@@ -186,7 +184,7 @@ namespace Hyper.NACHA
             foreach (var entry in _entries)
             {
                 // Update the entry hash
-                _companyBatchControl.EntryHash += entry.ReceivingDFIID;
+                _companyBatchControl.EntryHash += entry.ReceivingDfiId;
 
                 if (entry.IsCredit)
                 {
@@ -203,17 +201,15 @@ namespace Hyper.NACHA
             }
 
             if (hasCredits && hasDebits)
-            { ServiceClassCode = NACHAServiceClassCodeType.DebitsAndCredits; }
+                ServiceClassCode = NachaServiceClassCodeType.DebitsAndCredits;
             else if (hasCredits)
-            { ServiceClassCode = NACHAServiceClassCodeType.CreditsOnly; }
+                ServiceClassCode = NachaServiceClassCodeType.CreditsOnly;
             else if (hasDebits)
-            { ServiceClassCode = NACHAServiceClassCodeType.DebitsOnly; }
+                ServiceClassCode = NachaServiceClassCodeType.DebitsOnly;
 
             // Fix the entry hash if it's too long. We want the right-most 10 digits, so can just take the entry hash mod 10000000000 (1 followed by 10 zeros)
             if (_companyBatchControl.EntryHash > 9999999999)
-            {
                 _companyBatchControl.EntryHash = _companyBatchControl.EntryHash % 10000000000;
-            }
 
             _companyBatchControl.EntryAddendaCount = _entries.Count;
 
@@ -222,7 +218,7 @@ namespace Hyper.NACHA
             return records;
         }
 
-        internal static string FormatCompanyID(string input, int fieldLength)
+        internal static string FormatCompanyId(string input, int fieldLength)
         {
             return (input ?? "123456789").PadLeft(fieldLength, '1');
         }

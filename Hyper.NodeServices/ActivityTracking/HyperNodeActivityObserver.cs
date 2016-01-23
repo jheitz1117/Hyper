@@ -37,11 +37,8 @@ namespace Hyper.NodeServices.ActivityTracking
                             // This is legal at this point because we already subscribed our cache and task trace monitors earlier
                             _activity.TrackException(
                                 new ActivityMonitorSubscriptionException(
-                                    string.Format(
-                                        "Unable to subscribe activity monitor '{0}' because its ShouldTrack() method threw an exception.",
-                                        underlyingMonitor.Name
-                                    ),
-                                ex
+                                    $"Unable to subscribe activity monitor '{underlyingMonitor.Name}' because its ShouldTrack() method threw an exception.",
+                                    ex
                                 )
                             );
                         }
@@ -62,8 +59,7 @@ namespace Hyper.NodeServices.ActivityTracking
             catch (Exception ex)
             {
                 // If the user-defined OnTrack() method throws an exception, kill the subscription immediately (and have our scheduler schedule itself for disposal) to prevent further exceptions from being thrown...
-                if (_subscription != null)
-                    _subscription.Dispose();
+                _subscription?.Dispose();
 
                 // Second, schedule the disposal of the scheduler itself if applicable
                 var disposableScheduler = _scheduler as IDisposable;
@@ -71,10 +67,8 @@ namespace Hyper.NodeServices.ActivityTracking
                     _scheduler.Schedule(() => disposableScheduler.Dispose());
 
                 // Tattle to everyone else
-                _activity.TrackFormat(
-                    "Activity monitor with the name '{0}' of type '{1}' threw an exception while attempting to track an activity event. The monitor has been unsubscribed and will not receive any additional notifications.",
-                    _underlyingMonitor.Name,
-                    _underlyingMonitor.GetType().FullName
+                _activity.Track(
+                    $"Activity monitor with {nameof(_underlyingMonitor.Name)} '{_underlyingMonitor.Name}' of type '{_underlyingMonitor.GetType().FullName}' threw an exception while attempting to track an activity event. The monitor has been unsubscribed and will not receive any additional notifications."
                 );
 
                 // ...and alert the other observers of what the original problem was
@@ -142,13 +136,11 @@ namespace Hyper.NodeServices.ActivityTracking
             if (disposing && !_isDisposed)
             {
                 // First, dispose of our subscription
-                if (_subscription != null)
-                    _subscription.Dispose();
+                _subscription?.Dispose();
 
                 // Third, dispose of our scheduler, if applicable
                 var disposableScheduler = _scheduler as IDisposable;
-                if (disposableScheduler != null)
-                    disposableScheduler.Dispose();
+                disposableScheduler?.Dispose();
 
                 // Finally, make sure we don't schedule disposal more than once
                 _isDisposed = true;

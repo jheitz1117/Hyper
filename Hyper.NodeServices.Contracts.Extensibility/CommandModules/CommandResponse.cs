@@ -20,7 +20,7 @@ namespace Hyper.NodeServices.Contracts.Extensibility.CommandModules
         /// <param name="statusFlags">A bitwise combination of <see cref="MessageProcessStatusFlags"/> values indicating what happened while the command was running.</param>
         public CommandResponse(MessageProcessStatusFlags statusFlags)
         {
-            this.ProcessStatusFlags = statusFlags;
+            ProcessStatusFlags = statusFlags;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Hyper.NodeServices.Contracts.Extensibility.CommandModules
         /// <returns></returns>
         public override string ToString()
         {
-            return this.ProcessStatusFlags.ToString();
+            return ProcessStatusFlags.ToString();
         }
     }
 }

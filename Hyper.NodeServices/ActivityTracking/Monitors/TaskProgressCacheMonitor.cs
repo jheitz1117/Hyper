@@ -23,7 +23,7 @@ namespace Hyper.NodeServices.ActivityTracking
 
         public TaskProgressCacheMonitor()
         {
-            this.Name = GetType().Name;
+            Name = nameof(TaskProgressCacheMonitor);
         }
 
         public override void OnTrack(IHyperNodeActivityEventItem activity)

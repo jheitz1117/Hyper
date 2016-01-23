@@ -22,45 +22,23 @@ namespace Hyper.NodeServices
 
         public string TaskId
         {
-            get { return _response.TaskId; }
-            set { _response.TaskId = value; }
+            get { return Response.TaskId; }
+            set { Response.TaskId = value; }
         }
 
-        public CancellationToken Token
-        {
-            get
-            {
-                return _taskTokenSource.Token;
-            }
-        }
+        public CancellationToken Token => _taskTokenSource.Token;
 
         public HyperNodeTaskActivityTracker Activity { get; set; }
 
-        private readonly IConnectableObservable<Unit> _terminatingSequence = Observable.Return(Unit.Default).Publish();
-        public IConnectableObservable<Unit> TerminatingSequence
-        {
-            get
-            {
-                return _terminatingSequence;
-            }
-        }
+        public IConnectableObservable<Unit> TerminatingSequence { get; } = Observable.Return(Unit.Default).Publish();
 
-        private readonly CompositeDisposable _activitySubscribers = new CompositeDisposable();
-        public CompositeDisposable ActivitySubscribers
-        {
-            get { return _activitySubscribers; }
-        }
+        public CompositeDisposable ActivitySubscribers { get; } = new CompositeDisposable();
 
-        private readonly HyperNodeMessageRequest _message;
-        public HyperNodeMessageRequest Message { get { return _message; } }
-        
-        private readonly HyperNodeMessageResponse _response;
-        public HyperNodeMessageResponse Response { get { return _response; } }
+        public HyperNodeMessageRequest Message { get; }
 
-        public TimeSpan Elapsed
-        {
-            get { return _stopwatch.Elapsed; }
-        }
+        public HyperNodeMessageResponse Response { get; }
+
+        public TimeSpan Elapsed => _stopwatch.Elapsed;
 
         #endregion Properties
 
@@ -69,8 +47,8 @@ namespace Hyper.NodeServices
         public HyperNodeTaskInfo(CancellationToken masterToken, HyperNodeMessageRequest message, HyperNodeMessageResponse response)
         {
             _taskTokenSource = CancellationTokenSource.CreateLinkedTokenSource(masterToken);
-            _message = message;
-            _response = response;
+            Message = message;
+            Response = response;
         }
 
         public void StartStopwatch()
@@ -137,17 +115,16 @@ namespace Hyper.NodeServices
             {
                 // First, stop our stopwatch so we can record the total elapsed time for this task
                 _stopwatch.Stop();
-                this.Response.TotalRunTime = _stopwatch.Elapsed;
+                Response.TotalRunTime = _stopwatch.Elapsed;
 
                 /* Signal completion before we dispose our subscribers. This is necessary because clients who are polling the service for progress
                  * updates must know when the service is done sending updates. Make sure we pass the final, completed response object in case we have
                  * any monitors that are watching for it. */
-                if (this.Activity != null)
-                    this.Activity.TrackTaskComplete(this.Response);
+                Activity?.TrackTaskComplete(Response);
 
                 // Signal that we are done raising activity events to ensure that the queues for all of our schedulers don't keep having stuff appended to the end
                 // This also triggers the OnComplete() event for all subscribers, which should automatically trigger the scheduling of their disposal
-                _terminatingSequence.Connect().Dispose();
+                TerminatingSequence.Connect().Dispose();
 
                 /*
                  * If we dispose of our activity subscribers at this point, it's possible that some subscribers may be disposed before they've processed all of their queued items.
@@ -156,8 +133,7 @@ namespace Hyper.NodeServices
                  * subscribers at this time; I will allow the automatic disposal scheduling to take care of it.
                  */
 
-                if (_taskTokenSource != null)
-                    _taskTokenSource.Dispose();
+                _taskTokenSource?.Dispose();
             }
         }
 

@@ -34,9 +34,9 @@ namespace Hyper.Db.Xml
         public void Deserialize(XDocument dbXmlDocument)
         {
             if (dbXmlDocument == null)
-            { throw new ArgumentNullException("dbXmlDocument"); }
+                throw new ArgumentNullException(nameof(dbXmlDocument));
             if (dbXmlDocument.Root == null)
-            { throw new XmlSchemaValidationException("No root node exists."); }
+                throw new XmlSchemaValidationException("No root node exists.");
 
             _dbSchemas.Clear();
             _scriptWriterTypes.Clear();

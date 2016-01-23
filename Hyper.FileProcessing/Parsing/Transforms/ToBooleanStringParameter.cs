@@ -27,13 +27,13 @@
 
         public ToBooleanStringParameter(string trueString, string falseString)
             : this() {
-            this.TrueString = trueString;
-            this.FalseString = falseString;
+            TrueString = trueString;
+            FalseString = falseString;
         }
 
         public ToBooleanStringParameter(string trueString, string falseString, bool caseSensitive)
             : this(trueString, falseString) {
-            this.CaseSensitive = caseSensitive;
+            CaseSensitive = caseSensitive;
         }
 
         #endregion Public Methods

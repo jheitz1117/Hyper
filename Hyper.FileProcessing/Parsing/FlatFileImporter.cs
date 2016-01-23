@@ -26,7 +26,7 @@ namespace Hyper.FileProcessing.Parsing
 
         private static FlatFileImportResult PerformImport(TextFieldParser objParser, FlatFileTemplate objFileTemplate, DataColumnMapping columnMapping)
         {
-            FlatFileImportResult result = new FlatFileImportResult();
+            var result = new FlatFileImportResult();
 
             objParser.SetDelimiters(objFileTemplate.Delimiters);
             objParser.SetFieldWidths(objFileTemplate.FieldWidths);
@@ -59,7 +59,11 @@ namespace Hyper.FileProcessing.Parsing
 
                         try
                         {
-                            rawFieldValues.AddRange(objParser.ReadFields());
+                            var fields = objParser.ReadFields();
+                            if (fields == null)
+                                throw new InvalidOperationException("Unable to read fields.");
+
+                            rawFieldValues.AddRange(fields);
                         }
                         catch
                         {
@@ -75,7 +79,8 @@ namespace Hyper.FileProcessing.Parsing
                             result.SkippedRecords++;
                             throw new FlatFileFormatException("Line " + currentLineNumber + ": File has more fields than expected. Skipping line.");
                         }
-                        else if (rawFieldValues.Count < objFileTemplate.Columns.Count)
+
+                        if (rawFieldValues.Count < objFileTemplate.Columns.Count)
                         {
                             result.SkippedRecords++;
                             throw new FlatFileFormatException("Line " + currentLineNumber + ": File has fewer fields than expected. Skipping line.");
@@ -111,10 +116,7 @@ namespace Hyper.FileProcessing.Parsing
             }
             finally
             {
-                if (objParser != null)
-                {
-                    objParser.Close();
-                }
+                objParser.Close();
             }
 
             if (result.ImportedData.Count == 0)

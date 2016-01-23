@@ -55,15 +55,13 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                             // Check if the message was accepted, and that the command was recognized
                             if (childResponse.NodeAction == HyperNodeActionType.Accepted)
                             {
-                                context.Activity.TrackFormat("Child node '{0}' accepted the request.", childNodeName);
+                                context.Activity.Track($"Child node '{childNodeName}' accepted the request.");
 
                                 // Check if the child node recognized the command. If not, skip to the next child
                                 if ((childResponse.ProcessStatusFlags & MessageProcessStatusFlags.InvalidCommand) == MessageProcessStatusFlags.InvalidCommand)
                                 {
-                                    context.Activity.TrackFormat(
-                                        "Child node '{0}' did not recognize the command name '{1}'.",
-                                        childNodeName,
-                                        discoverRequest.CommandName
+                                    context.Activity.Track(
+                                        $"Child node '{childNodeName}' did not recognize the command name '{discoverRequest.CommandName}'."
                                     );
 
                                     continue;
@@ -78,12 +76,8 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                             else
                             {
                                 context.Activity.Track(
-                                    "Child node '{0}' did not accept the request.",
-                                    string.Format(
-                                        "The node action was '{0}' and the action reason was '{1}'.",
-                                        childResponse.NodeAction,
-                                        childResponse.NodeActionReason
-                                    )
+                                    $"Child node '{childResponse.RespondingNodeName}' did not accept the request.",
+                                    $"The {nameof(childResponse.NodeAction)} was '{childResponse.NodeAction}' and the {nameof(childResponse.NodeActionReason)} was '{childResponse.NodeActionReason}'."
                                 );
                             }
                         }

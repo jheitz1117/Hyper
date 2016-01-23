@@ -18,9 +18,8 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
             var processStatusFlags = MessageProcessStatusFlags.Failure | MessageProcessStatusFlags.InvalidCommandRequest;
             if (request.CommandName == context.CommandName && !request.Enable)
             {
-                context.Activity.TrackFormat(
-                    "The command '{0}' cannot be disabled remotely. To disable this command, you must modify the configuration.",
-                    request.CommandName
+                context.Activity.Track(
+                    $"The command '{request.CommandName}' cannot be disabled remotely. To disable this command, you must modify the configuration."
                 );
             }
             else
@@ -28,18 +27,15 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                 if (HyperNodeService.Instance.IsKnownCommand(request.CommandName ?? ""))
                 {
                     var result = HyperNodeService.Instance.EnableCommandModule(request.CommandName, request.Enable);
-                    context.Activity.TrackFormat(
-                        "The command '{0}' {1} {2}.",
-                        request.CommandName,
-                        (result ? "is now" : "could not be"),
-                        (request.Enable ? "enabled" : "disabled")
+                    context.Activity.Track(
+                        $"The command '{request.CommandName}' {(result ? "is now" : "could not be")} {(request.Enable ? "enabled" : "disabled")}."
                     );
 
                     processStatusFlags = (result ? MessageProcessStatusFlags.Success : MessageProcessStatusFlags.Failure);
                 }
                 else
                 {
-                    context.Activity.TrackFormat("The command '{0}' is invalid.", request.CommandName);
+                    context.Activity.Track($"The command '{request.CommandName}' is invalid.");
                 }
             }
 

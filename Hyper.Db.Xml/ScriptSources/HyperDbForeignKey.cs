@@ -11,12 +11,6 @@ namespace Hyper.Db.Xml.ScriptSources
         public IDbTableScriptSource TableSource { get; set; }
         public readonly List<DbForeignKeyMapping> KeyColumns = new List<DbForeignKeyMapping>();
 
-        IEnumerable<IDbForeignKeyMapping> IDbForeignKeyScriptSource.KeyColumns
-        {
-            get
-            {
-                return KeyColumns;
-            }
-        }
+        IEnumerable<IDbForeignKeyMapping> IDbForeignKeyScriptSource.KeyColumns => KeyColumns;
     }
 }

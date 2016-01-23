@@ -26,27 +26,22 @@ namespace Hyper.UI.Validation
         /// <returns></returns>
         public HyperValidationResult Validate()
         {
-            HyperValidationResult result = new HyperValidationResult();
+            var result = new HyperValidationResult {Success = true};
 
-            result.Success = true;
-
-            foreach (ValidationStepBase step in ValidationSteps)
+            foreach (var step in ValidationSteps)
             {
                 try
                 {
-                    if (step != null)
+                    if (!(step?.IsValid() ?? false))
                     {
-                        if (!step.IsValid())
-                        {
-                            result.ErrorMessages.Add(step.GetErrorMessage());
-                            result.Success = false;
-                        }
+                        result.ErrorMessages.Add(step?.GetErrorMessage());
+                        result.Success = false;
                     }
                 }
                 catch (Exception ex)
                 {
                     result.ValidationExceptions.Add(ex);
-                    result.ErrorMessages.Add(step.GetErrorMessage());
+                    result.ErrorMessages.Add(step?.GetErrorMessage());
                     result.Success = false;
                 }
             }

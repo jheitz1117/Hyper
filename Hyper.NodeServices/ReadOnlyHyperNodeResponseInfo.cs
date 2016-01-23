@@ -11,49 +11,35 @@ namespace Hyper.NodeServices
     /// </summary>
     internal class ReadOnlyHyperNodeResponseInfo : IReadOnlyHyperNodeResponseInfo
     {
-        public string TaskId { get; set; }
-        public string RespondingNodeName { get; set; }
-        public TimeSpan? TotalRunTime { get; set; }
-        public HyperNodeActionType NodeAction { get; set; }
-        public HyperNodeActionReasonType NodeActionReason { get; set; }
-        public MessageProcessStatusFlags ProcessStatusFlags { get; set; }
-        public IReadOnlyList<HyperNodeActivityItem> TaskTrace { get; set; }
-        public IReadOnlyDictionary<string, IReadOnlyHyperNodeResponseInfo> ChildResponses { get; set; }
-        public string CommandResponseString { get; set; }
+        public string TaskId { get; }
+        public string RespondingNodeName { get; }
+        public TimeSpan? TotalRunTime { get; }
+        public HyperNodeActionType NodeAction { get; }
+        public HyperNodeActionReasonType NodeActionReason { get; }
+        public MessageProcessStatusFlags ProcessStatusFlags { get; }
+        public IReadOnlyList<HyperNodeActivityItem> TaskTrace { get; }
+        public IReadOnlyDictionary<string, IReadOnlyHyperNodeResponseInfo> ChildResponses { get; }
+        public string CommandResponseString { get; }
 
-        public ReadOnlyHyperNodeResponseInfo(IEnumerable<HyperNodeActivityItem> taskTrace, IDictionary<string, HyperNodeMessageResponse> childResponses)
+        public ReadOnlyHyperNodeResponseInfo(HyperNodeMessageResponse response)
         {
-            // Copy in the info from our top-level message and response. We're avoiding assignment so that
-            // if the user changes anything, it doesn't affect the top-level response
-            this.TaskTrace = new ReadOnlyCollection<HyperNodeActivityItem>(
-                taskTrace.Select(
-                    t => new HyperNodeActivityItem
-                    {
-                        Agent = t.Agent,
-                        Elapsed = t.Elapsed,
-                        EventDateTime = t.EventDateTime,
-                        EventDescription = t.EventDescription,
-                        EventDetail = t.EventDetail,
-                        ProgressPart = t.ProgressPart,
-                        ProgressTotal = t.ProgressTotal
-                    }
+            TaskId = response.TaskId;
+            RespondingNodeName = response.RespondingNodeName;
+            TotalRunTime = response.TotalRunTime;
+            NodeAction = response.NodeAction;
+            NodeActionReason = response.NodeActionReason;
+            ProcessStatusFlags = response.ProcessStatusFlags;
+            CommandResponseString = response.CommandResponseString;
+            TaskTrace = new ReadOnlyCollection<HyperNodeActivityItem>(
+                response.TaskTrace.Select(
+                    t => new HyperNodeActivityItem(t)
                 ).ToList()
             );
-            
-            this.ChildResponses = new ReadOnlyDictionary<string, IReadOnlyHyperNodeResponseInfo>(
-                childResponses.Select(
+            ChildResponses = new ReadOnlyDictionary<string, IReadOnlyHyperNodeResponseInfo>(
+                response.ChildResponses.Select(
                     kvp => new KeyValuePair<string, IReadOnlyHyperNodeResponseInfo>(
                         kvp.Key,
-                        new ReadOnlyHyperNodeResponseInfo(kvp.Value.TaskTrace, kvp.Value.ChildResponses)
-                        {
-                            TaskId = kvp.Value.TaskId,
-                            CommandResponseString = kvp.Value.CommandResponseString,
-                            NodeAction = kvp.Value.NodeAction,
-                            NodeActionReason = kvp.Value.NodeActionReason,
-                            ProcessStatusFlags = kvp.Value.ProcessStatusFlags,
-                            RespondingNodeName = kvp.Value.RespondingNodeName,
-                            TotalRunTime = kvp.Value.TotalRunTime
-                        }
+                        new ReadOnlyHyperNodeResponseInfo(kvp.Value)
                     )
                 ).ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
             );

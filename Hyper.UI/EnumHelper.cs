@@ -28,7 +28,7 @@ namespace Hyper.UI
         public static string GetDescription<TEnum>(int en)
         {
             if (!typeof(TEnum).IsEnum)
-            { throw new ArgumentException("TEnum must be an enumerated type."); }
+                throw new ArgumentException("TEnum must be an enumerated type.");
 
             var cust = (Enum)Enum.Parse(typeof(TEnum), en.ToString());
             return GetDescription(cust);

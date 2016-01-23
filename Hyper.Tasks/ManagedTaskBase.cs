@@ -22,9 +22,9 @@ namespace Hyper.Tasks
 
         public void ExecuteTask(CancellationToken token)
         {
-            if (this.IsRunning) { throw new InvalidOperationException("Task is already running."); }
+            if (IsRunning) { throw new InvalidOperationException("Task is already running."); }
 
-            this.IsRunning = true;
+            IsRunning = true;
 
             try
             {
@@ -32,7 +32,7 @@ namespace Hyper.Tasks
             }
             finally
             {
-                this.IsRunning = false;
+                IsRunning = false;
             }
         }
     }

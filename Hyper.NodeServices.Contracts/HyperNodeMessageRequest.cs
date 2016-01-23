@@ -76,55 +76,34 @@ namespace Hyper.NodeServices.Contracts
         /// <summary>
         /// Indicates whether the <see cref="MessageProcessOptionFlags.ReturnTaskTrace"/> option flag was set.
         /// </summary>
-        public bool ReturnTaskTrace
-        {
-            get
-            {
-                return IsProcessOptionSet(MessageProcessOptionFlags.ReturnTaskTrace);
-            }
-        }
+        public bool ReturnTaskTrace => IsProcessOptionSet(MessageProcessOptionFlags.ReturnTaskTrace);
 
         /// <summary>
         /// Indicates whether the <see cref="MessageProcessOptionFlags.RunConcurrently"/> option flag was set.
         /// </summary>
-        public bool RunConcurrently
-        {
-            get
-            {
-                return IsProcessOptionSet(MessageProcessOptionFlags.RunConcurrently);
-            }
-        }
+        public bool RunConcurrently => IsProcessOptionSet(MessageProcessOptionFlags.RunConcurrently);
 
         /// <summary>
         /// Indicates whether the <see cref="MessageProcessOptionFlags.CacheTaskProgress"/> option flag was set.
         /// </summary>
-        public bool CacheTaskProgress
-        {
-            get
-            {
-                return IsProcessOptionSet(MessageProcessOptionFlags.CacheTaskProgress);
-            }
-        }
+        public bool CacheTaskProgress => IsProcessOptionSet(MessageProcessOptionFlags.CacheTaskProgress);
 
         /// <summary>
         /// Calculates date and time at which this <see cref="HyperNodeMessageRequest"/> expires.
         /// </summary>
-        public DateTime ExpirationDateTime
-        {
-            get { return this.CreationDateTime + this.MessageLifeSpan; }
-        }
+        public DateTime ExpirationDateTime => CreationDateTime + MessageLifeSpan;
 
         /// <summary>
         /// Initializes an instance of <see cref="HyperNodeMessageRequest"/>.
         /// </summary>
         public HyperNodeMessageRequest()
         {
-            this.CreationDateTime = DateTime.Now;
-            this.MessageLifeSpan = _defaultMessageLifeSpan;
-            this.ForwardingTimeout = _defaultForwardingTimeout;
-            this.IntendedRecipientNodeNames = new List<string>();
-            this.SeenByNodeNames = new List<string>();
-            this.ForwardingPath = new HyperNodePath();
+            CreationDateTime = DateTime.Now;
+            MessageLifeSpan = _defaultMessageLifeSpan;
+            ForwardingTimeout = _defaultForwardingTimeout;
+            IntendedRecipientNodeNames = new List<string>();
+            SeenByNodeNames = new List<string>();
+            ForwardingPath = new HyperNodePath();
         }
 
         /// <summary>
@@ -134,7 +113,7 @@ namespace Hyper.NodeServices.Contracts
         public HyperNodeMessageRequest(string createdByAgentName)
             : this()
         {
-            this.CreatedByAgentName = createdByAgentName;
+            CreatedByAgentName = createdByAgentName;
         }
 
         /// <summary>
@@ -144,7 +123,7 @@ namespace Hyper.NodeServices.Contracts
         /// <returns></returns>
         private bool IsProcessOptionSet(MessageProcessOptionFlags optionFlag)
         {
-            return ((this.ProcessOptionFlags & optionFlag) == optionFlag);
+            return (ProcessOptionFlags & optionFlag) == optionFlag;
         }
     }
 }

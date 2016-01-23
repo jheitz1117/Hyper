@@ -27,8 +27,8 @@ namespace Hyper.NodeServices.CommandModules
         {
             // Copy in the info from our top-level message and response. We're avoiding assignment so that
             // if the user changes anything, it doesn't affect the top-level message
-            this.IntendedRecipientNodeNames = new ReadOnlyCollection<string>(intendedRecipientNodeNames);
-            this.SeenByNodeNames = new ReadOnlyCollection<string>(seenByNodeNames);
+            IntendedRecipientNodeNames = new ReadOnlyCollection<string>(intendedRecipientNodeNames);
+            SeenByNodeNames = new ReadOnlyCollection<string>(seenByNodeNames);
         }
     }
 }

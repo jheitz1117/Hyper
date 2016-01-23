@@ -19,18 +19,13 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
             if (HyperNodeService.Instance.IsKnownActivityMonitor(request.OldName))
             {
                 var result = HyperNodeService.Instance.RenameActivityMonitor(request.OldName, request.NewName);
-                context.Activity.TrackFormat(
-                    "The activity monitor '{0}' {1} renamed to '{2}'.",
-                    request.OldName,
-                    (result ? "has been" : "could not be"),
-                    request.NewName
-                );
+                context.Activity.Track($"The activity monitor '{request.OldName}' {(result ? "has been" : "could not be")} renamed to '{request.NewName}'.");
 
-                processStatusFlags = (result ? MessageProcessStatusFlags.Success : MessageProcessStatusFlags.Failure);
+                processStatusFlags = result ? MessageProcessStatusFlags.Success : MessageProcessStatusFlags.Failure;
             }
             else
             {
-                context.Activity.TrackFormat("No activity monitor exists with the name '{0}'.", request.OldName);
+                context.Activity.Track($"No activity monitor exists with the name '{request.OldName}'.");
             }
 
             return new CommandResponse(processStatusFlags);

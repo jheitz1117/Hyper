@@ -34,7 +34,7 @@ namespace Hyper.NodeServices
         private static HyperNodeService Create(IHyperNodeConfigurationProvider configProvider)
         {
             if (configProvider == null)
-                throw new ArgumentNullException("configProvider");
+                throw new ArgumentNullException(nameof(configProvider));
 
             IHyperNodeConfiguration config;
 
@@ -45,11 +45,7 @@ namespace Hyper.NodeServices
             catch (Exception ex)
             {
                 throw new HyperNodeConfigurationException(
-                    string.Format(
-                        "An exception was thrown while attempting to retrieve the configuration for this {0} using {1}. See inner exception for details.",
-                        typeof(HyperNodeService).FullName,
-                        configProvider.GetType().FullName
-                    ),
+                    $"An exception was thrown while attempting to retrieve the configuration for this {typeof (HyperNodeService).FullName} using {configProvider.GetType().FullName}. See inner exception for details.",
                     ex
                 );
             }
@@ -219,7 +215,7 @@ namespace Hyper.NodeServices
                     if (service._customActivityMonitors.Any(m => m.Name == monitorConfig.MonitorName))
                     {
                         throw new DuplicateActivityMonitorException(
-                            string.Format("An activity monitor already exists with the name '{0}'.", monitorConfig.MonitorName)
+                            $"An activity monitor already exists with the {nameof(monitorConfig.MonitorName)} '{monitorConfig.MonitorName}'."
                         );
                     }
 

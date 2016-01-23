@@ -25,16 +25,16 @@
         public CommandResponseString(MessageProcessStatusFlags statusFlags, string responseString)
             : this(statusFlags)
         {
-            this.ResponseString = responseString;
+            ResponseString = responseString;
         }
 
         /// <summary>
-        /// Returns the value of the <see cref="CommandResponseString.ResponseString"/> property.
+        /// Returns the value of the <see cref="ResponseString"/> property.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return this.ResponseString;
+            return ResponseString;
         }
     }
 }

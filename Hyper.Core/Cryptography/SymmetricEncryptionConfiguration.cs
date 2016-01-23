@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using Hyper.Core.Cryptography;
 using Hyper.Extensibility.IO;
 using Hyper.IO;
 
@@ -64,13 +65,13 @@ namespace Hyper.Cryptography
         /// </summary>
         public SymmetricEncryptionConfiguration()
         {
-            this.AlgorithmType = SymmetricAlgorithmType.Aes;
-            this.CipherMode = CipherMode.CBC;
-            this.PaddingMode = PaddingMode.PKCS7;
-            this.PlainTextTransform = StringTransform.FromEncoding(Encoding.UTF8);
-            this.CipherTextTransform = StringTransform.GetHexTransform();
-            this.KeyTransform = StringTransform.GetHexTransform();
-            this.IvTransform = StringTransform.GetHexTransform();
+            AlgorithmType = SymmetricAlgorithmType.Aes;
+            CipherMode = CipherMode.CBC;
+            PaddingMode = PaddingMode.PKCS7;
+            PlainTextTransform = StringTransform.FromEncoding(Encoding.UTF8);
+            CipherTextTransform = StringTransform.GetHexTransform();
+            KeyTransform = StringTransform.GetHexTransform();
+            IvTransform = StringTransform.GetHexTransform();
         }
 
         #endregion Public Methods

@@ -19,18 +19,15 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
             if (HyperNodeService.Instance.IsKnownActivityMonitor(request.ActivityMonitorName))
             {
                 var result = HyperNodeService.Instance.EnableActivityMonitor(request.ActivityMonitorName, request.Enable);
-                context.Activity.TrackFormat(
-                    "The activity monitor '{0}' {1} {2}.",
-                    request.ActivityMonitorName,
-                    (result ? "is now" : "could not be"),
-                    (request.Enable ? "enabled" : "disabled")
+                context.Activity.Track(
+                    $"The activity monitor '{request.ActivityMonitorName}' {(result ? "is now" : "could not be")} {(request.Enable ? "enabled" : "disabled")}."
                 );
 
                 processStatusFlags = (result ? MessageProcessStatusFlags.Success : MessageProcessStatusFlags.Failure);
             }
             else
             {
-                context.Activity.TrackFormat("No activity monitor exists with the name '{0}'.", request.ActivityMonitorName);
+                context.Activity.Track($"No activity monitor exists with the name '{request.ActivityMonitorName}'.");
             }
 
             return new CommandResponse(processStatusFlags);

@@ -13,7 +13,7 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         /// The ID of the task.
         /// </summary>
         [DataMember]
-        public string TaskID { get; set; }
+        public string TaskId { get; set; }
 
         /// <summary>
         /// The name of the command which started the task.

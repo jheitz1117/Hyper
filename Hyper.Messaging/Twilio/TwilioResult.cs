@@ -20,30 +20,20 @@ namespace Hyper.Messaging.Twilio
             }
         }
 
-        public TwilioSMSSendStatus SendStatus
+        public TwilioSmsSendStatus SendStatus
         {
             get
             {
-                TwilioSMSSendStatus sendStatus = TwilioSMSSendStatus.SendNotAttempted;
+                TwilioSmsSendStatus sendStatus;
 
-                if (PartialSendResults.Where(x => x.SendAttempted).Count() == 0)
-                {
-                    sendStatus = TwilioSMSSendStatus.SendNotAttempted;
-                }
-                else if (PartialSendResults.Where(x => x.SendSuccess).Count() == PartialSendResults.Count)
-                {
-                    // All pieces sent successfully
-                    sendStatus = TwilioSMSSendStatus.Success;
-                }
-                else if (PartialSendResults.Where(x => !x.SendSuccess).Count() == PartialSendResults.Count)
-                {
-                    // All pieces failed
-                    sendStatus = TwilioSMSSendStatus.Failure;
-                }
+                if (!PartialSendResults.Any(x => x.SendAttempted))
+                    sendStatus = TwilioSmsSendStatus.SendNotAttempted;
+                else if (PartialSendResults.Count(x => x.SendSuccess) == PartialSendResults.Count)
+                    sendStatus = TwilioSmsSendStatus.Success; // All pieces sent successfully
+                else if (PartialSendResults.Count(x => !x.SendSuccess) == PartialSendResults.Count)
+                    sendStatus = TwilioSmsSendStatus.Failure; // All pieces failed
                 else
-                {
-                    sendStatus = TwilioSMSSendStatus.PartialDelivery;
-                }
+                    sendStatus = TwilioSmsSendStatus.PartialDelivery;
 
                 return sendStatus;
             }
@@ -52,7 +42,7 @@ namespace Hyper.Messaging.Twilio
         #endregion Properties
     }
 
-    public enum TwilioSMSSendStatus
+    public enum TwilioSmsSendStatus
     {
         SendNotAttempted = 0,
         Success = 1,

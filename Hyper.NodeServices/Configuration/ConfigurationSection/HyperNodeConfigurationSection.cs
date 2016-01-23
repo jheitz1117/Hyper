@@ -75,10 +75,7 @@ namespace Hyper.NodeServices.Configuration
         /// </summary>
         [ConfigurationProperty("activityMonitors")]
         [ConfigurationCollection(typeof(ActivityMonitorElementCollection))]
-        public ActivityMonitorElementCollection ActivityMonitors
-        {
-            get { return this["activityMonitors"] as ActivityMonitorElementCollection; }
-        }
+        public ActivityMonitorElementCollection ActivityMonitors => this["activityMonitors"] as ActivityMonitorElementCollection;
 
         /// <summary>
         /// This property (and all such collection properties) must be defined with a return type that matches the <see cref="ConfigurationCollectionAttribute"/> to satisfy the .NET framework.
@@ -86,10 +83,7 @@ namespace Hyper.NodeServices.Configuration
         /// </summary>
         [ConfigurationProperty("systemCommands")]
         [ConfigurationCollection(typeof(SystemCommandElementCollection), AddItemName = "systemCommand")]
-        public SystemCommandElementCollection SystemCommands
-        {
-            get { return this["systemCommands"] as SystemCommandElementCollection; }
-        }
+        public SystemCommandElementCollection SystemCommands => this["systemCommands"] as SystemCommandElementCollection;
 
         /// <summary>
         /// This property (and all such collection properties) must be defined with a return type that matches the <see cref="ConfigurationCollectionAttribute"/> to satisfy the .NET framework.
@@ -97,33 +91,21 @@ namespace Hyper.NodeServices.Configuration
         /// </summary>
         [ConfigurationProperty("commandModules")]
         [ConfigurationCollection(typeof(CommandModuleElementCollection))]
-        public CommandModuleElementCollection CommandModules
-        {
-            get { return this["commandModules"] as CommandModuleElementCollection; }
-        }
+        public CommandModuleElementCollection CommandModules => this["commandModules"] as CommandModuleElementCollection;
 
         /// <summary>
         /// This property must be implemented explicitly because its sibling property of the same name must have a specific return type to satisfy the .NET framework.
         /// </summary>
-        IActivityMonitorConfigurationCollection IHyperNodeConfiguration.ActivityMonitors
-        {
-            get { return this.ActivityMonitors; }
-        }
+        IActivityMonitorConfigurationCollection IHyperNodeConfiguration.ActivityMonitors => ActivityMonitors;
 
         /// <summary>
         /// This property must be implemented explicitly because its sibling property of the same name must have a specific return type to satisfy the .NET framework.
         /// </summary>
-        ISystemCommandConfigurationCollection IHyperNodeConfiguration.SystemCommands
-        {
-            get { return this.SystemCommands; }
-        }
+        ISystemCommandConfigurationCollection IHyperNodeConfiguration.SystemCommands => SystemCommands;
 
         /// <summary>
         /// This property must be implemented explicitly because its sibling property of the same name must have a specific return type to satisfy the .NET framework.
         /// </summary>
-        ICommandModuleConfigurationCollection IHyperNodeConfiguration.CommandModules
-        {
-            get { return this.CommandModules; }
-        }
+        ICommandModuleConfigurationCollection IHyperNodeConfiguration.CommandModules => CommandModules;
     }
 }

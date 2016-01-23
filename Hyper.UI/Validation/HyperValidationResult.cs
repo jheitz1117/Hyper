@@ -41,13 +41,12 @@ namespace Hyper.UI.Validation
         public string GetErrorMessageString(string separator, bool includeExceptionMessages = false)
         {
             separator = separator ?? "";
-            string errorString = string.Join(separator, ErrorMessages.ToArray());
+            var errorString = string.Join(separator, ErrorMessages.ToArray());
             if (includeExceptionMessages)
             {
                 if (!string.IsNullOrWhiteSpace(errorString))
-                {
                     errorString += separator;
-                }
+
                 errorString += string.Join(separator, ValidationExceptions.Select(x => x.Message).ToArray());
             }
 

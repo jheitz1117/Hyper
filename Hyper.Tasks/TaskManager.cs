@@ -28,7 +28,7 @@ namespace Hyper.Tasks
         /// </summary>
         public async void Start()
         {
-            if (this.ManagedTasks.Count == 0) return;
+            if (ManagedTasks.Count == 0) return;
             if (_isRunning)
             { throw new InvalidOperationException("You may not call the Start() method while there are still tasks running."); }
 
@@ -37,17 +37,13 @@ namespace Hyper.Tasks
             // Reset our list of tasks
             _tasks.Clear();
 
-            foreach (var task in this.ManagedTasks)
+            foreach (var task in ManagedTasks)
             {
                 var loopingTask = task as LoopingManagedTaskBase;
                 if (loopingTask != null)
-                {
                     StartNewLoopingTask(loopingTask.ExecuteTask, loopingTask.Delay, loopingTask.ExceptionHandler);
-                }
                 else
-                {
                     StartNewTask(task.ExecuteTask, task.ExceptionHandler);
-                }
             }
 
             // Wait for all the tasks to complete
@@ -102,22 +98,23 @@ namespace Hyper.Tasks
         /// <param name="exceptionHandler">IManagedTaskExceptionHandler used to handle exceptions for the new task</param>
         private void StartNewTask(Action<CancellationToken> taskMethod, IManagedTaskExceptionHandler exceptionHandler)
         {
-            if (taskMethod == null) { throw new ArgumentNullException("taskMethod"); }
+            if (taskMethod == null) { throw new ArgumentNullException(nameof(taskMethod)); }
 
-            _tasks.Add(Task.Factory.StartNew(() =>
-            {
-                try
-                {
-                    taskMethod(_cancellationTokenSource.Token);
-                }
-                catch (Exception ex)
-                {
-                    if (exceptionHandler != null)
+            _tasks.Add(
+                Task.Factory.StartNew(
+                    () =>
                     {
-                        exceptionHandler.HandleException(ex);
+                        try
+                        {
+                            taskMethod(_cancellationTokenSource.Token);
+                        }
+                        catch (Exception ex)
+                        {
+                            exceptionHandler?.HandleException(ex);
+                        }
                     }
-                }
-            }));
+                )
+            );
         }
 
         /// <summary>
@@ -128,29 +125,30 @@ namespace Hyper.Tasks
         /// <param name="exceptionHandler">IManagedTaskExceptionHandler used to handle exceptions for the new task</param>
         private void StartNewLoopingTask(Action<CancellationToken> taskMethod, TimeSpan delay, IManagedTaskExceptionHandler exceptionHandler)
         {
-            if (taskMethod == null) { throw new ArgumentNullException("taskMethod"); }
-            if (delay == null) { throw new ArgumentNullException("delay"); }
-            if (delay.CompareTo(TimeSpan.Zero) == delay.CompareTo(TimeSpan.MaxValue)) { throw new ArgumentOutOfRangeException("delay"); }
+            if (taskMethod == null) { throw new ArgumentNullException(nameof(taskMethod)); }
+            if (delay == null) { throw new ArgumentNullException(nameof(delay)); }
+            if (delay.CompareTo(TimeSpan.Zero) == delay.CompareTo(TimeSpan.MaxValue)) { throw new ArgumentOutOfRangeException(nameof(delay)); }
 
-            _tasks.Add(Task.Factory.StartNew(async () =>
-            {
-                while (!_cancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    try
+            _tasks.Add(
+                Task.Factory.StartNew(
+                    async () =>
                     {
-                        taskMethod(_cancellationTokenSource.Token);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (exceptionHandler != null)
+                        while (!_cancellationTokenSource.Token.IsCancellationRequested)
                         {
-                            exceptionHandler.HandleException(ex);
+                            try
+                            {
+                                taskMethod(_cancellationTokenSource.Token);
+                            }
+                            catch (Exception ex)
+                            {
+                                exceptionHandler?.HandleException(ex);
+                            }
+
+                            await Task.Delay(delay, _cancellationTokenSource.Token);
                         }
                     }
-
-                    await Task.Delay(delay, _cancellationTokenSource.Token);
-                }
-            }));
+                )
+            );
         }
     }
 }

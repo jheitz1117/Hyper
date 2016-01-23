@@ -21,14 +21,6 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         /// A List of child nodes for the <see cref="IHyperNodeService"/>.
         /// </summary>
         [DataMember]
-        public List<string> ChildNodes { get; set; }
-
-        /// <summary>
-        /// Initializes an instance of <see cref="GetChildNodesResponse"/>.
-        /// </summary>
-        public GetChildNodesResponse()
-        {
-            this.ChildNodes = new List<string>();
-        }
+        public List<string> ChildNodes { get; set; } = new List<string>();
     }
 }

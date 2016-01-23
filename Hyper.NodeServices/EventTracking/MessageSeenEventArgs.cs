@@ -16,8 +16,7 @@ namespace Hyper.NodeServices.EventTracking
 
         public void CancelTask()
         {
-            if (_cancelTaskAction != null)
-                _cancelTaskAction();
+            _cancelTaskAction?.Invoke();
         }
     }
 }

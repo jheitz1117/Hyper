@@ -11,7 +11,7 @@ namespace Hyper.NodeServices.ActivityTracking
 
         public ResponseTaskTraceMonitor(HyperNodeMessageResponse target)
         {
-            this.Name = GetType().Name;
+            Name = nameof(ResponseTaskTraceMonitor);
             _target = target;
         }
 
@@ -38,7 +38,7 @@ namespace Hyper.NodeServices.ActivityTracking
             lock (Lock)
             {
                 _target.TaskTrace.Add(
-                    new HyperNodeActivityItem("Error")
+                    new HyperNodeActivityItem(Name)
                     {
                         EventDateTime = DateTime.Now,
                         EventDescription = exception.Message,

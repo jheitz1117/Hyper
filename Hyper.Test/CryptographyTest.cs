@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Hyper.Core.Cryptography;
 using Hyper.Cryptography;
 using Hyper.Extensibility.IO;
 using Hyper.IO;
@@ -96,7 +97,7 @@ namespace Hyper.Test
             byte[] IStringTransform.GetBytes(string input)
             {
                 if (string.IsNullOrWhiteSpace(input))
-                { throw new ArgumentNullException("input"); }
+                { throw new ArgumentNullException(nameof(input)); }
 
                 return Encoding.UTF8.GetBytes(input.PadLeft(32, 'X').Substring(0, 32));
             }
@@ -112,7 +113,7 @@ namespace Hyper.Test
             byte[] IStringTransform.GetBytes(string input)
             {
                 if (string.IsNullOrWhiteSpace(input))
-                { throw new ArgumentNullException("input"); }
+                { throw new ArgumentNullException(nameof(input)); }
 
                 return Encoding.UTF8.GetBytes(input.PadLeft(16, 'X').Substring(0, 16));
             }

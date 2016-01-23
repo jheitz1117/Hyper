@@ -10,7 +10,7 @@ namespace Hyper.FileProcessing.Parsing.Transforms
             set;
         }
 
-        private int _maxLength = 0;
+        private int _maxLength;
         public int MaxLength {
             get {
                 return _maxLength;
@@ -33,8 +33,8 @@ namespace Hyper.FileProcessing.Parsing.Transforms
 
         public PadStringParameter(char padChar, int maxLength)
             : this() {
-            this.PadChar = padChar;
-            this.MaxLength = maxLength;
+            PadChar = padChar;
+            MaxLength = maxLength;
         }
 
         #endregion Public Methods

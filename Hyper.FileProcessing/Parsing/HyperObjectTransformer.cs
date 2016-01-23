@@ -1,7 +1,8 @@
-﻿using Hyper.BatchProcessing;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Hyper.BatchProcessing;
 
 namespace Hyper.FileProcessing.Parsing
 {
@@ -11,7 +12,7 @@ namespace Hyper.FileProcessing.Parsing
 
         public static ObjectMappingResult<T> MapObjectData<T>(List<Dictionary<string, string>> objectData) where T : new()
         {
-            ObjectMappingResult<T> result = new ObjectMappingResult<T>();
+            var result = new ObjectMappingResult<T>();
 
             long recordNumber = 1;
             foreach (var lineData in objectData)
@@ -52,19 +53,14 @@ namespace Hyper.FileProcessing.Parsing
             }
 
             var targetProperties = new List<PropertyInfo>(objTarget.GetType().GetProperties());
-            foreach (PropertyInfo targetProperty in targetProperties)
+            foreach (var targetProperty in targetProperties.Where(targetProperty => propertyValues.ContainsKey(targetProperty.Name)))
             {
-                if (!propertyValues.ContainsKey(targetProperty.Name))
-                {
-                    continue;
-                }
-
                 try
                 {
-                    string rawValue = propertyValues[targetProperty.Name];
-                    object convertedValue = null;
+                    var rawValue = propertyValues[targetProperty.Name];
+                    object convertedValue;
 
-                    Type typeToCheck = targetProperty.PropertyType;
+                    var typeToCheck = targetProperty.PropertyType;
                     if (targetProperty.PropertyType.IsGenericType && targetProperty.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                     {
                         //If we have a nullable type and a blank raw value, we'll just set the property to null
@@ -78,63 +74,63 @@ namespace Hyper.FileProcessing.Parsing
                         typeToCheck = Nullable.GetUnderlyingType(targetProperty.PropertyType);
                     }
 
-                    if (typeToCheck == typeof(System.String))
+                    if (typeToCheck == typeof(string))
                     {
                         convertedValue = rawValue;
                     }
-                    else if (typeToCheck == typeof(System.Int16))
+                    else if (typeToCheck == typeof(short))
                     {
                         convertedValue = Convert.ToInt16(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.Int32))
+                    else if (typeToCheck == typeof(int))
                     {
                         convertedValue = Convert.ToInt32(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.Int64))
+                    else if (typeToCheck == typeof(long))
                     {
                         convertedValue = Convert.ToInt64(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.Decimal))
+                    else if (typeToCheck == typeof(decimal))
                     {
                         convertedValue = Convert.ToDecimal(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.Boolean))
+                    else if (typeToCheck == typeof(bool))
                     {
                         convertedValue = Convert.ToBoolean(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.Byte))
+                    else if (typeToCheck == typeof(byte))
                     {
                         convertedValue = Convert.ToByte(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.Char))
+                    else if (typeToCheck == typeof(char))
                     {
                         convertedValue = Convert.ToChar(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.DateTime))
+                    else if (typeToCheck == typeof(DateTime))
                     {
                         convertedValue = Convert.ToDateTime(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.Double))
+                    else if (typeToCheck == typeof(double))
                     {
                         convertedValue = Convert.ToDouble(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.SByte))
+                    else if (typeToCheck == typeof(sbyte))
                     {
                         convertedValue = Convert.ToSByte(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.Single))
+                    else if (typeToCheck == typeof(float))
                     {
                         convertedValue = Convert.ToSingle(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.UInt16))
+                    else if (typeToCheck == typeof(ushort))
                     {
                         convertedValue = Convert.ToUInt16(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.UInt32))
+                    else if (typeToCheck == typeof(uint))
                     {
                         convertedValue = Convert.ToUInt32(rawValue);
                     }
-                    else if (typeToCheck == typeof(System.UInt64))
+                    else if (typeToCheck == typeof(ulong))
                     {
                         convertedValue = Convert.ToUInt64(rawValue);
                     }
@@ -143,24 +139,20 @@ namespace Hyper.FileProcessing.Parsing
                         convertedValue = Convert.ChangeType(rawValue, Enum.GetUnderlyingType(typeToCheck));
 
                         if (Enum.IsDefined(typeToCheck, convertedValue))
-                        {
                             convertedValue = Enum.ToObject(typeToCheck, convertedValue);
-                        }
                         else
-                        {
-                            throw new ObjectTransformationException("The enumeration '" + typeToCheck.ToString() + "' does not contain the value '" + convertedValue + "'. Skipping this property.");
-                        }
+                            throw new ObjectTransformationException("The enumeration '" + typeToCheck + "' does not contain the value '" + convertedValue + "'. Skipping this property.");
                     }
                     else
                     {
-                        throw new NotSupportedException("The type '" + typeToCheck.ToString() + "' is not currently supported.");
+                        throw new NotSupportedException("The type '" + typeToCheck + "' is not currently supported.");
                     }
 
                     targetProperty.SetValue(objTarget, convertedValue, null);
                 }
                 catch (Exception ex)
                 {
-                    result.Errors.Add(new ObjectTransformationException("Failed to set property '" + targetProperty.Name + "' on object of type '" + objTarget.GetType().ToString() + "' to the value '" + propertyValues[targetProperty.Name] + "'.", ex));
+                    result.Errors.Add(new ObjectTransformationException("Failed to set property '" + targetProperty.Name + "' on object of type '" + objTarget.GetType() + "' to the value '" + propertyValues[targetProperty.Name] + "'.", ex));
                 }
             }
 
