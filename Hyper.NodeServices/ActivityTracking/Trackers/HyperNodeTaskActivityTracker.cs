@@ -17,8 +17,11 @@ namespace Hyper.NodeServices.ActivityTracking
         {
             _taskContext = taskContext;
             _eventHandler = eventHandler;
-
-            _cancelTaskAction = cancelTaskAction;
+            _cancelTaskAction = () =>
+            {
+                Track("Task cancellation requested from user-defined code.");
+                cancelTaskAction();
+            };
         }
 
         public void TrackTaskStarted()
@@ -159,6 +162,13 @@ namespace Hyper.NodeServices.ActivityTracking
             {
                 TrackException(ex);
             }
+        }
+
+        public void TrackActivityVerbatim(HyperNodeActivityEventItem item)
+        {
+            OnTrackActivity(
+                new TrackActivityEventArgs(item)
+            );
         }
 
         #region ITaskActivityTracker Implementation

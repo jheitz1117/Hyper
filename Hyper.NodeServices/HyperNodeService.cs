@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Configuration;
@@ -12,12 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Hyper.ActivityTracking;
 using Hyper.NodeServices.ActivityTracking;
+using Hyper.NodeServices.ActivityTracking.Trackers;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.Configuration;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Contracts.Extensibility.Serializers;
-using Hyper.NodeServices.EventTracking;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
@@ -157,14 +156,16 @@ namespace Hyper.NodeServices
                 ProcessStatusFlags = MessageProcessStatusFlags.None
             };
 
-            var currentTaskInfo = new HyperNodeTaskInfo(_masterTokenSource.Token, message, response);
+            var currentTaskInfo = new HyperNodeTaskInfo(HyperNodeName, _masterTokenSource.Token, message, response, message.ReturnTaskTrace || EnableDiagnostics);
 
-            // Start our task-level stopwatch to track total time
+            // Start our task-level stopwatch to track total time. If diagnostics are disabled, calling this method has no effect.
             currentTaskInfo.StartStopwatch();
 
+            // This tracker is used to temporarily store activity event items until we know what to do with them
+            var queueTracker = new TaskActivityQueueTracker(currentTaskInfo);
+            
             // Check if we should reject this request
-            HyperNodeActivityItem rejectionActivityItem;
-            var rejectionReason = GetRejectionReason(currentTaskInfo, out rejectionActivityItem);
+            var rejectionReason = GetRejectionReason(currentTaskInfo, queueTracker);
             if (rejectionReason.HasValue)
             {
                 response.NodeAction = HyperNodeActionType.Rejected;
@@ -172,9 +173,26 @@ namespace Hyper.NodeServices
                 response.ProcessStatusFlags = MessageProcessStatusFlags.Cancelled;
                 response.TaskId = null;
 
-                // At this point in the game, we don't have an activity tracker yet because we don't have a task ID. Without an activity tracker, we can't track the rejection activity item.
-                // Instead, we'll just add the information to the task trace of the response object and send that back so the caller knows what happened.
-                response.TaskTrace.Add(rejectionActivityItem);
+                // At this point in the game, we don't have a "real" activity tracker yet because we haven't initialized it. So instead of
+                // running the events through the activity monitors as we normally would, we'll just add the information to the task trace
+                // of the response object and send that back so the caller knows what happened.
+                while (queueTracker.Count > 0)
+                {
+                    var activityItem = queueTracker.Dequeue();
+
+                    response.TaskTrace.Add(
+                        new HyperNodeActivityItem
+                        {
+                            Agent = activityItem.Agent,
+                            EventDateTime = activityItem.EventDateTime,
+                            EventDetail = activityItem.EventDetail,
+                            EventDescription = activityItem.EventDescription,
+                            ProgressPart = activityItem.ProgressPart,
+                            ProgressTotal = activityItem.ProgressTotal,
+                            Elapsed = activityItem.Elapsed
+                        }
+                    );
+                }
 
                 // If the message was rejected, then the HyperNodeTaskInfo was not added to the list of live events, which means it will never be disposed unless we do so here.
                 // This will also set the TotalRunTime on the response so we know how long it took to reject the message
@@ -184,6 +202,18 @@ namespace Hyper.NodeServices
             {
                 // Initialize our activity tracker so we can track progress
                 InitializeActivityTracker(currentTaskInfo);
+
+                // Now that we've setup our "real" activity tracker, let's report all the activity we've stored up until now
+                while (queueTracker.Count > 0)
+                {
+                    // If the item doesn't have a task ID, set it here.
+                    var activityItem = queueTracker.Dequeue();
+                    if (string.IsNullOrWhiteSpace(activityItem.TaskId))
+                        activityItem.TaskId = currentTaskInfo.TaskId;
+
+                    // Now track it verbatim (all info is preserved, i.e. the original date/time of the event and other properties)
+                    currentTaskInfo.Activity.TrackActivityVerbatim(activityItem);
+                }
 
                 #region Process Message
 
@@ -212,7 +242,6 @@ namespace Hyper.NodeServices
                         message.SeenByNodeNames.Add(HyperNodeName);
                         currentTaskInfo.Activity.TrackMessageSeen();
 
-                        // TODO: Check to make sure this cancellation thing works!
                         // Check if user cancelled the message in the OnMessageSeen event
                         currentTaskInfo.Token.ThrowIfCancellationRequested();
 
@@ -459,12 +488,7 @@ namespace Hyper.NodeServices
         private void InitializeActivityTracker(HyperNodeTaskInfo currentTaskInfo)
         {
             currentTaskInfo.Activity = new HyperNodeTaskActivityTracker(
-                new TaskEventContext(
-                    HyperNodeName,
-                    currentTaskInfo.Message,
-                    currentTaskInfo.Response.TaskId,
-                    currentTaskInfo.Message.ReturnTaskTrace || EnableDiagnostics
-                ),
+                currentTaskInfo,
                 EventHandler,
 
                 // Possible user actions
@@ -530,15 +554,13 @@ namespace Hyper.NodeServices
                 /*****************************************************************************************************************
                  * Subscribe our system activity monitors to the event stream first
                  *****************************************************************************************************************/
-                currentTaskInfo.ActivitySubscribers.Add(
-                    new CompositeDisposable(
-                        systemActivityMonitors.Select(
-                            m => new HyperNodeActivityObserver(
-                                m,
-                                liveEvents,
-                                Scheduler.CurrentThread,
-                                currentTaskInfo
-                            )
+                currentTaskInfo.ActivityObservers.AddRange(
+                    systemActivityMonitors.Select(
+                        monitor => new HyperNodeActivityObserver(
+                            monitor,
+                            liveEvents,
+                            Scheduler.CurrentThread,
+                            currentTaskInfo
                         )
                     )
                 );
@@ -546,19 +568,29 @@ namespace Hyper.NodeServices
                 /*****************************************************************************************************************
                  * Subscribe our custom activity monitors to the event stream last, just in case any of them throw exceptions. If they do, we've already setup our
                  * task trace and cache monitors at this point, so we can actually use the activity tracker to track the exceptions. This way, we can make sure that
-                 * any exceptions thrown by user code are available to be reported to the client
+                 * any exceptions thrown by user code are available to be reported to the client.
+                 *
+                 * Also, see the following for discussions about the various schedulers:
+                 *     http://stackoverflow.com/questions/25993482/creating-an-sta-thread-when-using-reactive-extensions-rx-schedulers
+                 *         - Difference between NewThreadScheduler and EventLoopScheduler
+                 *     http://stackoverflow.com/questions/26159965/rx-taskpoolscheduler-vs-eventloopscheduler-memory-usage
+                 *         - Excessive memory usage from TaskPoolScheduler
+                 * As far as these schedulers go, I have decided to force all activity monitors to go through the current thread. This is because I don't want to
+                 * blow up the server with all kinds of extra threads. Right now, I feel that if the activity monitors are slowing down the server to the point
+                 * that we have to introduce some concurrency, then the caller can just indicate in the request object to run the task concurrently, so that the
+                 * extra time consumed by the activity monitors is absorbed into the more general task thread.
                  *****************************************************************************************************************/
-                currentTaskInfo.ActivitySubscribers.Add(
-                    new CompositeDisposable(
-                        from monitor in _customActivityMonitors
-                        where monitor.Enabled // Only add the monitors that are enabled
-                        select new HyperNodeActivityObserver(
-                            monitor,
-                            liveEvents,
-                            Scheduler.CurrentThread,
-                            currentTaskInfo
+                currentTaskInfo.ActivityObservers.AddRange(
+                    _customActivityMonitors
+                        .Where(m => m.Enabled) // Only add the monitors that are enabled
+                        .Select(
+                            monitor => new HyperNodeActivityObserver(
+                                monitor,
+                                liveEvents,
+                                Scheduler.CurrentThread,
+                                currentTaskInfo
+                            )
                         )
-                    )
                 );
             }
             catch (Exception ex)
@@ -573,20 +605,18 @@ namespace Hyper.NodeServices
             }
         }
 
-        private HyperNodeActionReasonType? GetRejectionReason(HyperNodeTaskInfo taskInfo, out HyperNodeActivityItem rejectionActivity)
+        private HyperNodeActionReasonType? GetRejectionReason(HyperNodeTaskInfo taskInfo, ITaskActivityTracker queueTracker)
         {
             HyperNodeActionReasonType? rejectionReason = null;
-
-            var messageInfo = new ReadOnlyHyperNodeMessageInfo(taskInfo.Message);
-
+            
             HyperNodeActivityItem userRejectionActivity = null;
             try
             {
                 // Allow the user to reject the message if necessary
                 EventHandler.OnMessageReceived(
                     new MessageReceivedEventArgs(
-                        HyperNodeName,
-                        messageInfo,
+                        queueTracker,
+                        taskInfo,
                         r =>
                         {
                             rejectionReason = HyperNodeActionReasonType.Custom;
@@ -636,7 +666,7 @@ namespace Hyper.NodeServices
                     try
                     {
                         // Try to use our custom task ID provider
-                        taskId = TaskIdProvider.CreateTaskId(messageInfo);
+                        taskId = TaskIdProvider.CreateTaskId(taskInfo.MessageInfo);
                     }
                     catch (Exception ex)
                     {
@@ -669,7 +699,11 @@ namespace Hyper.NodeServices
             }
 
             // Set the rejection activity here, and let the user-defined rejection take precedence over the system-defined rejection
-            rejectionActivity = userRejectionActivity ?? systemRejectionActivity;
+            var effectiveRejectionActivity = userRejectionActivity ?? systemRejectionActivity;
+
+            // Finally, queue up the rejection activity last, after all of the user's other events they may have tracked
+            if (effectiveRejectionActivity != null)
+                queueTracker.Track(effectiveRejectionActivity.EventDescription, effectiveRejectionActivity.EventDetail);
 
             return rejectionReason;
         }

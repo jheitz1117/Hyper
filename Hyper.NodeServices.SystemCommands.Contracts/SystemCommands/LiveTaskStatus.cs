@@ -28,9 +28,9 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         public bool IsCancellationRequested { get; set; }
 
         /// <summary>
-        /// Indicates how long the task has been running.
+        /// Indicates how long the task has been running. This property is null unless diagnostics are turned on.
         /// </summary>
         [DataMember]
-        public TimeSpan Elapsed { get; set; }
+        public TimeSpan? Elapsed { get; set; }
     }
 }

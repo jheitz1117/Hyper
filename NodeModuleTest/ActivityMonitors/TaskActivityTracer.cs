@@ -16,7 +16,7 @@ namespace NodeModuleTest.ActivityMonitors
         {
             Name = nameof(TaskActivityTracer);
         }
-
+        
         public override void OnTrack(IHyperNodeActivityEventItem activity)
         {
             Trace.WriteLine(

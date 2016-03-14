@@ -2,23 +2,30 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Hyper.NodeServices.ActivityTracking;
 using Hyper.NodeServices.Contracts;
+using Hyper.NodeServices.Extensibility;
+using Hyper.NodeServices.Extensibility.EventTracking;
 
 namespace Hyper.NodeServices
 {
-    internal sealed class HyperNodeTaskInfo : IDisposable
+    internal sealed class HyperNodeTaskInfo : ITaskEventContext, IDisposable
     {
-        private readonly Stopwatch _stopwatch = new Stopwatch();
+        private readonly Stopwatch _stopwatch;
         private readonly CancellationTokenSource _taskTokenSource;
         private readonly List<Task> _childTasks = new List<Task>();
 
         #region Properties
+
+        public string HyperNodeName { get; }
+
+        public string CommandName => Message.CommandName;
+
+        public IReadOnlyHyperNodeMessageInfo MessageInfo => new ReadOnlyHyperNodeMessageInfo(Message);
 
         public string TaskId
         {
@@ -32,28 +39,32 @@ namespace Hyper.NodeServices
 
         public IConnectableObservable<Unit> TerminatingSequence { get; } = Observable.Return(Unit.Default).Publish();
 
-        public CompositeDisposable ActivitySubscribers { get; } = new CompositeDisposable();
+        public List<HyperNodeActivityObserver> ActivityObservers { get; } = new List<HyperNodeActivityObserver>();
 
         public HyperNodeMessageRequest Message { get; }
 
         public HyperNodeMessageResponse Response { get; }
 
-        public TimeSpan Elapsed => _stopwatch.Elapsed;
+        public TimeSpan? Elapsed => _stopwatch?.Elapsed;
 
         #endregion Properties
 
         #region Public Methods
 
-        public HyperNodeTaskInfo(CancellationToken masterToken, HyperNodeMessageRequest message, HyperNodeMessageResponse response)
+        public HyperNodeTaskInfo(string hyperNodeName, CancellationToken masterToken, HyperNodeMessageRequest message, HyperNodeMessageResponse response, bool enableDiagnostics)
         {
+            HyperNodeName = hyperNodeName;
             _taskTokenSource = CancellationTokenSource.CreateLinkedTokenSource(masterToken);
             Message = message;
             Response = response;
+
+            if (enableDiagnostics)
+                _stopwatch = new Stopwatch();
         }
 
         public void StartStopwatch()
         {
-            if (!_stopwatch.IsRunning)
+            if (_stopwatch != null && !_stopwatch.IsRunning)
                 _stopwatch.Start();
         }
 
@@ -114,8 +125,8 @@ namespace Hyper.NodeServices
             if (disposing)
             {
                 // First, stop our stopwatch so we can record the total elapsed time for this task
-                _stopwatch.Stop();
-                Response.TotalRunTime = _stopwatch.Elapsed;
+                _stopwatch?.Stop();
+                Response.TotalRunTime = _stopwatch?.Elapsed;
 
                 /* Signal completion before we dispose our subscribers. This is necessary because clients who are polling the service for progress
                  * updates must know when the service is done sending updates. Make sure we pass the final, completed response object in case we have
@@ -127,10 +138,11 @@ namespace Hyper.NodeServices
                 TerminatingSequence.Connect().Dispose();
 
                 /*
-                 * If we dispose of our activity subscribers at this point, it's possible that some subscribers may be disposed before they've processed all of their queued items.
+                 * If we dispose of our activity observers at this point, it's possible that some subscribers may be disposed before they've processed all of their queued items.
                  * Currently, the only way I can think of for the disposal to NOT happen is if someone writes an infinite loop into their observer to prevent the OnNext() from
                  * returning. If they've done this, I'm hoping the problem will be fairly obvious to the user. As it stands, I will not be manually disposing the activity
-                 * subscribers at this time; I will allow the automatic disposal scheduling to take care of it.
+                 * subscribers at this time; I will allow the automatic disposal scheduling to take care of it. That is, when a sequence is completed, it calls Dispose(), and I'm
+                 * guaranteeing that the event sequence will always complete.
                  */
 
                 _taskTokenSource?.Dispose();

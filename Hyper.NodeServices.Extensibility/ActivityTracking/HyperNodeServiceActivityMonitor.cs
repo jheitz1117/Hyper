@@ -25,7 +25,7 @@ namespace Hyper.NodeServices.Extensibility.ActivityTracking
         /// Specifies whether this <see cref="HyperNodeServiceActivityMonitor"/> is enabled.
         /// </summary>
         public bool Enabled { get; set; } = true;
-
+        
         /// <summary>
         /// When overridden in a derived class, runs custom initialization code for <see cref="HyperNodeServiceActivityMonitor"/>
         /// implementations. This method is called immediately after the <see cref="HyperNodeServiceActivityMonitor"/> instance is instantiated. Once the

@@ -1,19 +1,16 @@
 ﻿using System;
+using Hyper.NodeServices.EventTracking;
+using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.Extensibility.EventTracking
 {
-    internal sealed class MessageReceivedEventArgs : EventArgs, IMessageReceivedEventArgs
+    internal sealed class MessageReceivedEventArgs : HyperNodeEventArgs, IMessageReceivedEventArgs
     {
         private readonly Action<string> _rejectMessageAction;
 
-        public string HyperNodeName { get; }
-
-        public IReadOnlyHyperNodeMessageInfo MessageInfo { get; }
-
-        public MessageReceivedEventArgs(string hyperNodeName, IReadOnlyHyperNodeMessageInfo messageInfo, Action<string> rejectMessageAction)
+        public MessageReceivedEventArgs(ITaskActivityTracker activity, ITaskEventContext taskContext, Action<string> rejectMessageAction)
+            : base(activity, taskContext)
         {
-            HyperNodeName = hyperNodeName;
-            MessageInfo = messageInfo;
             _rejectMessageAction = rejectMessageAction;
         }
 
