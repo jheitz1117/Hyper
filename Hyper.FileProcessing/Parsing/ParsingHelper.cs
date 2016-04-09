@@ -70,9 +70,9 @@ namespace Hyper.FileProcessing.Parsing
         public static bool IsValidPhoneNumber(long? input)
         {
             var phoneNumberLength = input.ToString().Length;
-            return (phoneNumberLength == 7 ||
-                    phoneNumberLength == 10 ||
-                    phoneNumberLength == 11);
+            return phoneNumberLength == 7 ||
+                   phoneNumberLength == 10 ||
+                   phoneNumberLength == 11;
         }
 
         public static bool IsStringNumeric(string input)
@@ -82,81 +82,73 @@ namespace Hyper.FileProcessing.Parsing
 
         public static bool IsGreaterThanZero(double? input)
         {
-            return ((input ?? 0) > 0);
+            return (input ?? 0) > 0;
         }
 
         public static bool IsGreaterThanZero(long? input)
         {
-            return ((input ?? 0) > 0);
+            return (input ?? 0) > 0;
         }
 
         public static bool IsGreaterThanZero(int? input)
         {
-            return ((input ?? 0) > 0);
+            return (input ?? 0) > 0;
         }
 
         public static bool IsGreaterThanZero(short? input)
         {
-            return ((input ?? 0) > 0);
+            return (input ?? 0) > 0;
         }
 
         public static bool IsGreaterThanZero(byte? input)
         {
-            return ((input ?? 0) > 0);
+            return (input ?? 0) > 0;
         }
 
         public static bool IsStringNumeric(string input, bool allowDecimal)
         {
             var pattern = @"^\d+$";
             if (allowDecimal)
-            {
                 pattern = @"^(\d+\.?\d*|\d*\.?\d+|)$";
-            }
+
             return Regex.IsMatch(input ?? "", pattern);
         }
 
         public static bool IsValidYear(string input)
         {
             int year;
-            return (int.TryParse(input, out year) && IsValidYear(year));
+            return int.TryParse(input, out year) && IsValidYear(year);
         }
 
         public static bool IsValidYear(int? input)
         {
-            return (input > 0 && input <= 9999);
+            return input > 0 && input <= 9999;
         }
 
         public static bool IsValidZipCode(long? input)
         {
-            return (input > 0 && input <= 999999999);
+            return input > 0 && input <= 999999999;
         }
 
         public static string Truncate(string input, int maxLength)
         {
-            if (input == null)
-            {
-                return input;
-            }
-
-            return input.Substring(0, Math.Min(input.Length, maxLength));
+            return input?.Substring(0, Math.Min(input.Length, maxLength));
         }
 
         public static string StripNonNumeric(string input)
         {
-            return Regex.Replace((input ?? ""), "[^0-9]", "");
+            return Regex.Replace(input ?? "", "[^0-9]", "");
         }
 
         public static string StripNonDecimal(string input)
         {
             // Strip out everything that isn't a digit or a decimal
-            var returnValue = Regex.Replace((input ?? ""), "[^0-9.]", "");
+            var returnValue = Regex.Replace(input ?? "", "[^0-9.]", "");
 
             // Only keep the first decimal
             var firstDecimalIndex = returnValue.IndexOf('.');
             if (firstDecimalIndex >= 0)
-            {
                 returnValue = returnValue.Replace(".", "").Insert(firstDecimalIndex, ".");
-            }
 
             return returnValue;
         }
@@ -176,24 +168,20 @@ namespace Hyper.FileProcessing.Parsing
 
             // Recalculate the max line length to account for the prefix and suffix
             if (!string.IsNullOrWhiteSpace(linePrefix))
-            {
                 maxLineLength -= linePrefix.Length;
-            }
             if (!string.IsNullOrWhiteSpace(lineSuffix))
-            {
                 maxLineLength -= lineSuffix.Length;
-            }
 
             if (string.IsNullOrWhiteSpace(input))
-            { return lines; }
-            
+                return lines;
+
             if (maxLineLength <= 0 || input.Length <= maxLineLength)
             {
                 lines.Add(input);
             }
             else
             {
-                List<string> words = new List<string>(Regex.Replace(input, @"\s+", " ").Split(' '));
+                var words = new List<string>(Regex.Replace(input, @"\s+", " ").Split(' '));
 
                 // Make sure none of the individual words are longer than our max line length
                 bool foundLongWord;
@@ -231,9 +219,7 @@ namespace Hyper.FileProcessing.Parsing
                     if (currentLine.Length + word.Length + Math.Min(currentLine.Length, 1) <= maxLineLength)
                     {
                         if (!string.IsNullOrWhiteSpace(currentLine))
-                        {
                             currentLine += " ";
-                        }
 
                         currentLine += word;
                         continue;
@@ -241,22 +227,16 @@ namespace Hyper.FileProcessing.Parsing
                  
                     // Don't add the prefix to the first line
                     if (lines.Count == 0)
-                    {
                         lines.Add(currentLine + lineSuffix);
-                    }
                     else
-                    {
                         lines.Add(linePrefix + currentLine + lineSuffix);
-                    }
 
                     currentLine = word;
                 }
 
                 // Add our last line, but don't add the suffix to it
                 if (!string.IsNullOrWhiteSpace(currentLine))
-                {
                     lines.Add(linePrefix + currentLine);
-                }
             }
 
             return lines;

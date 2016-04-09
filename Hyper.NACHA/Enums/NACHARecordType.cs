@@ -1,6 +1,6 @@
 ﻿namespace Hyper.NACHA
 {
-    public enum NACHARecordType
+    public enum NachaRecordType
     {
         FileHeader = 1,
         CompanyBatchHeader = 5,

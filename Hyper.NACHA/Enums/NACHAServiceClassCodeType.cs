@@ -1,6 +1,6 @@
 ﻿namespace Hyper.NACHA
 {
-    public enum NACHAServiceClassCodeType
+    public enum NachaServiceClassCodeType
     {
         DebitsAndCredits = 200,
         CreditsOnly = 220,

@@ -1,4 +1,4 @@
 Hyper
 =====
 
-Facilitates rapid development of SOA systems.
+Facilitates rapid development of modular SOA systems.

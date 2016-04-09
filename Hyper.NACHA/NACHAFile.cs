@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Hyper.NACHA
 {
-    public class NACHAFile
+    public class NachaFile
     {
         /// <summary>
         /// The blocking factor determines the number of records in one block in the NACHA file. The NACHA file must contain only whole blocks, so if the
@@ -18,11 +18,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return FileHeader.ImmediateDestination;
+                return _fileHeader.ImmediateDestination;
             }
             set
             {
-                FileHeader.ImmediateDestination = value;
+                _fileHeader.ImmediateDestination = value;
             }
         }
 
@@ -30,11 +30,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return FileHeader.ImmediateDestinationName;
+                return _fileHeader.ImmediateDestinationName;
             }
             set
             {
-                FileHeader.ImmediateDestinationName = value;
+                _fileHeader.ImmediateDestinationName = value;
             }
         }
 
@@ -42,11 +42,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return FileHeader.ImmediateOrigin;
+                return _fileHeader.ImmediateOrigin;
             }
             set
             {
-                FileHeader.ImmediateOrigin = value;
+                _fileHeader.ImmediateOrigin = value;
             }
         }
 
@@ -54,44 +54,44 @@ namespace Hyper.NACHA
         {
             get
             {
-                return FileHeader.ImmediateOriginName;
+                return _fileHeader.ImmediateOriginName;
             }
             set
             {
-                FileHeader.ImmediateOriginName = value;
+                _fileHeader.ImmediateOriginName = value;
             }
         }
 
-        private readonly NACHAFileHeaderRecord FileHeader;
-        private readonly NACHAFileControlRecord FileControl;
-        private readonly List<NACHACompanyBatch> CompanyBatches = new List<NACHACompanyBatch>();
+        private readonly NachaFileHeaderRecord _fileHeader;
+        private readonly NachaFileControlRecord _fileControl;
+        private readonly List<NachaCompanyBatch> _companyBatches = new List<NachaCompanyBatch>();
 
-        public NACHAFile()
+        public NachaFile()
             : this(DateTime.Now) { }
-        public NACHAFile(DateTime fileCreateDate)
+
+        public NachaFile(DateTime fileCreateDate)
         {
-            FileHeader = new NACHAFileHeaderRecord(BlockingFactor, FormatCode, fileCreateDate);
-            FileControl = new NACHAFileControlRecord();
+            _fileHeader = new NachaFileHeaderRecord(BlockingFactor, FormatCode, fileCreateDate);
+            _fileControl = new NachaFileControlRecord();
         }
 
-        public void AddCompanyBatch(NACHACompanyBatch batch)
+        public void AddCompanyBatch(NachaCompanyBatch batch)
         {
-            CompanyBatches.Add(batch);
+            _companyBatches.Add(batch);
         }
         
-        public void RemoveCompanyBatch(NACHACompanyBatch batch)
+        public void RemoveCompanyBatch(NachaCompanyBatch batch)
         {
-            CompanyBatches.Remove(batch);
+            _companyBatches.Remove(batch);
         }
 
         public override string ToString()
         {
             // Collapse our records into a single list
-            var records = new List<NACHARecord>();
-            records.Add(FileHeader);
+            var records = new List<NachaRecord> {_fileHeader};
 
             long batchCount = 0;
-            foreach (var companyBatch in CompanyBatches)
+            foreach (var companyBatch in _companyBatches)
             {
                 // Increment first, then assign
                 companyBatch.BatchNumber = ++batchCount;
@@ -100,49 +100,47 @@ namespace Hyper.NACHA
                 records.AddRange(companyBatch.GetBatchRecords());
             }
 
-            FileControl.BatchCount = CompanyBatches.Count;
+            _fileControl.BatchCount = _companyBatches.Count;
 
-            records.Add(FileControl);
+            records.Add(_fileControl);
 
             // Fill final block with filler records if necessary
-            int fillerRecordCount = (BlockingFactor - (records.Count % BlockingFactor)) % BlockingFactor;
-            for (int i = 0; i < fillerRecordCount; i++)
+            var fillerRecordCount = (BlockingFactor - (records.Count % BlockingFactor)) % BlockingFactor;
+            for (var i = 0; i < fillerRecordCount; i++)
             {
-                records.Add(new NACHAFillerRecord());
+                records.Add(new NachaFillerRecord());
             }
 
             var builder = new StringBuilder();
 
-            FileControl.BlockCount = (long)Math.Ceiling((double)records.Count / BlockingFactor);
+            _fileControl.BlockCount = (long)Math.Ceiling((double)records.Count / BlockingFactor);
 
             // Reset composite fields
-            FileControl.EntryAddendaCount = 0;
-            FileControl.EntryHash = 0;
+            _fileControl.EntryAddendaCount = 0;
+            _fileControl.EntryHash = 0;
 
             foreach (var record in records)
             {
                 switch (record.RecordTypeCode)
                 {
-                    case NACHARecordType.EntryDetail:
-                        var entry = record as NACHAEntryDetailRecord;
-                        FileControl.EntryAddendaCount++;
-                        FileControl.EntryHash += entry.ReceivingDFIID;
+                    case NachaRecordType.EntryDetail:
+                        var entry = (NachaEntryDetailRecord)record;
+                        _fileControl.EntryAddendaCount++;
+                        _fileControl.EntryHash += entry.ReceivingDfiId;
                         break;
-                    case NACHARecordType.Addenda:
-                        FileControl.EntryAddendaCount++;
+                    case NachaRecordType.Addenda:
+                        _fileControl.EntryAddendaCount++;
                         break;
-                    case NACHARecordType.CompanyBatchControl:
-                        var batchControl = record as NACHACompanyBatchControlRecord;
-                        FileControl.TotalDebitAmount += batchControl.TotalDebitAmount; // Will only be populated after a call to GetBatchRecords()
-                        FileControl.TotalCreditAmount += batchControl.TotalCreditAmount; // Will only be populated after a call to GetBatchRecords()
+                    case NachaRecordType.CompanyBatchControl:
+                        var batchControl = (NachaCompanyBatchControlRecord)record;
+                        _fileControl.TotalDebitAmount += batchControl.TotalDebitAmount; // Will only be populated after a call to GetBatchRecords()
+                        _fileControl.TotalCreditAmount += batchControl.TotalCreditAmount; // Will only be populated after a call to GetBatchRecords()
                         break;
                 }
 
                 // Fix the entry hash if it's too long. We want the right-most 10 digits, so can just take the entry hash mod 10000000000 (1 followed by 10 zeros)
-                if (FileControl.EntryHash > 9999999999)
-                {
-                    FileControl.EntryHash = FileControl.EntryHash % 10000000000;
-                }
+                if (_fileControl.EntryHash > 9999999999)
+                    _fileControl.EntryHash = _fileControl.EntryHash % 10000000000;
 
                 builder.AppendLine(record.ToString());
             }

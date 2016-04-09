@@ -41,6 +41,7 @@
     <xs:attribute name="enableDiagnostics" type="xs:boolean" />
     <xs:attribute name="taskProgressCacheDuration" type="xs:nonNegativeInteger" />
     <xs:attribute name="taskIdProviderType" type="xs:string" />
+    <xs:attribute name="hyperNodeEventHandlerType" type="xs:string" />
   </xs:complexType>
   
   <xs:complexType name="SystemCommandCollection">

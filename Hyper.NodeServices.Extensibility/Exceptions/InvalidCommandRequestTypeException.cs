@@ -23,7 +23,7 @@ namespace Hyper.NodeServices.Extensibility
         /// <param name="expectedType">The <see cref="Type"/> expected by the <see cref="ICommandModule"/>.</param>
         /// <param name="actualType">The <see cref="Type"/> actually received by the <see cref="ICommandModule"/>.</param>
         public InvalidCommandRequestTypeException(Type expectedType, Type actualType)
-            : this(string.Format("Request type '{0}' could not be converted to type '{1}'.", actualType.FullName, expectedType.FullName)) { }
+            : this($"Request type '{actualType.FullName}' could not be converted to type '{expectedType.FullName}'.") { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InvalidCommandRequestTypeException"/> class with a specified error message.

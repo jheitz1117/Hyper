@@ -30,10 +30,8 @@
             {
                 handler = TrackActivityHandler;
             }
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+
+            handler?.Invoke(this, e);
         }
     }
 }

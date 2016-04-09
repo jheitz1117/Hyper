@@ -79,7 +79,7 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
                     if (stopwatch.ElapsedMilliseconds < totalRunTime.TotalMilliseconds)
                     {
                         context.Activity.Track(
-                            string.Format("Progress update {0}.", ++progressReportCount),
+                            $"Progress update {++progressReportCount}.",
                             stopwatch.ElapsedMilliseconds,
                             totalRunTime.TotalMilliseconds
                         );
@@ -95,13 +95,13 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
 
             if (context.Token.IsCancellationRequested)
             {
-                context.Activity.TrackFormat("Cancellation requested after {0}.", stopwatch.Elapsed);
+                context.Activity.Track($"Cancellation requested after {stopwatch.Elapsed}.");
             }
             else
             {
                 // Otherwise, we completed successfully, so show 100%
                 context.Activity.Track(
-                    string.Format("Progress update {0}.", ++progressReportCount),
+                    $"Progress update {++progressReportCount}.",
                     totalRunTime.TotalMilliseconds,
                     totalRunTime.TotalMilliseconds
                 );    

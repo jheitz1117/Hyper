@@ -15,7 +15,7 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         /// A list of <see cref="HyperNodeActivityItem"/> objects tracing the progress of the task.
         /// </summary>
         [DataMember]
-        public List<HyperNodeActivityItem> Activity { get; set; }
+        public List<HyperNodeActivityItem> Activity { get; set; } = new List<HyperNodeActivityItem>();
 
         /// <summary>
         /// If the task has completed, contains the <see cref="HyperNodeMessageResponse"/> of the task.
@@ -27,7 +27,7 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         /// If the message was forwarded to one or more child nodes, contains a list of all of the primary task IDs that have been reported to the <see cref="IHyperNodeService"/> at the time of the request.
         /// </summary>
         [DataMember]
-        public ConcurrentDictionary<string, string> ChildNodeTaskIds { get; set; }
+        public ConcurrentDictionary<string, string> ChildNodeTaskIds { get; set; } = new ConcurrentDictionary<string, string>();
 
         /// <summary>
         /// Indicates whether the task has completed.
@@ -55,22 +55,11 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         {
             get
             {
-                if (this.ProgressPart.HasValue && this.ProgressTotal.HasValue && this.ProgressTotal != 0)
-                {
-                    return this.ProgressPart.Value / this.ProgressTotal.Value;
-                }
+                if (ProgressPart.HasValue && ProgressTotal.HasValue && ProgressTotal != 0)
+                    return ProgressPart.Value / ProgressTotal.Value;
 
                 return null;
             }
-        }
-
-        /// <summary>
-        /// Initializes an instance of <see cref="HyperNodeTaskProgressInfo"/>.
-        /// </summary>
-        public HyperNodeTaskProgressInfo()
-        {
-            this.Activity = new List<HyperNodeActivityItem>();
-            this.ChildNodeTaskIds = new ConcurrentDictionary<string, string>();
         }
     }
 }

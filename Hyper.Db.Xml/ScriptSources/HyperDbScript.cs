@@ -9,7 +9,7 @@ namespace Hyper.Db.Xml.ScriptSources
 
         public void WriteDbScript(TextWriter writer)
         {
-            writer.WriteLine(this.Body);
+            writer.WriteLine(Body);
         }
     }
 }

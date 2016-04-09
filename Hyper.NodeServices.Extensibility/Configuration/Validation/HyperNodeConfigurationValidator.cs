@@ -3,6 +3,7 @@ using System.Linq;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
+using Hyper.NodeServices.Extensibility.EventTracking;
 using Hyper.NodeServices.SystemCommands.Contracts;
 
 // Keep in mind now that we're going to have two levels of validation (XSD and manual validation), we'll have to keep them in sync.
@@ -48,19 +49,23 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
         public void ValidateConfiguration(IHyperNodeConfiguration config)
         {
             if (config == null)
-            { throw new ArgumentNullException("config"); }
+            { throw new ArgumentNullException(nameof(config)); }
 
             var configClassName = config.GetType().FullName;
             if (string.IsNullOrWhiteSpace(config.HyperNodeName))
             {
                 RaiseValidationEvent(
-                    new HyperNodeConfigurationException(string.Format("The HyperNodeName property is required for {0}.", configClassName))
+                    new HyperNodeConfigurationException($"The HyperNodeName property is required for {configClassName}.")
                 );
             }
 
             // TaskIdProviderType is not required, but if it is specified, it must implement the correct interface
             if (!string.IsNullOrWhiteSpace(config.TaskIdProviderType))
                 ValidateTypeImplementsInterface(config.TaskIdProviderType, typeof(ITaskIdProvider));
+
+            // HyperNodeEventHandlerType is not required, but if it is specified, it must implement the correct interface
+            if (!string.IsNullOrWhiteSpace(config.HyperNodeEventHandlerType))
+                ValidateTypeImplementsInterface(config.HyperNodeEventHandlerType, typeof(IHyperNodeEventHandler));
 
             if (config.ActivityMonitors != null)
             {
@@ -107,7 +112,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format("The MonitorName property is required for {0}.", configClassName)
+                        $"The MonitorName property is required for {configClassName}."
                     )
                 );
             }
@@ -116,7 +121,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format("The MonitorType property is required for {0}.", configClassName)
+                        $"The MonitorType property is required for {configClassName}."
                     )
                 );
             }
@@ -134,7 +139,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format("The CommandName property is required for {0}.", configClassName)
+                        $"The CommandName property is required for {configClassName}."
                     )
                 );
             }
@@ -164,7 +169,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format("The CommandName property is required for {0}.", configClassName)
+                        $"The CommandName property is required for {configClassName}."
                     )
                 );
             }
@@ -173,7 +178,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format("The CommandModuleType property is required for {0}.", configClassName)
+                        $"The CommandModuleType property is required for {configClassName}."
                     )
                 );
             }
@@ -194,10 +199,10 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
         private void ValidateTypeImplementsInterface(string targetTypeString, Type requiredInterface)
         {
             if (requiredInterface == null)
-                throw new ArgumentNullException("requiredInterface");
+                throw new ArgumentNullException(nameof(requiredInterface));
 
             if (!requiredInterface.IsInterface)
-                throw new ArgumentException("Type must be an interface.", "requiredInterface");
+                throw new ArgumentException("Type must be an interface.", nameof(requiredInterface));
 
             Type targetType;
             ValidateTypeString(targetTypeString, out targetType);
@@ -206,11 +211,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format(
-                            "The type '{0}' must implement {1}.",
-                            targetType.FullName,
-                            requiredInterface.FullName
-                        )
+                        $"The type '{targetType.FullName}' must implement {requiredInterface.FullName}."
                     )
                 );
             }
@@ -219,10 +220,10 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
         private void ValidateTypeHasBaseType(string targetTypeString, Type requiredBaseType)
         {
             if (requiredBaseType == null)
-                throw new ArgumentNullException("requiredBaseType");
+                throw new ArgumentNullException(nameof(requiredBaseType));
 
             if (!requiredBaseType.IsClass)
-                throw new ArgumentException("Type must be a class; that is, not a value type or interface.", "requiredBaseType");
+                throw new ArgumentException("Type must be a class; that is, not a value type or interface.", nameof(requiredBaseType));
 
             Type targetType;
             ValidateTypeString(targetTypeString, out targetType);
@@ -231,11 +232,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format(
-                            "The type '{0}' must inherit {1}.",
-                            targetType.FullName,
-                            requiredBaseType.FullName
-                        )
+                        $"The type '{targetType.FullName}' must inherit {requiredBaseType.FullName}."
                     )
                 );
             }
@@ -253,11 +250,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
 
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
-                        string.Format(
-                            "The string '{0}' could not be parsed into a {1} object. The string must be an assembly qualified type name. See inner exception for details.",
-                            targetTypeString,
-                            typeof(Type).FullName
-                        ),
+                        $"The string '{targetTypeString}' could not be parsed into a {typeof (Type).FullName} object. The string must be an assembly qualified type name. See inner exception for details.",
                         ex
                     )
                 );
@@ -281,19 +274,13 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             if (args == null)
             {
                 throw new ArgumentNullException(
-                    "args",
-                    string.Format(
-                        "An error occurred while validating an instance of {0}, but no event arguments were supplied.",
-                        typeof(IHyperNodeConfiguration).FullName
-                    )
+                    nameof(args),
+                    $"An error occurred while validating an instance of {typeof (IHyperNodeConfiguration).FullName}, but no event arguments were supplied."
                 );
             }
 
             throw args.Exception ?? new HyperNodeConfigurationException(
-                args.Message ?? string.Format(
-                    "An error occurred while validating an instance of {0}, but no error message was specified.",
-                    typeof(IHyperNodeConfiguration).FullName
-                )
+                args.Message ?? $"An error occurred while validating an instance of {typeof (IHyperNodeConfiguration).FullName}, but no error message was specified."
             );
         }
 

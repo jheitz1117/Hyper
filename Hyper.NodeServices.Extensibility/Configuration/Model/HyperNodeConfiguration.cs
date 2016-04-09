@@ -1,6 +1,7 @@
 ﻿using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
+using Hyper.NodeServices.Extensibility.EventTracking;
 
 namespace Hyper.NodeServices.Extensibility.Configuration.Model
 {
@@ -45,52 +46,39 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         public string TaskIdProviderType { get; set; }
 
         /// <summary>
+        /// The assembly qualified name of a type that derives from <see cref="HyperNodeEventHandlerBase"/>. If this property is not supplied, a default
+        /// implementation is used by the <see cref="IHyperNodeService"/>. Otherwise, an instance of the specified type will be used instead.
+        /// </summary>
+        public string HyperNodeEventHandlerType { get; set; }
+
+        /// <summary>
         /// A collection of <see cref="IActivityMonitorConfiguration"/> objects specifying how user-defined <see cref="HyperNodeServiceActivityMonitor"/> objects should be configured in the <see cref="IHyperNodeService"/>.
         /// </summary>
-        IActivityMonitorConfigurationCollection IHyperNodeConfiguration.ActivityMonitors
-        {
-            get { return this.ActivityMonitors; }
-        }
+        IActivityMonitorConfigurationCollection IHyperNodeConfiguration.ActivityMonitors => ActivityMonitors;
 
         /// <summary>
         /// A collection of <see cref="ISystemCommandConfiguration"/> objects specifying how system-level <see cref="ICommandModule"/> objects should be configured in the <see cref="IHyperNodeService"/>.
         /// </summary>
-        ISystemCommandConfigurationCollection IHyperNodeConfiguration.SystemCommands
-        {
-            get { return this.SystemCommands; }
-        }
+        ISystemCommandConfigurationCollection IHyperNodeConfiguration.SystemCommands => SystemCommands;
 
         /// <summary>
         /// A collection of <see cref="ICommandModuleConfiguration"/> objects specifying how user-defined <see cref="ICommandModule"/> objects should be configured in the <see cref="IHyperNodeService"/>.
         /// </summary>
-        ICommandModuleConfigurationCollection IHyperNodeConfiguration.CommandModules
-        {
-            get { return this.CommandModules; }
-        }
+        ICommandModuleConfigurationCollection IHyperNodeConfiguration.CommandModules => CommandModules;
 
         /// <summary>
         /// A collection of <see cref="ActivityMonitorConfiguration"/> objects specifying how user-defined <see cref="HyperNodeServiceActivityMonitor"/> objects should be configured in the <see cref="IHyperNodeService"/>.
         /// </summary>
-        public ActivityMonitorConfigurationCollection ActivityMonitors { get; set; }
+        public ActivityMonitorConfigurationCollection ActivityMonitors { get; set; } = new ActivityMonitorConfigurationCollection();
 
         /// <summary>
         /// A collection of <see cref="SystemCommandConfiguration"/> objects specifying how system-level <see cref="ICommandModule"/> objects should be configured in the <see cref="IHyperNodeService"/>.
         /// </summary>
-        public SystemCommandConfigurationCollection SystemCommands { get; set; }
+        public SystemCommandConfigurationCollection SystemCommands { get; set; } = new SystemCommandConfigurationCollection();
 
         /// <summary>
         /// A collection of <see cref="CommandModuleConfiguration"/> objects specifying how user-defined <see cref="ICommandModule"/> objects should be configured in the <see cref="IHyperNodeService"/>.
         /// </summary>
-        public CommandModuleConfigurationCollection CommandModules { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HyperNodeConfiguration"/> class.
-        /// </summary>
-        public HyperNodeConfiguration()
-        {
-            this.ActivityMonitors = new ActivityMonitorConfigurationCollection();
-            this.SystemCommands = new SystemCommandConfigurationCollection();
-            this.CommandModules = new CommandModuleConfigurationCollection();
-        }
+        public CommandModuleConfigurationCollection CommandModules { get; set; } = new CommandModuleConfigurationCollection();
     }
 }

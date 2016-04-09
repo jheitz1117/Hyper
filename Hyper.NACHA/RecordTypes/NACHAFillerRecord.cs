@@ -3,19 +3,16 @@ using Hyper.FileProcessing.FixedWidthFiles;
 
 namespace Hyper.NACHA
 {
-    internal class NACHAFillerRecord : NACHARecord
+    internal class NachaFillerRecord : NachaRecord
     {
-        public override NACHARecordType RecordTypeCode
-        {
-            get { return (Fields[0] as EnumeratedFixedWidthField<NACHARecordType>).Value; }
-        }
+        public override NachaRecordType RecordTypeCode => ((EnumeratedFixedWidthField<NachaRecordType>) Fields[0]).Value;
 
-        public NACHAFillerRecord()
+        public NachaFillerRecord()
         {
             // Define fields along with their type and length
             Fields = new List<IFixedWidthField>() {
-                new EnumeratedFixedWidthField<NACHARecordType>(NACHARecordType.FileControl, 1),
-                new AlphamericNACHADataField("", Length, FormatFillerRecord)
+                new EnumeratedFixedWidthField<NachaRecordType>(NachaRecordType.FileControl, 1),
+                new AlphamericNachaDataField("", Length, FormatFillerRecord)
             };
         }
 

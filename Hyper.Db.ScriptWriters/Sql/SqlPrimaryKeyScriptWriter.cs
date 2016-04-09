@@ -20,9 +20,9 @@ namespace Hyper.Db.ScriptWriters.Sql
             writer.WriteLine(
                 string.Join(
                     "," + writer.NewLine,
-                    this.Source.KeyColumns.Zip(
-                        Enumerable.Range(1, this.Source.KeyColumns.Count()),
-                        (s, i) => string.Format("({0}, '{1}')", i, s)
+                    Source.KeyColumns.Zip(
+                        Enumerable.Range(1, Source.KeyColumns.Count()),
+                        (s, i) => $"({i}, '{s}')"
                     )
                 )
             );
@@ -43,8 +43,8 @@ namespace Hyper.Db.ScriptWriters.Sql
             writer.WriteLine("        and [tc].[CONSTRAINT_SCHEMA]  = [kcu].[CONSTRAINT_SCHEMA]");
             writer.WriteLine("        and [tc].[CONSTRAINT_NAME]    = [kcu].[CONSTRAINT_NAME]");
             writer.WriteLine("        and [tc].[CONSTRAINT_TYPE]    = '{0}'", SqlConstraintTypes.PrimaryKey);
-            writer.WriteLine("        and [tc].[TABLE_SCHEMA]       = '{0}'", this.DefaultSchemaName);
-            writer.WriteLine("        and [tc].[TABLE_NAME]         = '{0}'", this.Source.TableSource.TableName);
+            writer.WriteLine("        and [tc].[TABLE_SCHEMA]       = '{0}'", DefaultSchemaName);
+            writer.WriteLine("        and [tc].[TABLE_NAME]         = '{0}'", Source.TableSource.TableName);
             writer.WriteLine("    left join @XmlPKColumns [xpk] on");
             writer.WriteLine("            [xpk].[ColumnName]        = [kcu].[COLUMN_NAME]");
             writer.WriteLine("        and [xpk].[OrdinalPosition]   = [kcu].[ORDINAL_POSITION]");
@@ -77,16 +77,14 @@ namespace Hyper.Db.ScriptWriters.Sql
         {
             var builder = new StringBuilder();
 
-            if (!string.IsNullOrWhiteSpace(this.Source.PrimaryKeyName))
-                builder.AppendFormat("constraint [{0}] ", this.Source.PrimaryKeyName);
+            if (!string.IsNullOrWhiteSpace(Source.PrimaryKeyName))
+                builder.AppendFormat("constraint [{0}] ", Source.PrimaryKeyName);
 
             builder.Append("primary key (");
             builder.Append(
                 string.Join(
                     ",",
-                    this.Source.KeyColumns.Select(k =>
-                        string.Format("[{0}]", k)
-                    )
+                    Source.KeyColumns.Select(k => $"[{k}]")
                 )
             );
             builder.Append(")");
@@ -96,20 +94,13 @@ namespace Hyper.Db.ScriptWriters.Sql
 
         private string GetCreatePrimaryKeyScript()
         {
-            return string.Format("alter table [{0}].[{1}] add {2}",
-                this.DefaultSchemaName,
-                this.Source.TableSource.TableName,
-                GetPrimaryKeyDefinition()
-            );
+            return $"alter table [{DefaultSchemaName}].[{Source.TableSource.TableName}] add {GetPrimaryKeyDefinition()}";
         }
 
         private string GetDropPrimaryKeyScript()
         {
             // Have to use exec because we're dynamically grabbing the name of the existing primary key
-            return string.Format("exec('alter table [{0}].[{1}] drop constraint [' + @ExistingPKName + ']')",
-                this.DefaultSchemaName,
-                this.Source.TableSource.TableName
-            );
+            return $"exec('alter table [{DefaultSchemaName}].[{Source.TableSource.TableName}] drop constraint [' + @ExistingPKName + ']')";
         }
 
         private static string GetNoPrimaryKeyExistsCondition()
@@ -124,7 +115,7 @@ namespace Hyper.Db.ScriptWriters.Sql
 
         private string GetColumnCountChangeCondition()
         {
-            return string.Format("(@ExistingPKColumnCount <> {0})", this.Source.KeyColumns.Count());
+            return $"(@ExistingPKColumnCount <> {Source.KeyColumns.Count()})";
         }
 
         private static string GetColumnNameChangeCondition()

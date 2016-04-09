@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace Hyper.FileProcessing.Parsing.Transforms
 {
@@ -35,17 +36,17 @@ namespace Hyper.FileProcessing.Parsing.Transforms
         /// <param name="caseSensitive">Indicates whether the strings are case-sensitive</param>
         /// <returns></returns>
         public static string ToBooleanString(string input, string trueString, string falseString, bool caseSensitive = false) {
-            string returnValue = null;
+            string returnValue;
 
             input = (input ?? "").Trim();
             trueString = (trueString ?? "").Trim();
             falseString = (falseString ?? "").Trim();
 
-            StringComparison comparisonType = (caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+            var comparisonType = (caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
             if (input.Equals(trueString, comparisonType)) {
-                returnValue = Boolean.TrueString;
+                returnValue = bool.TrueString;
             } else if (input.Equals(falseString, comparisonType)) {
-                returnValue = Boolean.FalseString;
+                returnValue = bool.FalseString;
             } else {
                 returnValue = "";
             }
@@ -62,14 +63,10 @@ namespace Hyper.FileProcessing.Parsing.Transforms
         }
 
         public static string DateTransformExact(string inputValue, string dateFormatString) {
-            inputValue = (inputValue ?? "");
+            inputValue = inputValue ?? "";
 
-            DateTime outputDate = new DateTime();
-            if (DateTime.TryParseExact(inputValue, dateFormatString, null, System.Globalization.DateTimeStyles.None, out outputDate)) {
-                return outputDate.ToString();
-            } else {
-                return "";
-            }
+            DateTime outputDate;
+            return DateTime.TryParseExact(inputValue, dateFormatString, null, DateTimeStyles.None, out outputDate) ? outputDate.ToString(CultureInfo.InvariantCulture) : "";
         }
 
         /// <summary>
@@ -84,12 +81,8 @@ namespace Hyper.FileProcessing.Parsing.Transforms
             targetString = (targetString ?? "").Trim();
             replacementString = (replacementString ?? "").Trim();
 
-            StringComparison comparisonType = (caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-            if ((input ?? "").Trim().Equals(targetString, comparisonType)) {
-                return replacementString;
-            } else {
-                return input;
-            }
+            var comparisonType = (caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+            return (input ?? "").Trim().Equals(targetString, comparisonType) ? replacementString : input;
         }
 
         #endregion Public Methods

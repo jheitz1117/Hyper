@@ -10,7 +10,9 @@ using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Configuration;
 using Hyper.NodeServices.Extensibility.Configuration.Validation;
+using Hyper.NodeServices.Extensibility.EventTracking;
 using Hyper.NodeServices.SystemCommands.Contracts;
+using Hyper.NodeServices.TaskIdProviders;
 
 namespace Hyper.NodeServices
 {
@@ -18,6 +20,8 @@ namespace Hyper.NodeServices
     {
         #region Defaults
 
+        private static readonly IHyperNodeEventHandler DefaultEventHandler = new HyperNodeEventHandlerBase();
+        private static readonly ITaskIdProvider DefaultTaskIdProvider = new GuidTaskIdProvider();
         internal const bool DefaultTaskProgressCacheEnabled = false;
         internal const bool DefaultDiagnosticsEnabled = false;
         internal const int DefaultProgressCacheDurationMinutes = 60;
@@ -30,7 +34,7 @@ namespace Hyper.NodeServices
         private static HyperNodeService Create(IHyperNodeConfigurationProvider configProvider)
         {
             if (configProvider == null)
-                throw new ArgumentNullException("configProvider");
+                throw new ArgumentNullException(nameof(configProvider));
 
             IHyperNodeConfiguration config;
 
@@ -41,11 +45,7 @@ namespace Hyper.NodeServices
             catch (Exception ex)
             {
                 throw new HyperNodeConfigurationException(
-                    string.Format(
-                        "An exception was thrown while attempting to retrieve the configuration for this {0} using {1}. See inner exception for details.",
-                        typeof(HyperNodeService).FullName,
-                        configProvider.GetType().FullName
-                    ),
+                    $"An exception was thrown while attempting to retrieve the configuration for this {typeof (HyperNodeService).FullName} using {configProvider.GetType().FullName}. See inner exception for details.",
                     ex
                 );
             }
@@ -72,6 +72,7 @@ namespace Hyper.NodeServices
             ConfigureTaskProvider(service, config);
             ConfigureActivityMonitors(service, config);
             ConfigureCommandModules(service, config);
+            ConfigureHyperNodeEventHandler(service, config);
 
             return service;
         }
@@ -214,7 +215,7 @@ namespace Hyper.NodeServices
                     if (service._customActivityMonitors.Any(m => m.Name == monitorConfig.MonitorName))
                     {
                         throw new DuplicateActivityMonitorException(
-                            string.Format("An activity monitor already exists with the name '{0}'.", monitorConfig.MonitorName)
+                            $"An activity monitor already exists with the {nameof(monitorConfig.MonitorName)} '{monitorConfig.MonitorName}'."
                         );
                     }
 
@@ -280,6 +281,20 @@ namespace Hyper.NodeServices
             }
         }
 
+        private static void ConfigureHyperNodeEventHandler(HyperNodeService service, IHyperNodeConfiguration config)
+        {
+            IHyperNodeEventHandler eventHandler = null;
+
+            // Set our event handler if applicable, but if we have any problems creating the instance or casting to HyperNodeEventHandlerBase, we deliberately want to fail out and make them fix the configuration
+            if (!string.IsNullOrWhiteSpace(config.HyperNodeEventHandlerType))
+            {
+                eventHandler = (IHyperNodeEventHandler)Activator.CreateInstance(Type.GetType(config.HyperNodeEventHandlerType, true));
+                eventHandler.Initialize();
+            }
+
+            service.EventHandler = eventHandler ?? DefaultEventHandler;
+        }
+        
         #endregion Configuration
     }
 }

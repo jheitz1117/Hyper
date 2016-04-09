@@ -21,7 +21,7 @@ namespace Hyper.NodeServices.ActivityTracking
 
         internal HyperNodeActivityEventItem()
         {
-            this.EventDateTime = DateTime.Now;
+            EventDateTime = DateTime.Now;
         }
     }
 }

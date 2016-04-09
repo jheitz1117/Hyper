@@ -28,7 +28,7 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                 response.ProcessStatusFlags |= MessageProcessStatusFlags.HadWarnings;
             }
 
-            context.Activity.TrackFormat("Retrieving cached task progress info for Task ID '{0}'.", request.RequestString);
+            context.Activity.Track($"Retrieving cached task progress info for Task ID '{request.RequestString}'.");
             response.TaskProgressInfo = HyperNodeService.Instance.GetCachedTaskProgressInfo(request.RequestString);
 
             // If we can't find any task progress info for the specified Task ID, we'll return a placeholder object in Completed status that informs the caller that no progress
@@ -42,7 +42,7 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                     new HyperNodeActivityItem
                     {
                         EventDateTime = DateTime.Now,
-                        EventDescription = string.Format("No task progress information exists for Task ID '{0}'.", request.RequestString),
+                        EventDescription = $"No task progress information exists for Task ID '{request.RequestString}'.",
                         Agent = context.ExecutingNodeName
                     }
                 }

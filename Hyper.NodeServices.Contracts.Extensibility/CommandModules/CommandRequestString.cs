@@ -16,7 +16,7 @@
         /// <param name="requestString">The request string to wrap.</param>
         public CommandRequestString(string requestString)
         {
-            this.RequestString = requestString;
+            RequestString = requestString;
         }
 
         /// <summary>
@@ -25,7 +25,7 @@
         /// <returns></returns>
         public override string ToString()
         {
-            return this.RequestString;
+            return RequestString;
         }
     }
 }

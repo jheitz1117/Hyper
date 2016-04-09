@@ -11,10 +11,7 @@ namespace Hyper.ActivityTracking
         /// <summary>
         /// The <see cref="IActivityItem"/> describing the event.
         /// </summary>
-        public IActivityItem ActivityItem
-        {
-            get { return _activityItem; }
-        } private readonly IActivityItem  _activityItem;
+        public IActivityItem ActivityItem { get; }
 
         /// <summary>
         /// Initializes an instance of <see cref="TrackActivityEventArgs"/> using the specified <see cref="IActivityItem"/>.
@@ -22,7 +19,7 @@ namespace Hyper.ActivityTracking
         /// <param name="activityItem">The <see cref="IActivityItem"/> describing the event.</param>
         public TrackActivityEventArgs(IActivityItem activityItem)
         {
-            _activityItem = activityItem;
+            ActivityItem = activityItem;
         }
     }
 }

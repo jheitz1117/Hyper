@@ -20,7 +20,7 @@ namespace NodeModuleTest.CommandModules
         public void Dispose()
         {
             Trace.WriteLine("Disposing of DisposableCommandModule.");
-            this.IsDisposed = true;
+            IsDisposed = true;
         }
     }
 }

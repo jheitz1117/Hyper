@@ -4,25 +4,22 @@ using Hyper.FileProcessing.FixedWidthFiles;
 
 namespace Hyper.NACHA
 {
-    internal class NACHACompanyBatchHeaderRecord : NACHARecord
+    internal class NachaCompanyBatchHeaderRecord : NachaRecord
     {
-        public override NACHARecordType RecordTypeCode
-        {
-            get { return (Fields[0] as EnumeratedFixedWidthField<NACHARecordType>).Value; }
-        }
+        public override NachaRecordType RecordTypeCode => ((EnumeratedFixedWidthField<NachaRecordType>) Fields[0]).Value;
 
         /// <summary>
         /// Defines the type of entries contained in the batch.
         /// </summary>
-        public NACHAServiceClassCodeType ServiceClassCode
+        public NachaServiceClassCodeType ServiceClassCode
         {
             get
             {
-                return (Fields[1] as EnumeratedFixedWidthField<NACHAServiceClassCodeType>).Value;
+                return ((EnumeratedFixedWidthField<NachaServiceClassCodeType>) Fields[1]).Value;
             }
             set
             {
-                (Fields[1] as EnumeratedFixedWidthField<NACHAServiceClassCodeType>).Value = value;
+                ((EnumeratedFixedWidthField<NachaServiceClassCodeType>) Fields[1]).Value = value;
             }
         }
 
@@ -33,11 +30,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[2] as AlphamericNACHADataField).Value;
+                return (Fields[2] as AlphamericNachaDataField)?.Value;
             }
             set
             {
-                (Fields[2] as AlphamericNACHADataField).Value = value;
+                ((AlphamericNachaDataField) Fields[2]).Value = value;
             }
         }
 
@@ -48,26 +45,26 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[3] as AlphamericNACHADataField).Value;
+                return (Fields[3] as AlphamericNachaDataField)?.Value;
             }
             set
             {
-                (Fields[3] as AlphamericNACHADataField).Value = value;
+                ((AlphamericNachaDataField) Fields[3]).Value = value;
             }
         }
 
         /// <summary>
         /// ID of the company originating the transaction. Usually assigned by the receiving bank.
         /// </summary>
-        public string CompanyID
+        public string CompanyId
         {
             get
             {
-                return (Fields[4] as AlphamericNACHADataField).Value;
+                return (Fields[4] as AlphamericNachaDataField)?.Value;
             }
             set
             {
-                (Fields[4] as AlphamericNACHADataField).Value = value;
+                ((AlphamericNachaDataField) Fields[4]).Value = value;
             }
         }
 
@@ -79,11 +76,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[5] as AlphamericNACHADataField).Value;
+                return (Fields[5] as AlphamericNachaDataField)?.Value;
             }
             set
             {
-                (Fields[5] as AlphamericNACHADataField).Value = value;
+                ((AlphamericNachaDataField) Fields[5]).Value = value;
             }
         }
 
@@ -94,11 +91,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[6] as AlphamericNACHADataField).Value;
+                return (Fields[6] as AlphamericNachaDataField)?.Value;
             }
             set
             {
-                (Fields[6] as AlphamericNACHADataField).Value = value;
+                ((AlphamericNachaDataField) Fields[6]).Value = value;
             }
         }
 
@@ -109,11 +106,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[7] as AlphamericNACHADataField).Value;
+                return (Fields[7] as AlphamericNachaDataField)?.Value;
             }
             set
             {
-                (Fields[7] as AlphamericNACHADataField).Value = value;
+                ((AlphamericNachaDataField) Fields[7]).Value = value;
             }
         }
 
@@ -127,22 +124,22 @@ namespace Hyper.NACHA
             set
             {
                 _effectiveEntryDate = value;
-                (Fields[8] as AlphamericNACHADataField).Value = value.ToString("yyMMdd");
+                ((AlphamericNachaDataField) Fields[8]).Value = value.ToString("yyMMdd");
             }
         }
 
         /// <summary>
         /// The first 8 digits of the routing number of the originating bank
         /// </summary>
-        public long OriginatingDFIID
+        public long OriginatingDfiId
         {
             get
             {
-                return (Fields[11] as NumericNACHADataField).Value;
+                return ((NumericNachaDataField) Fields[11]).Value;
             }
             set
             {
-                (Fields[11] as NumericNACHADataField).Value = value;
+                ((NumericNachaDataField) Fields[11]).Value = value;
             }
         }
 
@@ -150,42 +147,42 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[12] as NumericNACHADataField).Value;
+                return ((NumericNachaDataField) Fields[12]).Value;
             }
             set
             {
-                (Fields[12] as NumericNACHADataField).Value = value;
+                ((NumericNachaDataField) Fields[12]).Value = value;
             }
         }
 
-        public NACHACompanyBatchHeaderRecord()
+        public NachaCompanyBatchHeaderRecord()
         {
             // Define fields along with their type and length
             Fields = new List<IFixedWidthField>() {
-                new EnumeratedFixedWidthField<NACHARecordType>(NACHARecordType.CompanyBatchHeader, 1), // Record Type Code
-                new EnumeratedFixedWidthField<NACHAServiceClassCodeType>(NACHAServiceClassCodeType.DebitsAndCredits, 3), // Service Class Code - Available values are 200=Credits & Debits, 220=Credits Only, 225=Debits Only
-                new AlphamericNACHADataField("", 16), // Company Name - Per NACHA docs, this should exactly match the name on the company's bank statement from the receiving bank
-                new AlphamericNACHADataField("", 20), // Company Discretionary Data - Optional field. Leaving blank.
-                new AlphamericNACHADataField("", 10, NACHACompanyBatch.FormatCompanyID), // Company ID - Assigned by the bank.
-                new AlphamericNACHADataField("PPD", 3), // Standard Entry Class Code - Available values are PPD=Prearranged Payments and Deposits, CCD=Cash Concentration or Disbursement
+                new EnumeratedFixedWidthField<NachaRecordType>(NachaRecordType.CompanyBatchHeader, 1), // Record Type Code
+                new EnumeratedFixedWidthField<NachaServiceClassCodeType>(NachaServiceClassCodeType.DebitsAndCredits, 3), // Service Class Code - Available values are 200=Credits & Debits, 220=Credits Only, 225=Debits Only
+                new AlphamericNachaDataField("", 16), // Company Name - Per NACHA docs, this should exactly match the name on the company's bank statement from the receiving bank
+                new AlphamericNachaDataField("", 20), // Company Discretionary Data - Optional field. Leaving blank.
+                new AlphamericNachaDataField("", 10, NachaCompanyBatch.FormatCompanyId), // Company ID - Assigned by the bank.
+                new AlphamericNachaDataField("PPD", 3), // Standard Entry Class Code - Available values are PPD=Prearranged Payments and Deposits, CCD=Cash Concentration or Disbursement
                                                         // Because of the nature of Exigo's business model, we will assume PPD for all transactions
-                new AlphamericNACHADataField("", 10), // Company Entry Description - Description of the transaction batch as a whole
-                new AlphamericNACHADataField("", 6), // Company Descriptive Date - Optional field. Leaving blank.
-                new AlphamericNACHADataField(_effectiveEntryDate.ToString("yyMMdd"), 6), // Effective Entry Date - Date on which the originator wishes for the entries to be settled
-                new AlphamericNACHADataField("", 3), // Settlement Date (Julian) - Per NACHA docs, left blank
-                new AlphabeticNACHADataField("1", 1), // Originator Status Code - Per NACHA docs, field must contain 1
-                new NumericNACHADataField(11111111, 8), // Originating DFI ID - Per NACHA docs, contains the first 8 digits of the PNC ABA or Transit Routing Number
-                new NumericNACHADataField(0, 7) // Batch Number - Per NACHA docs, must be an ascending sequence number counting the batches in the file
+                new AlphamericNachaDataField("", 10), // Company Entry Description - Description of the transaction batch as a whole
+                new AlphamericNachaDataField("", 6), // Company Descriptive Date - Optional field. Leaving blank.
+                new AlphamericNachaDataField(_effectiveEntryDate.ToString("yyMMdd"), 6), // Effective Entry Date - Date on which the originator wishes for the entries to be settled
+                new AlphamericNachaDataField("", 3), // Settlement Date (Julian) - Per NACHA docs, left blank
+                new AlphabeticNachaDataField("1", 1), // Originator Status Code - Per NACHA docs, field must contain 1
+                new NumericNachaDataField(11111111, 8), // Originating DFI ID - Per NACHA docs, contains the first 8 digits of the PNC ABA or Transit Routing Number
+                new NumericNachaDataField(0, 7) // Batch Number - Per NACHA docs, must be an ascending sequence number counting the batches in the file
             };
         }
 
-        public NACHACompanyBatchHeaderRecord(long batchNumber)
+        public NachaCompanyBatchHeaderRecord(long batchNumber)
             : this()
         {
             BatchNumber = batchNumber;
         }
         
-        public NACHACompanyBatchHeaderRecord(long batchNumber, DateTime effectiveEntryDate)
+        public NachaCompanyBatchHeaderRecord(long batchNumber, DateTime effectiveEntryDate)
             : this(batchNumber)
         {
             EffectiveEntryDate = effectiveEntryDate;

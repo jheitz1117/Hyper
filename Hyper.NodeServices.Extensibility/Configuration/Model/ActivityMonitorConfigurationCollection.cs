@@ -27,10 +27,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         /// <summary>
         /// Gets the number of <see cref="ActivityMonitorConfiguration"/> objects contained in the <see cref="ActivityMonitorConfigurationCollection"/>.
         /// </summary>
-        public int Count
-        {
-            get { return _activityMonitors.Count; }
-        }
+        public int Count => _activityMonitors.Count;
 
         /// <summary>
         /// Returns an enumerator that iterates through the collection.
@@ -57,21 +54,18 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         public void Add(ActivityMonitorConfiguration config)
         {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             
             if (string.IsNullOrWhiteSpace(config.MonitorName))
             {
                 throw new ArgumentException(
-                    string.Format(
-                        "The {0}.MonitorName property must not be blank.",
-                        config.GetType().FullName
-                    ),
-                    "config"
+                    $"The {nameof(config.MonitorName)}. property must not be blank.",
+                    nameof(config)
                 );
             }
 
             if (_activityMonitors.ContainsKey(config.MonitorName))
-                throw new ArgumentException("An activity monitor already exists with the monitor name '" + config.MonitorName + "'.");
+                throw new ArgumentException($"An activity monitor already exists with the monitor name '{config.MonitorName}'.");
 
             _activityMonitors.Add(config.MonitorName, config);
         }
@@ -83,7 +77,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         public void Remove(string monitorName)
         {
             if (monitorName == null)
-                throw new ArgumentNullException("monitorName");
+                throw new ArgumentNullException(nameof(monitorName));
             
             if (_activityMonitors.ContainsKey(monitorName))
                 _activityMonitors.Remove(monitorName);

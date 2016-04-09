@@ -50,13 +50,7 @@ namespace Hyper.UI.Validation
             set;
         }
 
-        private bool ValueIsRequiredAndBlank
-        {
-            get
-            {
-                return (IsRequired && ValueIsBlank());
-            }
-        }
+        private bool ValueIsRequiredAndBlank => IsRequired && ValueIsBlank();
 
         #endregion Properties
 
@@ -64,14 +58,14 @@ namespace Hyper.UI.Validation
 
         public ValueValidationStep(T value, Func<T, bool> validationFunction)
         {
-            this.Value = value;
-            this.ValueValidationFunction = validationFunction;
+            Value = value;
+            ValueValidationFunction = validationFunction;
         }
 
         public ValueValidationStep(T value, Func<T, bool> validationFunction, bool isRequired)
             : this(value, validationFunction)
         {
-            this.IsRequired = isRequired;
+            IsRequired = isRequired;
         }
 
         /// <summary>
@@ -80,32 +74,17 @@ namespace Hyper.UI.Validation
         /// <returns></returns>
         public override string GetErrorMessage()
         {
-            if (ValueIsRequiredAndBlank)
-            {
-                return RequiredErrorMessage;
-            }
-            else
-            {
-                return InvalidErrorMessage;
-            }
+            return ValueIsRequiredAndBlank ? RequiredErrorMessage : InvalidErrorMessage;
         }
 
         public override bool IsValid()
         {
             if (ValueIsBlank())
-            {
                 return !IsRequired;
-            }
-            else if (ValueValidationFunction == null)
-            {
-                // We have a non-blank value and no validation function. It is safer to assume the value is valid until proven invalid by the specified validation function.
-                return true;
-            }
-            else
-            {
-                // We have a non-blank value and a non-null validation function, so validate and return the result
-                return ValueValidationFunction(Value);
-            }
+
+            // We have a non-blank value and a non-null validation function, so validate and return the result
+            return ValueValidationFunction == null || ValueValidationFunction(Value);
+            
         }
 
         #endregion Public Methods
@@ -114,16 +93,12 @@ namespace Hyper.UI.Validation
 
         protected virtual bool ValueIsBlank()
         {
-            bool result = false;
+            var result = false;
 
             if (Value == null)
-            {
                 result = true;
-            }
             else if (Value is string)
-            {
                 result = string.IsNullOrWhiteSpace(Value as string);
-            }
 
             return result;
         }

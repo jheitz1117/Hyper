@@ -12,11 +12,7 @@
             set;
         }
 
-        private ColumnTransformDelegate Transform
-        {
-            get;
-            set;
-        }
+        private ColumnTransformDelegate Transform { get; }
 
         #endregion Properties
 
@@ -24,28 +20,23 @@
 
         protected DataColumnTransform()
         {
-            this.Transform = IdentityTransform;
+            Transform = IdentityTransform;
         }
 
         public DataColumnTransform(ColumnTransformDelegate transform)
         {
-            this.Transform = transform;
+            Transform = transform;
         }
 
         public DataColumnTransform(ColumnTransformDelegate transform, int executionOrder)
             : this(transform)
         {
-            this.ExecutionOrder = executionOrder;
+            ExecutionOrder = executionOrder;
         }
 
         public virtual string TransformValue(string inputValue)
         {
-            if (Transform == null)
-            {
-                return inputValue;
-            }
-
-            return Transform(inputValue);
+            return Transform == null ? inputValue : Transform(inputValue);
         }
 
         #endregion Public Methods
@@ -55,7 +46,7 @@
         protected static string IdentityTransform(string inputValue)
         {
             return inputValue;
-        } // end IdentityTransform()
+        }
 
         #endregion Protected Methods
     }

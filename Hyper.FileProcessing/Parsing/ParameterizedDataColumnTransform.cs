@@ -12,11 +12,7 @@
             set;
         }
 
-        private ParameterizedColumnTransformDelegate<T> Transform
-        {
-            get;
-            set;
-        }
+        private ParameterizedColumnTransformDelegate<T> Transform { get; }
 
         #endregion Properties
 
@@ -24,35 +20,30 @@
 
         public ParameterizedDataColumnTransform(ParameterizedColumnTransformDelegate<T> transform)
         {
-            this.Transform = transform;
+            Transform = transform;
         }
 
         public ParameterizedDataColumnTransform(ParameterizedColumnTransformDelegate<T> transform, T parameter)
             : this(transform)
         {
-            this.Parameter = parameter;
+            Parameter = parameter;
         }
 
         public ParameterizedDataColumnTransform(ParameterizedColumnTransformDelegate<T> transform, int executionOrder)
             : this(transform)
         {
-            this.ExecutionOrder = executionOrder;
+            ExecutionOrder = executionOrder;
         }
 
         public ParameterizedDataColumnTransform(ParameterizedColumnTransformDelegate<T> transform, T parameter, int executionOrder)
             : this(transform, executionOrder)
         {
-            this.Parameter = parameter;
+            Parameter = parameter;
         }
 
         public override string TransformValue(string inputValue)
         {
-            if (Transform == null)
-            {
-                return inputValue;
-            }
-
-            return Transform(inputValue, Parameter);
+            return Transform == null ? inputValue : Transform(inputValue, Parameter);
         }
 
         #endregion Public Methods

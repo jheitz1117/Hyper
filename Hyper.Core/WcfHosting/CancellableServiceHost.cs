@@ -82,14 +82,8 @@ namespace Hyper.WcfHosting
         /// </summary>
         public void Cancel()
         {
-            if (this.State != CommunicationState.Opened &&
-                this.State != CommunicationState.Faulted &&
-                this.State != CommunicationState.Closing)
-            {
-                throw new InvalidOperationException(
-                    string.Format("The {0} can only be cancelled while in the Opened, Faulted, or Closing state.", GetType().Name)
-                );
-            }
+            if (State != CommunicationState.Opened && State != CommunicationState.Faulted && State != CommunicationState.Closing)
+                throw new InvalidOperationException($"The {GetType().Name} can only be cancelled while in the {CommunicationState.Opened}, {CommunicationState.Faulted}, or {CommunicationState.Closing} state.");
             
             if (!_tokenSource.IsCancellationRequested)
                 _tokenSource.Cancel();

@@ -5,7 +5,7 @@ namespace Hyper.NodeServices.TaskIdProviders
 {
     internal sealed class GuidTaskIdProvider : TaskIdProviderBase
     {
-        public override string CreateTaskId(IHyperNodeMessageContext context)
+        public override string CreateTaskId(IReadOnlyHyperNodeMessageInfo message)
         {
             return Guid.NewGuid().ToString();
         }

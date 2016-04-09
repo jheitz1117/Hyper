@@ -10,19 +10,12 @@
         /// <summary>
         /// Indicates whether the field is justified left or right
         /// </summary>
-        public virtual FixedWidthJustifyType JustifyType
-        {
-            get { return FixedWidthJustifyType.Left; }
-        }
+        public virtual FixedWidthJustifyType JustifyType => FixedWidthJustifyType.Left;
 
         /// <summary>
         /// Specifies the character to use when padding this field in the event it is shorter than the Length property
         /// </summary>
-        public virtual char PaddingChar
-        {
-            get { return _paddingChar; }
-            protected set { _paddingChar = value; }
-        } private char _paddingChar = ' ';
+        public virtual char PaddingChar { get; protected set; } = ' ';
 
         /// <summary>
         /// Returns the raw value represented by this instance. The return type must override ToString() when possible

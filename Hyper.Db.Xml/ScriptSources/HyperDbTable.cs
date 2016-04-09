@@ -21,9 +21,9 @@ namespace Hyper.Db.Xml.ScriptSources
         public HyperDbPrimaryKey PrimaryKey { get; set; }
         public readonly List<HyperDbForeignKey> ForeignKeys = new List<HyperDbForeignKey>();
 
-        string IDbTableScriptSource.TableName { get { return this.Name; } }
-        IDbPrimaryKeyScriptSource IDbTableScriptSource.PrimaryKey { get { return this.PrimaryKey; } }
-        IEnumerable<IDbColumnScriptSource> IDbTableScriptSource.Columns { get { return Columns; } }
-        IEnumerable<IDbForeignKeyScriptSource> IDbTableScriptSource.ForeignKeys { get { return ForeignKeys; } }
+        string IDbTableScriptSource.TableName => Name;
+        IDbPrimaryKeyScriptSource IDbTableScriptSource.PrimaryKey => PrimaryKey;
+        IEnumerable<IDbColumnScriptSource> IDbTableScriptSource.Columns => Columns;
+        IEnumerable<IDbForeignKeyScriptSource> IDbTableScriptSource.ForeignKeys => ForeignKeys;
     }
 }

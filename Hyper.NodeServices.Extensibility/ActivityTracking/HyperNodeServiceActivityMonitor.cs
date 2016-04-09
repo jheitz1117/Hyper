@@ -17,19 +17,15 @@ namespace Hyper.NodeServices.Extensibility.ActivityTracking
             get { return _name; }
             set
             {
-                _name = (string.IsNullOrWhiteSpace(value) ? Guid.NewGuid().ToString() : value);
+                _name = string.IsNullOrWhiteSpace(value) ? Guid.NewGuid().ToString() : value;
             }
         } private string _name = Guid.NewGuid().ToString();
 
         /// <summary>
         /// Specifies whether this <see cref="HyperNodeServiceActivityMonitor"/> is enabled.
         /// </summary>
-        public bool Enabled
-        {
-            get { return _enabled; }
-            set { _enabled = value; }
-        } private bool _enabled = true;
-
+        public bool Enabled { get; set; } = true;
+        
         /// <summary>
         /// When overridden in a derived class, runs custom initialization code for <see cref="HyperNodeServiceActivityMonitor"/>
         /// implementations. This method is called immediately after the <see cref="HyperNodeServiceActivityMonitor"/> instance is instantiated. Once the

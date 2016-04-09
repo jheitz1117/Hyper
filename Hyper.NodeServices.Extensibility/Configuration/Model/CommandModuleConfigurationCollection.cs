@@ -28,10 +28,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         /// <summary>
         /// Gets the number of <see cref="CommandModuleConfiguration"/> objects contained in the <see cref="CommandModuleConfigurationCollection"/>.
         /// </summary>
-        public int Count
-        {
-            get { return _commandModules.Count; }
-        }
+        public int Count => _commandModules.Count;
 
         /// <summary>
         /// The assembly qualified name of a type that implements <see cref="ICommandRequestSerializer"/>. If this property is supplied,
@@ -78,21 +75,18 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         public void Add(CommandModuleConfiguration config)
         {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
 
             if (string.IsNullOrWhiteSpace(config.CommandName))
             {
                 throw new ArgumentException(
-                    string.Format(
-                        "The {0}.CommandName property must not be blank.",
-                        config.GetType().FullName
-                    ),
-                    "config"
+                    $"The {nameof(config.CommandName)} property must not be blank.",
+                    nameof(config)
                 );
             }
 
             if (_commandModules.ContainsKey(config.CommandName))
-                throw new ArgumentException("A command module already exists with the command name '" + config.CommandName + "'.");
+                throw new ArgumentException($"A command module already exists with the command name '{config.CommandName}'.");
 
             _commandModules.Add(config.CommandName, config);
         }
@@ -104,7 +98,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         public void Remove(string commandName)
         {
             if (commandName == null)
-                throw new ArgumentNullException("commandName");
+                throw new ArgumentNullException(nameof(commandName));
 
             if (_commandModules.ContainsKey(commandName))
                 _commandModules.Remove(commandName);

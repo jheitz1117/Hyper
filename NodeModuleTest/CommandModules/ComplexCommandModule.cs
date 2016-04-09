@@ -28,10 +28,10 @@ namespace NodeModuleTest.CommandModules
             }
             
             context.Activity.Track("Request was not null. Proceeding as planned.");
-            context.Activity.TrackFormat("request.MyDateTime = '{0}'", request.MyDateTime);
-            context.Activity.TrackFormat("request.MyInt32 = '{0}'", request.MyInt32);
-            context.Activity.TrackFormat("request.MyTimeSpan = '{0}'", request.MyTimeSpan);
-            context.Activity.TrackFormat("request.MyDateTime = '{0}'", request.MyDateTime);
+            context.Activity.Track($"{nameof(request.MyDateTime)} = '{request.MyDateTime}'");
+            context.Activity.Track($"{nameof(request.MyInt32)} = '{request.MyInt32}'");
+            context.Activity.Track($"{nameof(request.MyTimeSpan)} = '{request.MyTimeSpan}'");
+            context.Activity.Track($"{nameof(request.MyDateTime)} = '{request.MyDateTime}'");
 
             return new ComplexCommandResponse
             {

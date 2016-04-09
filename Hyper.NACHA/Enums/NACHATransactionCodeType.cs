@@ -1,6 +1,6 @@
 ﻿namespace Hyper.NACHA
 {
-    public enum NACHATransactionCodeType
+    public enum NachaTransactionCodeType
     {
         CreditChecking = 22,
         DebitChecking = 27,

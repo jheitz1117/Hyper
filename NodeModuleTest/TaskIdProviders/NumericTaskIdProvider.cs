@@ -9,21 +9,25 @@ namespace NodeModuleTest.TaskIdProviders
         private static long _counter;
         private static readonly object Lock = new object();
 
-        public override string CreateTaskId(IHyperNodeMessageContext context)
+        public override string CreateTaskId(IReadOnlyHyperNodeMessageInfo message)
         {
-            lock (Lock)
+            if (message.CommandName == "TestLongRunningCommand")
             {
-                return (_counter++).ToString();
-            }    
+                return "LadeeDa__TestLongRunningCommandKey";
+            }
+            else
+            {
+                lock (Lock)
+                {
+                    return _counter++.ToString();
+                }
+            }
         }
 
         public void Dispose()
         {
             Trace.WriteLine(
-                string.Format(
-                    "Disposing of {0}",
-                    GetType().FullName
-                )
+                $"Disposing of {GetType().FullName}"
             );
         }
     }

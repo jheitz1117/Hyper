@@ -59,6 +59,18 @@
     <Compile Include="Configuration\Validation\HyperNodeConfigurationValidator.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="EventTracking\HyperNodeEventHandlerBase.cs" />
+    <Compile Include="EventTracking\IForwardingMessageEventArgs.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="EventTracking\IHyperNodeEventArgs.cs" />
+    <Compile Include="EventTracking\ITaskCompletedEventArgs.cs" />
+    <Compile Include="EventTracking\IHyperNodeRespondedEventArgs.cs" />
+    <Compile Include="EventTracking\ITaskEventContext.cs" />
+    <Compile Include="EventTracking\IHyperNodeEventHandler.cs" />
+    <Compile Include="EventTracking\IMessageReceivedEventArgs.cs" />
+    <Compile Include="EventTracking\IMessageIgnoredEventArgs.cs" />
+    <Compile Include="EventTracking\IMessageSeenEventArgs.cs" />
     <Compile Include="Exceptions\HyperNodeConfigurationException.cs" />
     <Compile Include="Exceptions\InvalidCommandRequestTypeException.cs" />
     <Compile Include="ActivityTracking\HyperNodeServiceActivityMonitor.cs" />
@@ -68,7 +80,8 @@
     <Compile Include="CommandModules\ICommandResponseSerializerFactory.cs" />
     <Compile Include="ActivityTracking\IHyperNodeActivityEventItem.cs" />
     <Compile Include="ActivityTracking\ITaskActivityTracker.cs" />
-    <Compile Include="IHyperNodeMessageContext.cs" />
+    <Compile Include="IReadOnlyHyperNodeResponseInfo.cs" />
+    <Compile Include="IReadOnlyHyperNodeMessageInfo.cs" />
     <Compile Include="TaskIdProviderBase.cs" />
     <Compile Include="ITaskIdProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -14,13 +14,11 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                 throw new InvalidCommandRequestTypeException(typeof(CommandRequestString), context.Request.GetType());
 
             var result = HyperNodeService.Instance.CancelTask(request.RequestString);
-            context.Activity.TrackFormat(
-                "The task with ID '{0}' {1} cancelled.",
-                request.RequestString,
-                (result ? "was" : "could not be")
+            context.Activity.Track(
+                $"The task with ID '{request.RequestString}' {(result ? "was" : "could not be")} cancelled."
             );
 
-            return new CommandResponse((result ? MessageProcessStatusFlags.Success : MessageProcessStatusFlags.Failure));
+            return new CommandResponse(result ? MessageProcessStatusFlags.Success : MessageProcessStatusFlags.Failure);
         }
     }
 }

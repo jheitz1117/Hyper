@@ -24,18 +24,7 @@ namespace Hyper.UI
             }
         }
 
-        private char _preferredSeparator = DefaultPreferredSeparator;
-        public char PreferredSeparator
-        {
-            get
-            {
-                return _preferredSeparator;
-            }
-            set
-            {
-                _preferredSeparator = value;
-            }
-        }
+        public char PreferredSeparator { get; set; } = DefaultPreferredSeparator;
 
         #endregion Properties
 
@@ -45,13 +34,13 @@ namespace Hyper.UI
         public HyperRecipientInfo(string regexForAcceptedSeparators, char preferredSeparator)
             : this()
         {
-            this.RegexForAcceptedSeparators = regexForAcceptedSeparators;
-            this.PreferredSeparator = preferredSeparator;
+            RegexForAcceptedSeparators = regexForAcceptedSeparators;
+            PreferredSeparator = preferredSeparator;
         }
 
         public static List<string> GetCondensedRecipients(string rawRecipientList)
         {
-            return new List<string>(Regex.Replace(rawRecipientList ?? "", DefaultRegexForAcceptedSeparators, DefaultPreferredSeparator.ToString()).Split(new char[] { DefaultPreferredSeparator }, StringSplitOptions.RemoveEmptyEntries));
+            return new List<string>(Regex.Replace(rawRecipientList ?? "", DefaultRegexForAcceptedSeparators, DefaultPreferredSeparator.ToString()).Split(new[] { DefaultPreferredSeparator }, StringSplitOptions.RemoveEmptyEntries));
         }
 
         public static string GetCondensedRecipients(string rawRecipientList, string separator)
