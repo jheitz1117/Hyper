@@ -28,7 +28,7 @@ namespace NodeModuleTest.EventHandlers
         {
             if (args.TaskContext.CommandName == "TestLongRunningCommand")
             {
-                args.CancelTask();
+                //args.CancelTask();
             }
         }
 

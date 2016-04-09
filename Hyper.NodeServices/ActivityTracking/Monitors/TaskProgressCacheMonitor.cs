@@ -31,6 +31,13 @@ namespace Hyper.NodeServices.ActivityTracking
             // First add a new cache item or get the existing cache item with the specified key
             var taskProgressInfo = AddOrGetExisting(activity.TaskId, () => new HyperNodeTaskProgressInfo());
 
+            // If we try to cache activity for a task that has already completed, evict the previous entry and initialize a new instance with that key.
+            if (taskProgressInfo.IsComplete)
+            {
+                Cache.Remove(activity.TaskId);
+                taskProgressInfo = AddOrGetExisting(activity.TaskId, () => new HyperNodeTaskProgressInfo());
+            }
+
             // Now add our specific item to our list of activity items. Need lock because list is not thread-safe
             lock (Lock)
             {

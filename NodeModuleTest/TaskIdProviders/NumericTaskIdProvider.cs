@@ -11,10 +11,17 @@ namespace NodeModuleTest.TaskIdProviders
 
         public override string CreateTaskId(IReadOnlyHyperNodeMessageInfo message)
         {
-            lock (Lock)
+            if (message.CommandName == "TestLongRunningCommand")
             {
-                return _counter++.ToString();
-            }    
+                return "LadeeDa__TestLongRunningCommandKey";
+            }
+            else
+            {
+                lock (Lock)
+                {
+                    return _counter++.ToString();
+                }
+            }
         }
 
         public void Dispose()
