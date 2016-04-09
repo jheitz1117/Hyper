@@ -13,17 +13,14 @@ namespace NodeModuleTest.TaskIdProviders
         {
             lock (Lock)
             {
-                return (_counter++).ToString();
+                return _counter++.ToString();
             }    
         }
 
         public void Dispose()
         {
             Trace.WriteLine(
-                string.Format(
-                    "Disposing of {0}",
-                    GetType().FullName
-                )
+                $"Disposing of {GetType().FullName}"
             );
         }
     }

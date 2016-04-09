@@ -14,19 +14,13 @@ namespace NodeModuleTest.ActivityMonitors
     {
         public TaskActivityTracer()
         {
-            this.Name = GetType().Name;
+            Name = nameof(TaskActivityTracer);
         }
-
+        
         public override void OnTrack(IHyperNodeActivityEventItem activity)
         {
             Trace.WriteLine(
-                string.Format("{0}\r\n    {1:G} {2}\r\n    {3}\r\n    {4}",
-                    activity.TaskId,
-                    activity.EventDateTime,
-                    activity.Agent,
-                    activity.EventDescription,
-                    activity.EventDetail
-                )
+                $"{activity.TaskId}\r\n    {activity.EventDateTime:G} {activity.Agent}\r\n    {activity.EventDescription}\r\n    {activity.EventDetail}"
             );
         }
 
@@ -37,7 +31,7 @@ namespace NodeModuleTest.ActivityMonitors
 
         public override void OnTaskCompleted()
         {
-            Trace.WriteLine("Yay!");
+            Trace.WriteLine("Task Completed!");
         }
     }
 }

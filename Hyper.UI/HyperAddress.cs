@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Hyper.UI
 {
@@ -52,36 +53,28 @@ namespace Hyper.UI
 
         #region Public Methods
 
-        public HyperAddress()
-        {
-        }
+        public HyperAddress() { }
 
         public HyperAddress(string addressLine1, string addressLine2, string city, string state, string zipCode)
             : this()
         {
-            this.AddressLines.Add(addressLine1);
-            this.AddressLines.Add(addressLine2);
-            this.City = city;
-            this.State = state;
-            this.ZipCode = zipCode;
+            AddressLines.Add(addressLine1);
+            AddressLines.Add(addressLine2);
+            City = city;
+            State = state;
+            ZipCode = zipCode;
         }
 
-        public static string BuildCSZLine(string city, string state, string zipCode)
+        public static string BuildCszLine(string city, string state, string zipCode)
         {
-            string cszLine = "";
+            var cszLine = "";
 
             if (!string.IsNullOrWhiteSpace(city))
-            {
                 cszLine += city.Trim();
-            }
             if (!string.IsNullOrWhiteSpace(state))
-            {
                 cszLine += ", " + state.Trim();
-            }
             if (!string.IsNullOrWhiteSpace(zipCode))
-            {
                 cszLine += " " + zipCode.Trim();
-            }
 
             return cszLine.Trim(", ".ToCharArray());
         }
@@ -98,7 +91,7 @@ namespace Hyper.UI
         /// <returns></returns>
         public string ToString(bool forceSingleLine)
         {
-            return (forceSingleLine ? ToString(", ") : ToString());
+            return forceSingleLine ? ToString(", ") : ToString();
         }
 
         /// <summary>
@@ -117,26 +110,14 @@ namespace Hyper.UI
 
         private List<string> GetCondensedAddressLines()
         {
-            List<string> condensedAddressLines = new List<string>();
+            var condensedAddressLines = (from addressLine in AddressLines where !string.IsNullOrWhiteSpace(addressLine) select addressLine.Trim()).ToList();
 
-            foreach (string addressLine in AddressLines)
-            {
-                if (!string.IsNullOrWhiteSpace(addressLine))
-                {
-                    condensedAddressLines.Add(addressLine.Trim());
-                }
-            }
-
-            string cszLine = BuildCSZLine(City, State, ZipCode.ToString());
+            var cszLine = BuildCszLine(City, State, ZipCode);
             if (!string.IsNullOrWhiteSpace(CountryCode))
-            {
                 cszLine += " " + CountryCode.Trim();
-            }
 
             if (!string.IsNullOrWhiteSpace(cszLine))
-            {
                 condensedAddressLines.Add(cszLine.Trim());
-            }
 
             return condensedAddressLines;
         }

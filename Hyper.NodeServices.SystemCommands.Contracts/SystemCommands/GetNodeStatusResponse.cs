@@ -46,28 +46,18 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         /// A list of <see cref="CommandStatus"/> objects reporting the status of each command module in the <see cref="IHyperNodeService"/>.
         /// </summary>
         [DataMember]
-        public IEnumerable<CommandStatus> Commands { get; set; }
+        public IEnumerable<CommandStatus> Commands { get; set; } = new List<CommandStatus>();
 
         /// <summary>
         /// A list of <see cref="ActivityMonitorStatus"/> objects reporting the status of each custom activity monitor in the <see cref="IHyperNodeService"/>.
         /// </summary>
         [DataMember]
-        public IEnumerable<ActivityMonitorStatus> ActivityMonitors { get; set; }
+        public IEnumerable<ActivityMonitorStatus> ActivityMonitors { get; set; } = new List<ActivityMonitorStatus>();
 
         /// <summary>
         /// A list of <see cref="LiveTaskStatus"/> objects reporting the status of each live task in the <see cref="IHyperNodeService"/>.
         /// </summary>
         [DataMember]
-        public IEnumerable<LiveTaskStatus> LiveTasks { get; set; }
-
-        /// <summary>
-        /// Initializes an instance of <see cref="GetNodeStatusResponse"/>.
-        /// </summary>
-        public GetNodeStatusResponse()
-        {
-            this.Commands = new List<CommandStatus>();
-            this.ActivityMonitors = new List<ActivityMonitorStatus>();
-            this.LiveTasks = new List<LiveTaskStatus>();
-        }
+        public IEnumerable<LiveTaskStatus> LiveTasks { get; set; } = new List<LiveTaskStatus>();
     }
 }

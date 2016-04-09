@@ -138,9 +138,9 @@ namespace Hyper.Db.Xml
         public void LoadDbXmlDocument(XDocument dbXmlDocument, bool validateSchema, IDbSchemaConfiguration config)
         {
             if (dbXmlDocument == null)
-            { throw new ArgumentNullException("dbXmlDocument"); }
+                throw new ArgumentNullException(nameof(dbXmlDocument));
             if (config == null)
-            { throw new ArgumentNullException("config"); }
+                throw new ArgumentNullException(nameof(config));
 
             // Now optionally validate against our database XML schemas
             if (validateSchema)
@@ -169,12 +169,12 @@ namespace Hyper.Db.Xml
         public void ValidateDbXmlDocument(XDocument dbXmlDocument, ValidationEventHandler validationEventHandler, bool addSchemaInfo)
         {
             if (dbXmlDocument == null)
-            { throw new ArgumentNullException("dbXmlDocument"); }
+                throw new ArgumentNullException(nameof(dbXmlDocument));
 
             // This ensures that we're actually validating against the schema listed in the file. If the namespace in the file isn't actually included in the
             // XmlSchemaSet, it technically passes validation, which is not what we want. We want to enforce conformity.
-            if (!_dbXmlSchemaSet.Contains(dbXmlDocument.Root.GetDefaultNamespace().ToString()))
-            { throw new XmlSchemaValidationException("The namespace referenced in the specified XML document is not listed for validation. Call AddDbXmlSchema() to add it."); }
+            if (!_dbXmlSchemaSet.Contains(dbXmlDocument.Root?.GetDefaultNamespace().ToString()))
+                throw new XmlSchemaValidationException("The namespace referenced in the specified XML document is not listed for validation. Call AddDbXmlSchema() to add it.");
 
             dbXmlDocument.Validate(_dbXmlSchemaSet, validationEventHandler, addSchemaInfo);
         }
@@ -187,13 +187,13 @@ namespace Hyper.Db.Xml
         public void ExecuteAllScripts(string dbSchemaName, Action<string> executeDelegate)
         {
             if (string.IsNullOrWhiteSpace((dbSchemaName)))
-            { throw new ArgumentNullException("dbSchemaName"); }
+                throw new ArgumentNullException(nameof(dbSchemaName));
             if (executeDelegate == null)
-            { throw new ArgumentNullException("executeDelegate"); }
+                throw new ArgumentNullException(nameof(executeDelegate));
             if (_dbConfig == null)
-            { throw new InvalidOperationException("No schemas have been loaded. No updates performed."); }
+                throw new InvalidOperationException("No schemas have been loaded. No updates performed.");
             if (!_dbConfig.ContainsSchema(dbSchemaName))
-            { throw new ArgumentException("The database schema name '" + dbSchemaName + "' was not found in the " + typeof(IDbSchemaConfiguration).Name + "."); }
+                throw new ArgumentException("The database schema name '" + dbSchemaName + "' was not found in the " + typeof(IDbSchemaConfiguration).Name + ".");
 
             // TODO: Provide feedback in terms of progress and error messages
 

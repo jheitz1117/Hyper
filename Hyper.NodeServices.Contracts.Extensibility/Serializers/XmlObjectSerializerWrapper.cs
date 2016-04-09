@@ -18,18 +18,15 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         public static readonly IStringTransform DefaultStringTransform = StringTransform.FromEncoding(Encoding.Default);
         
         private XmlObjectSerializer _serializer;
-        private XmlObjectSerializer Serializer
-        {
-            get { return (_serializer ?? (_serializer = CreateSerializer())); }
-        }
+        private XmlObjectSerializer Serializer => _serializer ?? (_serializer = CreateSerializer());
 
         /// <summary>
         /// The <see cref="IStringTransform"/> to use when transforming data between string and byte representations.
         /// </summary>
-        public IStringTransform SerializationTransform { get; private set; }
+        public IStringTransform SerializationTransform { get; }
 
         /// <summary>
-        /// Initializes an instance of <see cref="XmlObjectSerializerWrapper"/> using <see cref="XmlObjectSerializerWrapper.DefaultStringTransform"/>.
+        /// Initializes an instance of <see cref="XmlObjectSerializerWrapper"/> using <see cref="DefaultStringTransform"/>.
         /// </summary>
         protected XmlObjectSerializerWrapper()
             : this(DefaultStringTransform) { }
@@ -40,7 +37,7 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         /// <param name="serializationTransform">The <see cref="IStringTransform"/> to use when transforming data between string and byte representations.</param>
         protected XmlObjectSerializerWrapper(IStringTransform serializationTransform)
         {
-            this.SerializationTransform = serializationTransform;
+            SerializationTransform = serializationTransform;
         }
 
         /// <summary>
@@ -51,10 +48,10 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         {
             using (var memory = new MemoryStream())
             {
-                this.Serializer.WriteObject(memory, target);
+                Serializer.WriteObject(memory, target);
                 memory.Flush();
 
-                return this.SerializationTransform.GetString(memory.ToArray());
+                return SerializationTransform.GetString(memory.ToArray());
             }
         }
 
@@ -65,9 +62,9 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         /// <returns></returns>
         protected object Deserialize(string inputString)
         {
-            using (var memory = new MemoryStream(this.SerializationTransform.GetBytes(inputString)))
+            using (var memory = new MemoryStream(SerializationTransform.GetBytes(inputString)))
             {
-                return this.Serializer.ReadObject(memory);
+                return Serializer.ReadObject(memory);
             }
         }
 

@@ -77,8 +77,8 @@ namespace Hyper.NodeServices.Contracts
         /// </summary>
         public HyperNodeMessageResponse()
         {
-            this.TaskTrace = new List<HyperNodeActivityItem>();
-            this.ChildResponses = new ConcurrentDictionary<string, HyperNodeMessageResponse>();
+            TaskTrace = new List<HyperNodeActivityItem>();
+            ChildResponses = new ConcurrentDictionary<string, HyperNodeMessageResponse>();
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Hyper.NodeServices.Contracts
         public HyperNodeMessageResponse(string respondingNodeName)
             : this()
         {
-            this.RespondingNodeName = respondingNodeName;
+            RespondingNodeName = respondingNodeName;
         }
     }
 }

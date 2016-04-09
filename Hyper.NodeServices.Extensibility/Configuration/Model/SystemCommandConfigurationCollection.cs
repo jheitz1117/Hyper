@@ -27,10 +27,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         /// <summary>
         /// Gets the number of <see cref="SystemCommandConfiguration"/> objects contained in the <see cref="SystemCommandConfigurationCollection"/>.
         /// </summary>
-        public int Count
-        {
-            get { return _systemCommands.Count; }
-        }
+        public int Count => _systemCommands.Count;
 
         /// <summary>
         /// Indicates whether system-level <see cref="ICommandModule"/> objects in the <see cref="IHyperNodeService"/> will be enabled
@@ -66,10 +63,10 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         public ISystemCommandConfiguration GetByCommandName(string commandName)
         {
             if (commandName == null)
-                throw new ArgumentNullException("commandName");
+                throw new ArgumentNullException(nameof(commandName));
 
             if (!_systemCommands.ContainsKey(commandName))
-                throw new KeyNotFoundException("No system command exists with the name '" + commandName + "'.");
+                throw new KeyNotFoundException($"No system command exists with the name '{commandName}'.");
 
             return this[commandName];
         }
@@ -91,21 +88,18 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         public void Add(SystemCommandConfiguration config)
         {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
 
             if (string.IsNullOrWhiteSpace(config.CommandName))
             {
                 throw new ArgumentException(
-                    string.Format(
-                        "The {0}.CommandName property must not be blank.",
-                        config.GetType().FullName
-                    ),
-                    "config"
+                    $"The {nameof(config.CommandName)} property must not be blank.",
+                    nameof(config)
                 );
             }
 
             if (_systemCommands.ContainsKey(config.CommandName))
-                throw new ArgumentException("A system command already exists with the name '" + config.CommandName + "'.");
+                throw new ArgumentException($"A system command already exists with the name '{config.CommandName}'.");
 
             _systemCommands.Add(config.CommandName, config);
         }
@@ -117,7 +111,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         public void Remove(string name)
         {
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             if (_systemCommands.ContainsKey(name))
                 _systemCommands.Remove(name);

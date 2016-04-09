@@ -5,73 +5,56 @@ using Hyper.FileProcessing.FixedWidthFiles;
 
 namespace Hyper.NACHA
 {
-    public class NACHAEntryDetailRecord : NACHARecord
+    public class NachaEntryDetailRecord : NachaRecord
     {
-        public override NACHARecordType RecordTypeCode
-        {
-            get { return (Fields[0] as EnumeratedFixedWidthField<NACHARecordType>).Value; }
-        }
+        public override NachaRecordType RecordTypeCode => ((EnumeratedFixedWidthField<NachaRecordType>) Fields[0]).Value;
 
         /// <summary>
         /// Transaction code for this entry object.
         /// </summary>
-        public NACHATransactionCodeType TransactionCode
+        public NachaTransactionCodeType TransactionCode
         {
             get
             {
-                return (Fields[1] as EnumeratedFixedWidthField<NACHATransactionCodeType>).Value;
+                return ((EnumeratedFixedWidthField<NachaTransactionCodeType>) Fields[1]).Value;
             }
             set
             {
-                (Fields[1] as EnumeratedFixedWidthField<NACHATransactionCodeType>).Value = value;
+                ((EnumeratedFixedWidthField<NachaTransactionCodeType>) Fields[1]).Value = value;
             }
         }
 
         /// <summary>
         /// Indicates whether this transaction is a credit transaction by examining the Transaction Code
         /// </summary>
-        public bool IsCredit
-        {
-            get
-            {
-                return TransactionCode == NACHATransactionCodeType.CreditChecking ||
-                       TransactionCode == NACHATransactionCodeType.CreditSavings ||
-                       TransactionCode == NACHATransactionCodeType.CreditCheckingPrenote ||
-                       TransactionCode == NACHATransactionCodeType.CreditSavingsPrenote;
-            }
-        }
+        public bool IsCredit => TransactionCode == NachaTransactionCodeType.CreditChecking ||
+                                TransactionCode == NachaTransactionCodeType.CreditSavings ||
+                                TransactionCode == NachaTransactionCodeType.CreditCheckingPrenote ||
+                                TransactionCode == NachaTransactionCodeType.CreditSavingsPrenote;
 
         /// <summary>
         /// Indicates whether this transaction is a debit transaction by examining the Transaction Code
         /// </summary>
-        public bool IsDebit
-        {
-            get
-            {
-                return TransactionCode == NACHATransactionCodeType.DebitChecking ||
-                       TransactionCode == NACHATransactionCodeType.DebitSavings ||
-                       TransactionCode == NACHATransactionCodeType.DebitCheckingPrenote ||
-                       TransactionCode == NACHATransactionCodeType.DebitSavingsPrenote;
-            }
-        }
+        public bool IsDebit => TransactionCode == NachaTransactionCodeType.DebitChecking ||
+                               TransactionCode == NachaTransactionCodeType.DebitSavings ||
+                               TransactionCode == NachaTransactionCodeType.DebitCheckingPrenote ||
+                               TransactionCode == NachaTransactionCodeType.DebitSavingsPrenote;
 
         /// <summary>
         /// First 8 digits of the receiver's routing number. Can be set automatically by setting the ReceiverRoutingNumber property.
         /// </summary>
-        public long ReceivingDFIID
+        public long ReceivingDfiId
         {
             get
             {
-                return (Fields[2] as NumericNACHADataField).Value;
+                return ((NumericNachaDataField) Fields[2]).Value;
             }
             set
             {
                 if (value < 0 || value > 99999999)
-                {
-                    throw new ArgumentException("ReceivingDFIID must be a non-negative number with fewer than 9 digits.");
-                }
+                    throw new ArgumentException($"{nameof(ReceivingDfiId)} must be a non-negative number with fewer than 9 digits.");
 
-                (Fields[2] as NumericNACHADataField).Value = value;
+                ((NumericNachaDataField) Fields[2]).Value = value;
             }
         }
 
@@ -82,16 +65,14 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[3] as NumericNACHADataField).Value;
+                return ((NumericNachaDataField) Fields[3]).Value;
             }
             set
             {
                 if (value < 0 || value > 9)
-                {
                     throw new ArgumentException("CheckDigit must be a single digit.");
-                }
 
-                (Fields[3] as NumericNACHADataField).Value = value;
+                ((NumericNachaDataField) Fields[3]).Value = value;
             }
         }
 
@@ -102,17 +83,17 @@ namespace Hyper.NACHA
         {
             get
             {
-                return ReceivingDFIID.ToString(new string('0', 8)).Substring(0, 8) + CheckDigit.ToString("0");
+                return ReceivingDfiId.ToString(new string('0', 8)).Substring(0, 8) + CheckDigit.ToString("0");
             }
             set
             {
                 // null check, pad on the left with zeros to 9 places, truncate to 9 places
-                string input = (value ?? "").Trim().PadLeft(9, '0').Substring(0, 9);
+                var input = (value ?? "").Trim().PadLeft(9, '0').Substring(0, 9);
 
                 // ensure 9 consecutive digits
                 if (Regex.IsMatch(input, @"^\d{9}$"))
                 {
-                    ReceivingDFIID = Convert.ToInt64(input.Substring(0, 8));
+                    ReceivingDfiId = Convert.ToInt64(input.Substring(0, 8));
                     CheckDigit = Convert.ToInt64(input.Substring(8, 1));
                 }
                 else
@@ -129,11 +110,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[4] as AlphamericNACHADataField).Value;
+                return (Fields[4] as AlphamericNachaDataField)?.Value;
             }
             set
             {
-                (Fields[4] as AlphamericNACHADataField).Value = value;
+                ((AlphamericNachaDataField) Fields[4]).Value = value;
             }
         }
 
@@ -149,7 +130,7 @@ namespace Hyper.NACHA
             set
             {
                 _amount = value;
-                (Fields[5] as NumericNACHADataField).Value = (long)Math.Round(value * 100, 0);
+                ((NumericNachaDataField) Fields[5]).Value = (long)Math.Round(value * 100, 0);
             }
         } private decimal _amount;
 
@@ -160,11 +141,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[6] as AlphamericNACHADataField).Value;
+                return (Fields[6] as AlphamericNachaDataField)?.Value;
             }
             set
             {
-                (Fields[6] as AlphamericNACHADataField).Value = value;
+                ((AlphamericNachaDataField) Fields[6]).Value = value;
             }
         }
 
@@ -175,11 +156,11 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[7] as AlphamericNACHADataField).Value;
+                return (Fields[7] as AlphamericNachaDataField)?.Value;
             }
             set
             {
-                (Fields[7] as AlphamericNACHADataField).Value = value;
+                ((AlphamericNachaDataField) Fields[7]).Value = value;
             }
         }
 
@@ -191,29 +172,29 @@ namespace Hyper.NACHA
         {
             get
             {
-                return (Fields[10] as NumericNACHADataField).Value;
+                return ((NumericNachaDataField) Fields[10]).Value;
             }
             set
             {
-                (Fields[10] as NumericNACHADataField).Value = value;
+                ((NumericNachaDataField) Fields[10]).Value = value;
             }
         }
 
-        public NACHAEntryDetailRecord(NACHATransactionCodeType transactionCode)
+        public NachaEntryDetailRecord(NachaTransactionCodeType transactionCode)
         {
             // Define fields along with their type and length
             Fields = new List<IFixedWidthField>() {
-                new EnumeratedFixedWidthField<NACHARecordType>(NACHARecordType.EntryDetail, 1), // Record Type Code
-                new EnumeratedFixedWidthField<NACHATransactionCodeType>(transactionCode, 2), // Transaction Code -  Per NACHA docs, valid values are defined in the enumeration NACHATransactionCodeType
-                new NumericNACHADataField(11111111, 8), // Receiving DFI ID - Per NACHA docs, this is the first 8 digits of the receiver's routing number. 11111111 is a testing routing number to be used if a routing number is not supplied.
-                new NumericNACHADataField(8, 1), // Check Digit for the receiver's routing number - Per NACHA docs, this is the last digit of the routing number. 8 is the check digit of the testing routing number 111111118, which is only used if a routing number is not supplied.
-                new AlphamericNACHADataField("", 17, FormatDFIAccountNumber), // DFI Account Number - Per NACHA docs, this is the receiver's account number. Must not contain spaces
-                new NumericNACHADataField(0, 10), // Amount
-                new AlphamericNACHADataField("", 15), // Individual Identification Number - Per NACHA docs, this is a value by which the originator knows the receiver.
-                new AlphamericNACHADataField("", 22), // Individual Name or Receiving Company Name - Per NACHA docs, this is the name of the receiver
-                new AlphamericNACHADataField("", 2), // Discretionary data - Per NACHA docs, this field is optional. Leaving blank.
-                new NumericNACHADataField(0, 1), // Addenda Record Indicator - Per NACHA docs, this field should be 1 if there is an addenda attached to this entry and 0 otherwise.
-                new NumericNACHADataField(0, 15) // Trace Number - Per NACHA docs, this field uniquely identifies the transaction relative to the rest of the file.
+                new EnumeratedFixedWidthField<NachaRecordType>(NachaRecordType.EntryDetail, 1), // Record Type Code
+                new EnumeratedFixedWidthField<NachaTransactionCodeType>(transactionCode, 2), // Transaction Code -  Per NACHA docs, valid values are defined in the enumeration NACHATransactionCodeType
+                new NumericNachaDataField(11111111, 8), // Receiving DFI ID - Per NACHA docs, this is the first 8 digits of the receiver's routing number. 11111111 is a testing routing number to be used if a routing number is not supplied.
+                new NumericNachaDataField(8, 1), // Check Digit for the receiver's routing number - Per NACHA docs, this is the last digit of the routing number. 8 is the check digit of the testing routing number 111111118, which is only used if a routing number is not supplied.
+                new AlphamericNachaDataField("", 17, FormatDFIAccountNumber), // DFI Account Number - Per NACHA docs, this is the receiver's account number. Must not contain spaces
+                new NumericNachaDataField(0, 10), // Amount
+                new AlphamericNachaDataField("", 15), // Individual Identification Number - Per NACHA docs, this is a value by which the originator knows the receiver.
+                new AlphamericNachaDataField("", 22), // Individual Name or Receiving Company Name - Per NACHA docs, this is the name of the receiver
+                new AlphamericNachaDataField("", 2), // Discretionary data - Per NACHA docs, this field is optional. Leaving blank.
+                new NumericNachaDataField(0, 1), // Addenda Record Indicator - Per NACHA docs, this field should be 1 if there is an addenda attached to this entry and 0 otherwise.
+                new NumericNachaDataField(0, 15) // Trace Number - Per NACHA docs, this field uniquely identifies the transaction relative to the rest of the file.
             };
         }
 

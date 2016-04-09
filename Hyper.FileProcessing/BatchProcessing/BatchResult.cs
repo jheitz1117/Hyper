@@ -27,8 +27,8 @@ namespace Hyper.BatchProcessing
             }
         }
 
-        public bool HadWarnings { get { return (Warnings.Count > 0); } }
-        public bool HadErrors { get { return (Errors.Count > 0); } }
+        public bool HadWarnings => Warnings.Count > 0;
+        public bool HadErrors => Errors.Count > 0;
         public long BatchItemNumber { get; set; }
 
         #endregion Properties

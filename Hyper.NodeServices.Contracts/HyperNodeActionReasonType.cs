@@ -63,13 +63,13 @@ namespace Hyper.NodeServices.Contracts
         CancellationRequested = 8,
 
         /// <summary>
-        /// Indicates that the <see cref="ITaskIdProvider"/> implementation threw an exception while generating a task ID.
+        /// Indicates that the ITaskIdProvider implementation threw an exception while generating a task ID.
         /// </summary>
         [EnumMember]
         TaskIdProviderThrewException = 9,
 
         /// <summary>
-        /// Indicates that the <see cref="ITaskIdProvider"/> implementation generated an invalid task ID.
+        /// Indicates that the ITaskIdProvider implementation generated an invalid task ID.
         /// </summary>
         [EnumMember]
         InvalidTaskId = 10

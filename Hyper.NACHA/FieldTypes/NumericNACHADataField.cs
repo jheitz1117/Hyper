@@ -3,14 +3,16 @@ using Hyper.FileProcessing.FixedWidthFiles;
 
 namespace Hyper.NACHA
 {
-    internal class NumericNACHADataField : Int64FixedWidthField
+    internal class NumericNachaDataField : Int64FixedWidthField
     {
-        public NumericNACHADataField() { }
-        public NumericNACHADataField(long value)
+        public NumericNachaDataField() { }
+
+        public NumericNachaDataField(long value)
         {
             Value = value;
         }
-        public NumericNACHADataField(long value, int length)
+
+        public NumericNachaDataField(long value, int length)
             : this(value)
         {
             Length = length;

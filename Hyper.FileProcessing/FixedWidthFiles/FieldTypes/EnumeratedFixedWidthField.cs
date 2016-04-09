@@ -11,7 +11,7 @@ namespace Hyper.FileProcessing.FixedWidthFiles
             set
             {
                 if (!Enum.IsDefined(typeof(T), value))
-                { throw new ArgumentOutOfRangeException("The value '" + value + "' is not a valid " + typeof(T) + "."); }
+                    throw new ArgumentOutOfRangeException("The value '" + value + "' is not a valid " + typeof(T) + ".");
 
                 _value = value;
             }
@@ -20,7 +20,7 @@ namespace Hyper.FileProcessing.FixedWidthFiles
         public EnumeratedFixedWidthField()
         {
             if (!typeof(T).IsEnum)
-            { throw new ArgumentException("T must be an enumerated type."); }
+                throw new ArgumentException("T must be an enumerated type.");
         }
 
         public EnumeratedFixedWidthField(T value) : this() { Value = value; }

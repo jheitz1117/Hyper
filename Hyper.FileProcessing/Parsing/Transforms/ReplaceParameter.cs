@@ -27,13 +27,13 @@
 
         public ReplaceParameter(string targetString, string replacementString)
             : this() {
-                this.TargetString = targetString;
-                this.ReplacementString = replacementString;
+                TargetString = targetString;
+                ReplacementString = replacementString;
         }
 
         public ReplaceParameter(string targetString, string replacementString, bool caseSensitive)
             : this(targetString, replacementString) {
-            this.CaseSensitive = caseSensitive;
+            CaseSensitive = caseSensitive;
         }
 
         #endregion Public Methods

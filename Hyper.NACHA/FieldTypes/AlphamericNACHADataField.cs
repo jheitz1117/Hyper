@@ -2,20 +2,23 @@
 
 namespace Hyper.NACHA
 {
-    internal class AlphamericNACHADataField : CustomFixedWidthField<string>
+    internal class AlphamericNachaDataField : CustomFixedWidthField<string>
     {
-        public AlphamericNACHADataField() { }
-        public AlphamericNACHADataField(string value)
+        public AlphamericNachaDataField() { }
+
+        public AlphamericNachaDataField(string value)
             : this()
         {
             Value = value;
         }
-        public AlphamericNACHADataField(string value, int length)
+
+        public AlphamericNachaDataField(string value, int length)
             : this(value)
         {
             Length = length;
         }
-        public AlphamericNACHADataField(string value, int length, CustomFixedWidthFormatDelegate<string> customFormat)
+
+        public AlphamericNachaDataField(string value, int length, CustomFixedWidthFormatDelegate<string> customFormat)
             : this(value, length)
         {
             Format = customFormat;

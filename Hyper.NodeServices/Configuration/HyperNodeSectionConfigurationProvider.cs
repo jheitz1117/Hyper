@@ -12,7 +12,7 @@ namespace Hyper.NodeServices.Configuration
         {
             var section = (HyperNodeConfigurationSection)ConfigurationManager.GetSection(HyperNodeConfigurationSectionName);
             if (section == null)
-                throw new HyperNodeConfigurationException(string.Format("The application configuration file does not contain a section with the name '{0}'.", HyperNodeConfigurationSectionName));
+                throw new HyperNodeConfigurationException($"The application configuration file does not contain a section with the name '{HyperNodeConfigurationSectionName}'.");
 
             return section;
         }

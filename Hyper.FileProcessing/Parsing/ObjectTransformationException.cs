@@ -7,21 +7,16 @@ namespace Hyper.FileProcessing.Parsing
     public class ObjectTransformationException : Exception {
         #region Public Methods
 
-        public ObjectTransformationException()
-            : base() {
-        }
+        public ObjectTransformationException() { }
 
         public ObjectTransformationException(string message)
-            : base(message) {
-        }
+            : base(message) { }
 
         public ObjectTransformationException(string message, Exception innerException)
-            : base(message, innerException) {
-        }
+            : base(message, innerException) { }
 
         public ObjectTransformationException(SerializationInfo info, StreamingContext context)
-            : base(info, context) {
-        }
+            : base(info, context) { }
 
         #endregion Public Methods
     }

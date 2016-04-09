@@ -11,19 +11,21 @@ namespace Hyper.NodeServices
     /// </summary>
     internal class ReadOnlyHyperNodeMessageInfo : IReadOnlyHyperNodeMessageInfo
     {
-        public string CommandName { get; set; }
-        public string CreatedByAgentName { get; set; }
-        public DateTime CreationDateTime { get; set; }
-        public IReadOnlyList<string> IntendedRecipientNodeNames { get; set; }
-        public IReadOnlyList<string> SeenByNodeNames { get; set; }
-        public MessageProcessOptionFlags ProcessOptionFlags { get; set; }
+        public string CommandName { get; }
+        public string CreatedByAgentName { get; }
+        public DateTime CreationDateTime { get; }
+        public IReadOnlyList<string> IntendedRecipientNodeNames { get; }
+        public IReadOnlyList<string> SeenByNodeNames { get; }
+        public MessageProcessOptionFlags ProcessOptionFlags { get; }
 
-        public ReadOnlyHyperNodeMessageInfo(IList<string> intendedRecipientNodeNames, IList<string> seenByNodeNames)
+        public ReadOnlyHyperNodeMessageInfo(HyperNodeMessageRequest message)
         {
-            // Copy in the info from our top-level message and response. We're avoiding assignment so that
-            // if the user changes anything, it doesn't affect the top-level message
-            this.IntendedRecipientNodeNames = new ReadOnlyCollection<string>(intendedRecipientNodeNames);
-            this.SeenByNodeNames = new ReadOnlyCollection<string>(seenByNodeNames);
+            CommandName = message.CommandName;
+            CreatedByAgentName = message.CreatedByAgentName;
+            CreationDateTime = message.CreationDateTime;
+            ProcessOptionFlags = message.ProcessOptionFlags;
+            IntendedRecipientNodeNames = new ReadOnlyCollection<string>(message.IntendedRecipientNodeNames);
+            SeenByNodeNames = new ReadOnlyCollection<string>(message.SeenByNodeNames);
         }
     }
 }

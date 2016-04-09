@@ -17,8 +17,11 @@ namespace Hyper.NodeServices.ActivityTracking
         {
             _taskContext = taskContext;
             _eventHandler = eventHandler;
-
-            _cancelTaskAction = cancelTaskAction;
+            _cancelTaskAction = () =>
+            {
+                Track("Task cancellation requested from user-defined code.");
+                cancelTaskAction();
+            };
         }
 
         public void TrackTaskStarted()
@@ -71,7 +74,7 @@ namespace Hyper.NodeServices.ActivityTracking
 
         public void TrackForwardingMessage(string recipient, Action skipRecipientAction)
         {
-            TrackFormat("Forwarding message to HyperNode '{0}'.", recipient);
+            Track($"Forwarding message to HyperNode '{recipient}'.");
 
             try
             {
@@ -109,15 +112,16 @@ namespace Hyper.NodeServices.ActivityTracking
 
         public void TrackHyperNodeResponded(string childHyperNodeName, HyperNodeMessageResponse response)
         {
-            var eventDescription = string.Format("Response received from HyperNode '{0}'.", childHyperNodeName);
-            var eventDetail = string.Join(
-                Environment.NewLine,
-                string.Format("NodeAction: {0}", response.NodeAction),
-                string.Format("NodeActionReason: {0}", response.NodeActionReason),
-                string.Format("ProcessStatusFlags: {0}", response.ProcessStatusFlags)
+            Track(
+                $"Response received from HyperNode '{childHyperNodeName}'.",
+                string.Join(
+                    Environment.NewLine,
+                    $"{nameof(response.NodeAction)}:         {response.NodeAction}",
+                    $"{nameof(response.NodeActionReason)}:   {response.NodeActionReason}",
+                    $"{nameof(response.ProcessStatusFlags)}: {response.ProcessStatusFlags}"
+                ),
+                response
             );
-
-            Track(eventDescription, eventDetail, response);
 
             try
             {
@@ -126,16 +130,7 @@ namespace Hyper.NodeServices.ActivityTracking
                         this,
                         _taskContext,
                         childHyperNodeName,
-                        new ReadOnlyHyperNodeResponseInfo(response.TaskTrace, response.ChildResponses)
-                        {
-                            TaskId = response.TaskId,
-                            CommandResponseString = response.CommandResponseString,
-                            NodeAction = response.NodeAction,
-                            NodeActionReason = response.NodeActionReason,
-                            ProcessStatusFlags = response.ProcessStatusFlags,
-                            RespondingNodeName = response.RespondingNodeName,
-                            TotalRunTime = response.TotalRunTime
-                        }
+                        new ReadOnlyHyperNodeResponseInfo(response)
                     )
                 );
             }
@@ -159,16 +154,7 @@ namespace Hyper.NodeServices.ActivityTracking
                     new TaskCompletedEventArgs(
                         this,
                         _taskContext,
-                        new ReadOnlyHyperNodeResponseInfo(response.TaskTrace, response.ChildResponses)
-                        {
-                            TaskId = response.TaskId,
-                            CommandResponseString = response.CommandResponseString,
-                            NodeAction = response.NodeAction,
-                            NodeActionReason = response.NodeActionReason,
-                            ProcessStatusFlags = response.ProcessStatusFlags,
-                            RespondingNodeName = response.RespondingNodeName,
-                            TotalRunTime = response.TotalRunTime
-                        }
+                        new ReadOnlyHyperNodeResponseInfo(response)
                     )
                 );
             }
@@ -176,6 +162,13 @@ namespace Hyper.NodeServices.ActivityTracking
             {
                 TrackException(ex);
             }
+        }
+
+        public void TrackActivityVerbatim(HyperNodeActivityEventItem item)
+        {
+            OnTrackActivity(
+                new TrackActivityEventArgs(item)
+            );
         }
 
         #region ITaskActivityTracker Implementation

@@ -22,30 +22,15 @@ namespace Hyper.WcfHosting
         /// <summary>
         /// List of endpoints on which the <see cref="ServiceHost"/> is listening.
         /// </summary>
-        public ServiceEndpointCollection Endpoints
-        {
-            get
-            {
-                if (_host != null && _host.Description != null && _host.Description.Endpoints != null)
-                    return _host.Description.Endpoints;
-
-                return null;
-            }
-        }
+        public ServiceEndpointCollection Endpoints => _host?.Description?.Endpoints;
 
         /// <summary>
         /// Indiciates whether the internal <see cref="ServiceHost"/> has been created and is in the <see cref="CommunicationState.Opened"/> state.
         /// </summary>
-        public bool IsRunning
-        {
-            get
-            {
-                return (_host != null && _host.State == CommunicationState.Opened);
-            }
-        }
+        public bool IsRunning => _host != null && _host.State == CommunicationState.Opened;
 
         /// <summary>
-        /// Indicates whether the <see cref="HyperServiceHostContainer.Stop()"/> method will try to dispose the service hosted by
+        /// Indicates whether the <see cref="Stop()"/> method will try to dispose the service hosted by
         /// the internal <see cref="ServiceHost"/>.
         /// </summary>
         public bool DisposeServiceOnStop { get; set; }
@@ -95,13 +80,13 @@ namespace Hyper.WcfHosting
                            IServiceHostExceptionHandler genericExceptionHandler)
         {
             if (hostFactory == null)
-                throw new ArgumentNullException("hostFactory");
+                throw new ArgumentNullException(nameof(hostFactory));
             if (timeoutExceptionHandler == null)
-                throw new ArgumentNullException("timeoutExceptionHandler");
+                throw new ArgumentNullException(nameof(timeoutExceptionHandler));
             if (communicationExceptionHandler == null)
-                throw new ArgumentNullException("communicationExceptionHandler");
+                throw new ArgumentNullException(nameof(communicationExceptionHandler));
             if (genericExceptionHandler == null)
-                throw new ArgumentNullException("genericExceptionHandler");
+                throw new ArgumentNullException(nameof(genericExceptionHandler));
 
             _hostFactory = hostFactory;
             _timeoutExceptionHandler = timeoutExceptionHandler;
@@ -109,7 +94,7 @@ namespace Hyper.WcfHosting
             _genericExceptionHandler = genericExceptionHandler;
 
             // By default, this property is true, making the container a one stop shop for ServiceHost management. Users can turn the feature off if they have to though.
-            this.DisposeServiceOnStop = true;
+            DisposeServiceOnStop = true;
         }
 
         /// <summary>
@@ -175,23 +160,20 @@ namespace Hyper.WcfHosting
             }
             catch (TimeoutException exTimeout)
             {
-                if (_timeoutExceptionHandler != null)
-                    _timeoutExceptionHandler.HandleException(exTimeout);
+                _timeoutExceptionHandler?.HandleException(exTimeout);
             }
             catch (CommunicationException exCommunication)
             {
-                if (_communicationExceptionHandler != null)
-                    _communicationExceptionHandler.HandleException(exCommunication);
+                _communicationExceptionHandler?.HandleException(exCommunication);
             }
             catch (Exception ex)
             {
-                if (_genericExceptionHandler != null)
-                    _genericExceptionHandler.HandleException(ex);
+                _genericExceptionHandler?.HandleException(ex);
             }
             finally
             {
                 // Dispose of our service if applicable
-                if (disposableService != null && this.DisposeServiceOnStop)
+                if (disposableService != null && DisposeServiceOnStop)
                     disposableService.Dispose();
             }
         }

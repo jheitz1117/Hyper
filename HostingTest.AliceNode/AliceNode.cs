@@ -6,9 +6,9 @@ using Hyper.WcfHosting;
 
 namespace HostingTest.AliceNode
 {
-    class AliceNode
+    internal class AliceNode
     {
-        static void Main()
+        private static void Main()
         {
             Debug.Listeners.Clear();
             Debug.Listeners.Add(new ConsoleTraceListener());

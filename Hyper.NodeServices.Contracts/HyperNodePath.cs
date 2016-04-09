@@ -21,7 +21,7 @@ namespace Hyper.NodeServices.Contracts
         /// </summary>
         public HyperNodePath()
         {
-            this.PathTree = new ConcurrentDictionary<string, List<HyperNodeVertex>>();
+            PathTree = new ConcurrentDictionary<string, List<HyperNodeVertex>>();
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Hyper.NodeServices.Contracts
         public IEnumerable<HyperNodeVertex> GetChildren(string parentKey)
         {
             List<HyperNodeVertex> vertices;
-            this.PathTree.TryGetValue(parentKey, out vertices);
+            PathTree.TryGetValue(parentKey, out vertices);
 
             return vertices ?? new List<HyperNodeVertex>();
         }

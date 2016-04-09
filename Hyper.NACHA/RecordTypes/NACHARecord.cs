@@ -2,9 +2,9 @@
 
 namespace Hyper.NACHA
 {
-    public abstract class NACHARecord : FixedWidthRecordBase
+    public abstract class NachaRecord : FixedWidthRecordBase
     {
-        public override sealed int Length { get { return 94; } } // Per NACHA docs, all records are 94 characters long
-        public abstract NACHARecordType RecordTypeCode { get; }
+        public sealed override int Length => 94; // Per NACHA docs, all records are 94 characters long
+        public abstract NachaRecordType RecordTypeCode { get; }
     }
 }

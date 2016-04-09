@@ -28,7 +28,7 @@ namespace Hyper.Test
                     Property1 = GetRequiredAttribute(awesomeObjectElement, "property1"),
                 };
 
-                awesomeObject.ScriptWriter = new AwesomeObjectWriter()
+                awesomeObject.ScriptWriter = new AwesomeObjectWriter
                 {
                     Source = awesomeObject
                 };
@@ -63,7 +63,7 @@ namespace Hyper.Test
         public AwesomeObject Source { get; set; }
         public void WriteDbScript(TextWriter writer)
         {
-            writer.WriteLine("awesome object '{0}' has Property1 set to '{1}'!!!", this.Source.Name, this.Source.Property1);
+            writer.WriteLine("awesome object '{0}' has Property1 set to '{1}'!!!", Source.Name, Source.Property1);
         }
     }
 }

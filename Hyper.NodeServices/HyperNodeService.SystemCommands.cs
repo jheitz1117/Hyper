@@ -48,7 +48,7 @@ namespace Hyper.NodeServices
             return _liveTasks.Keys.Select(
                 taskId => new LiveTaskStatus
                 {
-                    TaskID = taskId,
+                    TaskId = taskId,
                     CommandName = _liveTasks[taskId].Message.CommandName,
                     IsCancellationRequested = _liveTasks[taskId].Token.IsCancellationRequested,
                     Elapsed = _liveTasks[taskId].Elapsed

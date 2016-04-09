@@ -20,7 +20,7 @@ namespace Hyper.Db.ScriptWriters.Sql
             iWriter.WriteLine("    declare @DefaultConstraintName nvarchar(128)");
 
             iWriter.Indent++;
-            foreach (var column in this.Source.Columns)
+            foreach (var column in Source.Columns)
             {
                 iWriter.WriteLine("if {0}", GetColumnExistsCondition(column));
                 iWriter.WriteLine("begin");
@@ -44,7 +44,7 @@ namespace Hyper.Db.ScriptWriters.Sql
                 //         the empty string
                 //     Otherwise, if the attribute is present and populated, just use the specified value for the default
                 if (column.DefaultValue != null)
-                    iWriter.WriteLine("alter table [{0}].[{1}] add default ('{2}') for [{3}]", this.DefaultSchemaName, this.Source.TableName, column.DefaultValue, column.Name);
+                    iWriter.WriteLine("alter table [{0}].[{1}] add default ('{2}') for [{3}]", DefaultSchemaName, Source.TableName, column.DefaultValue, column.Name);
             }
 
             iWriter.Indent--;
@@ -53,12 +53,12 @@ namespace Hyper.Db.ScriptWriters.Sql
             iWriter.WriteLine("begin");
 
             iWriter.Indent++;
-            iWriter.WriteLine("create table [{0}].[{1}] (", this.DefaultSchemaName, this.Source.TableName);
+            iWriter.WriteLine("create table [{0}].[{1}] (", DefaultSchemaName, Source.TableName);
             iWriter.Indent++;
             iWriter.WriteLine(
                 string.Join(
                     "," + iWriter.NewLine + "        ",
-                    this.Source.Columns.Select(c => GetColumnDefinitionString(c, true))
+                    Source.Columns.Select(c => GetColumnDefinitionString(c, true))
                 )
             );
             iWriter.Indent--;
@@ -110,22 +110,22 @@ namespace Hyper.Db.ScriptWriters.Sql
 
         private string GetTableExistsCondition()
         {
-            return string.Format("exists(select * from [INFORMATION_SCHEMA].[TABLES] where [TABLE_SCHEMA] = '{0}' and [TABLE_NAME] = '{1}')", this.DefaultSchemaName, this.Source.TableName);
+            return $"exists(select * from [INFORMATION_SCHEMA].[TABLES] where [TABLE_SCHEMA] = '{DefaultSchemaName}' and [TABLE_NAME] = '{Source.TableName}')";
         }
 
         private string GetColumnExistsCondition(IDbColumnScriptSource column)
         {
-            return string.Format("exists(select * from [INFORMATION_SCHEMA].[COLUMNS] where [TABLE_SCHEMA] = '{0}' and [TABLE_NAME] = '{1}' and [COLUMN_NAME] = '{2}')", this.DefaultSchemaName, this.Source.TableName, column.Name);
+            return $"exists(select * from [INFORMATION_SCHEMA].[COLUMNS] where [TABLE_SCHEMA] = '{DefaultSchemaName}' and [TABLE_NAME] = '{Source.TableName}' and [COLUMN_NAME] = '{column.Name}')";
         }
 
         private string GetAddColumnStatement(IDbColumnScriptSource column)
         {
-            return string.Format("alter table [{0}].[{1}] add {2}", this.DefaultSchemaName, this.Source.TableName, GetColumnDefinitionString(column));
+            return $"alter table [{DefaultSchemaName}].[{Source.TableName}] add {GetColumnDefinitionString(column)}";
         }
 
         private string GetAlterColumnStatement(IDbColumnScriptSource column)
         {
-            return string.Format("alter table [{0}].[{1}] alter column {2}", this.DefaultSchemaName, this.Source.TableName, GetColumnDefinitionString(column));
+            return $"alter table [{DefaultSchemaName}].[{Source.TableName}] alter column {GetColumnDefinitionString(column)}";
         }
 
         private void GetDropDefaultScript(IDbColumnScriptSource column, TextWriter writer)
@@ -137,13 +137,13 @@ namespace Hyper.Db.ScriptWriters.Sql
             writer.WriteLine("    inner join [sys].[schemas]             [s] on [t].[schema_id]         = [s].[schema_id]");
             writer.WriteLine("    inner join [sys].[default_constraints] [d] on [c].[default_object_id] = [d].[object_id]");
             writer.WriteLine("where");
-            writer.WriteLine("        [s].[name] = '{0}'", this.DefaultSchemaName);
-            writer.WriteLine("    and [t].[name] = '{0}'", this.Source.TableName);
+            writer.WriteLine("        [s].[name] = '{0}'", DefaultSchemaName);
+            writer.WriteLine("    and [t].[name] = '{0}'", Source.TableName);
             writer.WriteLine("    and [c].[name] = '{0}'", column.Name);
             writer.WriteLine();
             writer.WriteLine("if @DefaultConstraintName is not null");
             writer.WriteLine("begin");
-            writer.WriteLine("    exec('alter table [{0}].[{1}] drop constraint [' + @DefaultConstraintName + ']')", this.DefaultSchemaName, this.Source.TableName);
+            writer.WriteLine("    exec('alter table [{0}].[{1}] drop constraint [' + @DefaultConstraintName + ']')", DefaultSchemaName, Source.TableName);
             writer.WriteLine("end");
         }
     }

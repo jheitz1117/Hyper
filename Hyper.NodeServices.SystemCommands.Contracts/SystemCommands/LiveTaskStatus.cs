@@ -13,7 +13,7 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         /// The ID of the task.
         /// </summary>
         [DataMember]
-        public string TaskID { get; set; }
+        public string TaskId { get; set; }
 
         /// <summary>
         /// The name of the command which started the task.
@@ -28,9 +28,9 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
         public bool IsCancellationRequested { get; set; }
 
         /// <summary>
-        /// Indicates how long the task has been running.
+        /// Indicates how long the task has been running. This property is null unless diagnostics are turned on.
         /// </summary>
         [DataMember]
-        public TimeSpan Elapsed { get; set; }
+        public TimeSpan? Elapsed { get; set; }
     }
 }

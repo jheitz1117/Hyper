@@ -44,6 +44,7 @@
     <Compile Include="ActivityTracking\HyperActivityTracker.cs" />
     <Compile Include="ActivityTracking\TrackActivityEventArgs.cs" />
     <Compile Include="Cryptography\Md5Generator.cs" />
+    <Compile Include="Cryptography\SymmetricAlgorithmType.cs" />
     <Compile Include="Cryptography\SymmetricEncryptionConfiguration.cs" />
     <Compile Include="Cryptography\SymmetricEncryptionService.cs" />
     <Compile Include="IO\StringTransform.cs" />

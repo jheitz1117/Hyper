@@ -16,7 +16,7 @@ namespace NodeModuleTest.ActivityMonitors
         /// <returns></returns>
         public override bool ShouldTrack(IHyperNodeActivityEventItem activity)
         {
-            return (activity.EventDateTime.DayOfWeek == DayOfWeek.Monday);
+            return activity.EventDateTime.DayOfWeek == DayOfWeek.Monday;
         }
 
         public override void OnTrack(IHyperNodeActivityEventItem activity)

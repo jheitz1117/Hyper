@@ -21,38 +21,32 @@ namespace Hyper.UI
         public HyperPhone(long? phoneNumber)
             : this()
         {
-            this.PhoneNumber = phoneNumber;
+            PhoneNumber = phoneNumber;
         }
 
         public override string ToString()
         {
             if (PhoneNumber == null)
-            {
                 return "";
-            }
 
-            string formatString = "000-0000";
+            var formatString = "000-0000";
             if (PhoneNumber > 9999999999)
-            {
                 formatString = "0 (000) 000-0000";
-            }
             else if (PhoneNumber > 9999999)
-            {
                 formatString = "(000) 000-0000";
-            }
 
             return ((long)PhoneNumber).ToString(formatString);
         }
 
         public static HyperPhone Parse(string phoneNumberString)
         {
-            HyperPhone phoneInfo = new HyperPhone();
+            var phoneInfo = new HyperPhone();
 
             phoneNumberString = Regex.Replace(phoneNumberString, "[^0-9]", "");
 
             if (!string.IsNullOrWhiteSpace(phoneNumberString))
             {
-                long phoneNumber = 0;
+                long phoneNumber;
                 long.TryParse(phoneNumberString, out phoneNumber);
                 phoneInfo.PhoneNumber = phoneNumber;
             }

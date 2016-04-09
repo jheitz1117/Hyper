@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
-using Hyper.Extensibility.IO;
+using Hyper.Core.Cryptography;
 
 namespace Hyper.Cryptography
 {
@@ -22,7 +22,7 @@ namespace Hyper.Cryptography
         public SymmetricEncryptionService(SymmetricEncryptionConfiguration config)
         {
             if (config == null)
-            { throw new ArgumentNullException("config"); }
+            { throw new ArgumentNullException(nameof(config)); }
             
             _config = config;
 
@@ -49,7 +49,7 @@ namespace Hyper.Cryptography
                 case SymmetricAlgorithmType.Custom: // added support for custom implementations of SymmetricAlgorithm for maximum flexibility
                 {
                     if (config.CustomSymmetricAlgorithm == null)
-                    { throw new InvalidOperationException("If SymmetricAlgorithmType.Custom is specified, CustomSymmetricAlgorithm cannot be null."); }
+                        throw new InvalidOperationException("If SymmetricAlgorithmType.Custom is specified, CustomSymmetricAlgorithm cannot be null.");
 
                     _algorithm = config.CustomSymmetricAlgorithm;
                 }
@@ -92,10 +92,10 @@ namespace Hyper.Cryptography
             if (_algorithm != null)
             {
                 if (_config.KeyTransform == null)
-                { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a KeyTransform defined."); }
+                    throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a KeyTransform defined.");
                 if (_config.IvTransform == null)
-                { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have an IVTransform defined."); }
-                
+                    throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have an IVTransform defined.");
+
                 keyBytes = _config.KeyTransform.GetBytes(key);
                 ivBytes = _config.IvTransform.GetBytes(iv);
             }
@@ -113,9 +113,9 @@ namespace Hyper.Cryptography
         public string EncryptString(string input, byte[] key, byte[] iv)
         {
             if (_config.PlainTextTransform == null)
-            { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a PlainTextTransform defined."); }
+                throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a PlainTextTransform defined.");
             if (_config.CipherTextTransform == null)
-            { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a CipherTextTransform defined."); }
+                throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a CipherTextTransform defined.");
 
             var inputBytes = _config.PlainTextTransform.GetBytes(input);
             var outputBytes = Encrypt(inputBytes, key, iv);
@@ -133,9 +133,9 @@ namespace Hyper.Cryptography
         public string EncryptString(string input, string key, string iv)
         {
             if (_config.PlainTextTransform == null)
-            { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a PlainTextTransform defined."); }
+                throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a PlainTextTransform defined.");
             if (_config.CipherTextTransform == null)
-            { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a CipherTextTransform defined."); }
+                throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a CipherTextTransform defined.");
 
             var inputBytes = _config.PlainTextTransform.GetBytes(input);
             var outputBytes = Encrypt(inputBytes, key, iv);
@@ -171,9 +171,9 @@ namespace Hyper.Cryptography
             if (_algorithm != null)
             {
                 if (_config.KeyTransform == null)
-                { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a KeyTransform defined."); }
+                    throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a KeyTransform defined.");
                 if (_config.IvTransform == null)
-                { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have an IVTransform defined."); }
+                    throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have an IVTransform defined.");
 
                 keyBytes = _config.KeyTransform.GetBytes(key);
                 ivBytes = _config.IvTransform.GetBytes(iv);
@@ -192,9 +192,9 @@ namespace Hyper.Cryptography
         public string DecryptString(string input, byte[] key, byte[] iv)
         {
             if (_config.PlainTextTransform == null)
-            { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a PlainTextTransform defined."); }
+                throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a PlainTextTransform defined.");
             if (_config.CipherTextTransform == null)
-            { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a CipherTextTransform defined."); }
+                throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a CipherTextTransform defined.");
 
             var inputBytes = _config.CipherTextTransform.GetBytes(input);
             var outputBytes = Decrypt(inputBytes, key, iv);
@@ -212,9 +212,9 @@ namespace Hyper.Cryptography
         public string DecryptString(string input, string key, string iv)
         {
             if (_config.PlainTextTransform == null)
-            { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a PlainTextTransform defined."); }
+                throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a PlainTextTransform defined.");
             if (_config.CipherTextTransform == null)
-            { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a CipherTextTransform defined."); }
+                throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a CipherTextTransform defined.");
 
             var inputBytes = _config.CipherTextTransform.GetBytes(input);
             var outputBytes = Decrypt(inputBytes, key, iv);
@@ -229,7 +229,7 @@ namespace Hyper.Cryptography
         public byte[] GenerateKey()
         {
             if (_algorithm == null)
-            { throw new InvalidOperationException("No algorithm was defined because the SymmetricEncryptionConfiguration specified SymmetricAlgorithmType.None."); }
+                throw new InvalidOperationException("No algorithm was defined because the SymmetricEncryptionConfiguration specified SymmetricAlgorithmType.None.");
 
             _algorithm.GenerateKey();
 
@@ -243,7 +243,7 @@ namespace Hyper.Cryptography
         public string GenerateKeyString()
         {
             if (_config.KeyTransform == null)
-            { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a KeyTransform defined."); }
+                throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have a KeyTransform defined.");
 
             return _config.KeyTransform.GetString(GenerateKey());
         }
@@ -255,7 +255,7 @@ namespace Hyper.Cryptography
         public byte[] GenerateIv()
         {
             if (_algorithm == null)
-            { throw new InvalidOperationException("No algorithm was defined because the SymmetricEncryptionConfiguration specified SymmetricAlgorithmType.None."); }
+                throw new InvalidOperationException("No algorithm was defined because the SymmetricEncryptionConfiguration specified SymmetricAlgorithmType.None.");
 
             _algorithm.GenerateIV();
             
@@ -269,7 +269,7 @@ namespace Hyper.Cryptography
         public string GenerateIvString()
         {
             if (_config.IvTransform == null)
-            { throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have an IVTransform defined."); }
+                throw new InvalidOperationException("The SymmetricEncryptionConfiguration does not have an IVTransform defined.");
 
             return _config.IvTransform.GetString(GenerateIv());
         }
@@ -290,7 +290,7 @@ namespace Hyper.Cryptography
         {
             // No encryption service, so return input
             if (_algorithm == null)
-            { return input; }
+                return input;
 
             // Set the keys
             _algorithm.Key = key;
@@ -335,46 +335,5 @@ namespace Hyper.Cryptography
             Encrypt = 0,
             Decrypt = 1
         }
-    }
-
-    /// <summary>
-    /// Symmetric algorithms supported by the <see cref="SymmetricEncryptionService"/>.
-    /// </summary>
-    public enum SymmetricAlgorithmType
-    {
-        /// <summary>
-        /// Indicates that no encryption should be used and the bytes/strings should simply be transformed using the specified <see cref="IStringTransform"/>.
-        /// </summary>
-        None = 0,
-        
-        /// <summary>
-        /// Indicates that a user-defined algorithm should be used.
-        /// </summary>
-        Custom = 1,
-
-        /// <summary>
-        /// Indicates that the Triple DES algorithm should be used.
-        /// </summary>
-        TripleDes = 2,
-
-        /// <summary>
-        /// Indicates that the DES algorithm should be used.
-        /// </summary>
-        Des = 3,
-
-        /// <summary>
-        /// Indicates that the RC2 algorithm should be used.
-        /// </summary>
-        Rc2 = 4,
-
-        /// <summary>
-        /// Indicates that the Rijndael algorithm should be used.
-        /// </summary>
-        Rijndael = 5,
-
-        /// <summary>
-        /// Indicates that the AES algorithm should be used.
-        /// </summary>
-        Aes = 6
     }
 }

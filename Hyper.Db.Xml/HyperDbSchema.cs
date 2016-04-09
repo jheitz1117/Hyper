@@ -25,10 +25,10 @@ namespace Hyper.Db.Xml
                 dbObjects.AddRange(table.ForeignKeys);
             }
 
-            if (this.DbCustomConfig != null)
+            if (DbCustomConfig != null)
             {
                 dbObjects.AddRange(
-                    this.DbCustomConfig.GetDbObjects()
+                    DbCustomConfig.GetDbObjects()
                 );
             }
 

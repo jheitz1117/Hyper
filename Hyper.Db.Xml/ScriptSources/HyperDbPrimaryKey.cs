@@ -10,6 +10,6 @@ namespace Hyper.Db.Xml.ScriptSources
         public IDbTableScriptSource TableSource { get; set; }
         public readonly List<string> KeyColumns = new List<string>();
 
-        IEnumerable<string> IDbPrimaryKeyScriptSource.KeyColumns { get { return KeyColumns; } }
+        IEnumerable<string> IDbPrimaryKeyScriptSource.KeyColumns => KeyColumns;
     }
 }

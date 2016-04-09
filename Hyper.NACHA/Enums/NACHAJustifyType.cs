@@ -1,6 +1,6 @@
 ﻿namespace Hyper.NACHA
 {
-    public enum NACHAJustifyType
+    public enum NachaJustifyType
     {
         None = 0,
         Left = 1,

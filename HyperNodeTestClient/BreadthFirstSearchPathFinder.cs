@@ -17,12 +17,12 @@ namespace Hyper.Applications.Client
              * "way home" list. Repeat for each intended recipient. By the end, you will have built a tree whose root is the start node and whose
              * leaves are the destinations. Any intended recipients that happen to be "on the way" will also be covered.
              */
-            // Loop for each
-            foreach (var intendedRecipient in intendedRecipients)
-            {
-                // TODO: Find the path from here to any node in the "way home" list
-                // TODO: Add this intended recipient to the "way home" list, and also add all of the nodes in the path I just found to the "way home" list
-            }
+
+            //foreach (var intendedRecipient in intendedRecipients)
+            //{
+            //    // TODO: Find the path from here to any node in the "way home" list
+            //    // TODO: Add this intended recipient to the "way home" list, and also add all of the nodes in the path I just found to the "way home" list
+            //}
 
             return null;
         }

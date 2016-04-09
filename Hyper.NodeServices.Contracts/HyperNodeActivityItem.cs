@@ -62,10 +62,8 @@ namespace Hyper.NodeServices.Contracts
         {
             get
             {
-                if (this.ProgressPart.HasValue && this.ProgressTotal.HasValue && this.ProgressTotal != 0)
-                {
-                    return this.ProgressPart.Value / this.ProgressTotal.Value;
-                }
+                if (ProgressPart.HasValue && ProgressTotal.HasValue && ProgressTotal != 0)
+                    return ProgressPart.Value / ProgressTotal.Value;
 
                 return null;
             }
@@ -76,7 +74,7 @@ namespace Hyper.NodeServices.Contracts
         /// </summary>
         public HyperNodeActivityItem()
         {
-            this.EventDateTime = DateTime.Now;
+            EventDateTime = DateTime.Now;
         }
 
         /// <summary>
@@ -86,7 +84,25 @@ namespace Hyper.NodeServices.Contracts
         public HyperNodeActivityItem(string agent)
             : this()
         {
-            this.Agent = agent;
+            Agent = agent;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="HyperNodeActivityItem"/> that is a deep copy of the specified instance.
+        /// </summary>
+        /// <param name="originalItem">The original instance to copy.</param>
+        public HyperNodeActivityItem(HyperNodeActivityItem originalItem)
+        {
+            if (originalItem == null)
+                throw new ArgumentNullException(nameof(originalItem));
+
+            Agent = originalItem.Agent;
+            Elapsed = originalItem.Elapsed;
+            EventDateTime = originalItem.EventDateTime;
+            EventDescription = originalItem.EventDescription;
+            EventDetail = originalItem.EventDetail;
+            ProgressPart = originalItem.ProgressPart;
+            ProgressTotal = originalItem.ProgressTotal;
         }
     }
 }

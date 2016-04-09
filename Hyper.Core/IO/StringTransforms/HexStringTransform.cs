@@ -19,7 +19,7 @@ namespace Hyper.IO.StringTransforms
         public string GetString(byte[] input)
         {
             if (input == null)
-            { throw new ArgumentNullException("input"); }
+                throw new ArgumentNullException(nameof(input));
 
             return string.Join("", input.Select(h => h.ToString("x2")));
         }
@@ -32,9 +32,9 @@ namespace Hyper.IO.StringTransforms
         public byte[] GetBytes(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
-            { throw new ArgumentNullException("input", "Parameter must not be empty or contain only whitespace."); }
+                throw new ArgumentNullException(nameof(input), "Parameter must not be empty or contain only whitespace.");
             if (!Regex.IsMatch(input, "^[a-fA-F0-9]+$") || input.Length % 2 == 1)
-            { throw new ArgumentException("Parameter must be an even number of characters in the range 0-9 or a-f.", "input"); }
+                throw new ArgumentException("Parameter must be an even number of characters in the range 0-9 or a-f.", nameof(input));
 
             var output = new byte[input.Length / 2];
             for (var i = 0; i < input.Length; i += 2)

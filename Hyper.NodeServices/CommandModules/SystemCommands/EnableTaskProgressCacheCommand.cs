@@ -16,10 +16,7 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                 throw new InvalidCommandRequestTypeException(typeof(EnableTaskProgressCacheRequest), context.Request.GetType());
 
             HyperNodeService.Instance.EnableTaskProgressCache = request.Enable;
-            context.Activity.TrackFormat(
-                "The task progress cache is now {0}.",
-                (request.Enable ? "enabled" : "disabled")
-            );
+            context.Activity.Track($"The task progress cache is now {(request.Enable ? "enabled" : "disabled")}.");
 
             return new CommandResponse(MessageProcessStatusFlags.Success);
         }

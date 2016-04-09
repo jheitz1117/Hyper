@@ -10,7 +10,7 @@ namespace Hyper.NodeServices.ActivityTracking
         
         public ChildNodeResponseMonitor(HyperNodeMessageResponse target)
         {
-            this.Name = GetType().Name;
+            Name = nameof(ChildNodeResponseMonitor);
             _target = target;
         }
 
@@ -26,7 +26,7 @@ namespace Hyper.NodeServices.ActivityTracking
             // check the RespondingNodeName of the response and see if the response came from a node other than
             // this one.
             var response = activity.EventData as HyperNodeMessageResponse;
-            return (response != null && response.RespondingNodeName != activity.Agent);
+            return response != null && response.RespondingNodeName != activity.Agent;
         }
 
         public override void OnTrack(IHyperNodeActivityEventItem activity)

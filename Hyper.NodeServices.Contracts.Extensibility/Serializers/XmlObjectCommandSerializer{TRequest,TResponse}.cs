@@ -18,16 +18,10 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         private readonly IStringTransform _responseSerializationTransform;
 
         private XmlObjectRequestSerializer<TRequest> _requestSerializer;
-        private XmlObjectRequestSerializer<TRequest> RequestSerializer
-        {
-            get { return (_requestSerializer ?? (_requestSerializer = CreateRequestSerializer(_requestSerializationTransform))); }
-        }
+        private XmlObjectRequestSerializer<TRequest> RequestSerializer => _requestSerializer ?? (_requestSerializer = CreateRequestSerializer(_requestSerializationTransform));
 
         private XmlObjectResponseSerializer<TResponse> _responseSerializer;
-        private XmlObjectResponseSerializer<TResponse> ResponseSerializer
-        {
-            get { return (_responseSerializer ?? (_responseSerializer = CreateResponseSerializer(_responseSerializationTransform))); }
-        }
+        private XmlObjectResponseSerializer<TResponse> ResponseSerializer => _responseSerializer ?? (_responseSerializer = CreateResponseSerializer(_responseSerializationTransform));
 
         /// <summary>
         /// Initializes an instance of <see cref="XmlObjectCommandSerializer{TRequest, TResponse}"/> using <see cref="XmlObjectSerializerWrapper.DefaultStringTransform"/>
@@ -69,7 +63,7 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         /// <returns></returns>
         public string Serialize(ICommandRequest request)
         {
-            return this.RequestSerializer.Serialize(request);
+            return RequestSerializer.Serialize(request);
         }
 
         /// <summary>
@@ -79,7 +73,7 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         /// <returns></returns>
         public string Serialize(ICommandResponse response)
         {
-            return this.ResponseSerializer.Serialize(response);
+            return ResponseSerializer.Serialize(response);
         }
 
         /// <summary>
@@ -89,7 +83,7 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         /// <returns></returns>
         ICommandRequest ICommandRequestSerializer.Deserialize(string requestString)
         {
-            return ((ICommandRequestSerializer)this.RequestSerializer).Deserialize(requestString);
+            return ((ICommandRequestSerializer)RequestSerializer).Deserialize(requestString);
         }
 
         /// <summary>
@@ -99,7 +93,7 @@ namespace Hyper.NodeServices.Contracts.Extensibility.Serializers
         /// <returns></returns>
         ICommandResponse ICommandResponseSerializer.Deserialize(string responseString)
         {
-            return ((ICommandResponseSerializer)this.ResponseSerializer).Deserialize(responseString);
+            return ((ICommandResponseSerializer)ResponseSerializer).Deserialize(responseString);
         }
 
         /// <summary>

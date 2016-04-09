@@ -5,18 +5,8 @@ namespace Hyper.NodeServices.Extensibility.EventTracking
     /// <summary>
     /// Event arguments passed to an implementation of <see cref="IHyperNodeEventHandler"/> when a message is received by the <see cref="IHyperNodeService"/>.
     /// </summary>
-    public interface IMessageReceivedEventArgs
+    public interface IMessageReceivedEventArgs : IHyperNodeEventArgs
     {
-        /// <summary>
-        /// The name of the <see cref="IHyperNodeService"/>.
-        /// </summary>
-        string HyperNodeName { get; }
-
-        /// <summary>
-        /// The message that was received.
-        /// </summary>
-        IReadOnlyHyperNodeMessageInfo MessageInfo { get; }
-
         /// <summary>
         /// Causes the <see cref="IHyperNodeService"/> to reject the message.
         /// </summary>

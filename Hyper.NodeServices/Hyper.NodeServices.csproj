@@ -66,6 +66,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ActivityTracking\HyperNodeActivityObserver.cs" />
+    <Compile Include="ActivityTracking\Trackers\TaskActivityQueueTracker.cs" />
     <Compile Include="CommandModules\CommandModuleConfiguration.cs" />
     <Compile Include="CommandModules\SystemCommands\CancelTaskCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\DiscoverCommand.cs" />
@@ -88,10 +89,9 @@
     <Compile Include="EventTracking\TaskCompletedEventArgs.cs" />
     <Compile Include="EventTracking\HyperNodeRespondedEventArgs.cs" />
     <Compile Include="EventTracking\MessageIgnoredEventArgs.cs" />
-    <Compile Include="EventTracking\TaskEventContext.cs" />
     <Compile Include="EventTracking\MessageReceivedEventArgs.cs" />
     <Compile Include="EventTracking\MessageSeenEventArgs.cs" />
-    <Compile Include="Exceptions\ActivityMonitorSubscriptionException.cs">
+    <Compile Include="Exceptions\ActivityMonitorException.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Exceptions\ActivityTrackerInitializationException.cs" />
@@ -157,13 +157,6 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

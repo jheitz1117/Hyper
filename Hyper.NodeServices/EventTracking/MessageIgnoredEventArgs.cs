@@ -5,12 +5,12 @@ namespace Hyper.NodeServices.EventTracking
 {
     internal sealed class MessageIgnoredEventArgs : HyperNodeEventArgs, IMessageIgnoredEventArgs
     {
-        public string Reason { get; private set; }
+        public string Reason { get; }
 
         public MessageIgnoredEventArgs(ITaskActivityTracker activity, ITaskEventContext taskContext, string reason)
             : base(activity, taskContext)
         {
-            this.Reason = reason;
+            Reason = reason;
         }
     }
 }

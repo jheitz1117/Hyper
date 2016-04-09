@@ -39,23 +39,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Enums\NACHAJustifyType.cs" />
-    <Compile Include="Enums\NACHARecordType.cs" />
-    <Compile Include="Enums\NACHAServiceClassCodeType.cs" />
-    <Compile Include="Enums\NACHATransactionCodeType.cs" />
-    <Compile Include="FieldTypes\AlphabeticNACHADataField.cs" />
-    <Compile Include="FieldTypes\AlphamericNACHADataField.cs" />
-    <Compile Include="FieldTypes\NumericNACHADataField.cs" />
-    <Compile Include="NACHACompanyBatch.cs" />
-    <Compile Include="NACHAFile.cs" />
+    <Compile Include="Enums\NachaJustifyType.cs" />
+    <Compile Include="Enums\NachaRecordType.cs" />
+    <Compile Include="Enums\NachaServiceClassCodeType.cs" />
+    <Compile Include="Enums\NachaTransactionCodeType.cs" />
+    <Compile Include="FieldTypes\AlphabeticNachaDataField.cs" />
+    <Compile Include="FieldTypes\AlphamericNachaDataField.cs" />
+    <Compile Include="FieldTypes\NumericNachaDataField.cs" />
+    <Compile Include="NachaCompanyBatch.cs" />
+    <Compile Include="NachaFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RecordTypes\NACHACompanyBatchControlRecord.cs" />
-    <Compile Include="RecordTypes\NACHACompanyBatchHeaderRecord.cs" />
-    <Compile Include="RecordTypes\NACHAEntryDetailRecord.cs" />
-    <Compile Include="RecordTypes\NACHAFileControlRecord.cs" />
-    <Compile Include="RecordTypes\NACHAFileHeaderRecord.cs" />
-    <Compile Include="RecordTypes\NACHAFillerRecord.cs" />
-    <Compile Include="RecordTypes\NACHARecord.cs" />
+    <Compile Include="RecordTypes\NachaCompanyBatchControlRecord.cs" />
+    <Compile Include="RecordTypes\NachaCompanyBatchHeaderRecord.cs" />
+    <Compile Include="RecordTypes\NachaEntryDetailRecord.cs" />
+    <Compile Include="RecordTypes\NachaFileControlRecord.cs" />
+    <Compile Include="RecordTypes\NachaFileHeaderRecord.cs" />
+    <Compile Include="RecordTypes\NachaFillerRecord.cs" />
+    <Compile Include="RecordTypes\NachaRecord.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyper.FileProcessing\Hyper.FileProcessing.csproj">

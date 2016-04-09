@@ -16,10 +16,7 @@ namespace Hyper.NodeServices.CommandModules.SystemCommands
                 throw new InvalidCommandRequestTypeException(typeof(EnableDiagnosticsRequest), context.Request.GetType());
 
             HyperNodeService.Instance.EnableDiagnostics = request.Enable;
-            context.Activity.TrackFormat(
-                "Diagnostics are now {0}.",
-                (request.Enable ? "enabled" : "disabled")
-            );
+            context.Activity.Track($"Diagnostics are now {(request.Enable ? "enabled" : "disabled")}.");
 
             return new CommandResponse(MessageProcessStatusFlags.Success);
         }
