@@ -6,69 +6,15 @@
     xmlns:tns="http://www.hypersoa.net/HyperDbXmlSchema"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
 >
-  <xs:element name="databaseSchemaConfiguration" type="DatabaseSchemaConfiguration">
-
-    <!-- Primary keys defined here so they'll be in scope when we reference them elsewhere. The unique constraints are defined on the containing elements later in the XML schema -->
-    <xs:key name="PK_ScriptWriterName">
-      <xs:selector xpath="tns:scriptWriters/tns:add" />
-      <xs:field xpath="@name" />
-    </xs:key>
-    
-    <!-- Foreign keys for script writers -->
-    <xs:keyref refer="PK_ScriptWriterName" name="FK_DefaultTableScriptWriterName">
-      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:tables" />
-      <xs:field xpath="@scriptWriter" />
-    </xs:keyref>
-    <xs:keyref refer="PK_ScriptWriterName" name="FK_TableScriptWriterName">
-      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:tables/tns:table" />
-      <xs:field xpath="@scriptWriter" />
-    </xs:keyref>
-    <xs:keyref refer="PK_ScriptWriterName" name="FK_PrimaryKeyScriptWriterName">
-      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:tables/tns:table/tns:constraints/tns:primaryKey" />
-      <xs:field xpath="@scriptWriter" />
-    </xs:keyref>
-    <xs:keyref refer="PK_ScriptWriterName" name="FK_DefaultForeignKeyScriptWriterName">
-      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:tables/tns:table/tns:constraints/tns:foreignKeys" />
-      <xs:field xpath="@scriptWriter" />
-    </xs:keyref>
-    <xs:keyref refer="PK_ScriptWriterName" name="FK_ForeignKeyScriptWriterName">
-      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:tables/tns:table/tns:constraints/tns:foreignKeys/tns:foreignKey" />
-      <xs:field xpath="@scriptWriter" />
-    </xs:keyref>
-    <xs:keyref refer="PK_ScriptWriterName" name="FK_DefaultStoredProcedureScriptWriterName">
-      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:storedProcedures" />
-      <xs:field xpath="@scriptWriter" />
-    </xs:keyref>
-    <xs:keyref refer="PK_ScriptWriterName" name="FK_StoredProcedureScriptWriterName">
-      <xs:selector xpath="tns:databaseSchemas/tns:databaseSchema/tns:storedProcedures/tns:storedProcedure" />
-      <xs:field xpath="@scriptWriter" />
-    </xs:keyref>
-  </xs:element>
+  <xs:element name="databaseSchemaConfiguration" type="DatabaseSchemaConfiguration" />
 
   <xs:complexType name="DatabaseSchemaConfiguration">
     <xs:sequence>
-      <xs:element name="scriptWriters" minOccurs="0" maxOccurs="1" type="ScriptWriterCollection">
-        <xs:unique name="UK_ScriptWriterName">
-          <xs:selector xpath="tns:add" />
-          <xs:field xpath="@name" />
-        </xs:unique>
-      </xs:element>
       <xs:element name="databaseSchemas" minOccurs="0" maxOccurs="1" type="DatabaseSchemaCollection">
         <xs:unique name="UK_DatabaseSchemaName">
           <xs:selector xpath="tns:databaseSchema" />
           <xs:field xpath="@name" />
         </xs:unique>
-      </xs:element>
-    </xs:sequence>
-  </xs:complexType>
-  
-  <xs:complexType name="ScriptWriterCollection">
-    <xs:sequence>
-      <xs:element name="add" minOccurs="0" maxOccurs="unbounded">
-        <xs:complexType>
-          <xs:attribute name="name" type="xs:string" use="required" />
-          <xs:attribute name="type" type="xs:string" use="required" />
-        </xs:complexType>
       </xs:element>
     </xs:sequence>
   </xs:complexType>
@@ -97,7 +43,7 @@
             
             <!-- TODO: Add additional supported database objects here -->
             
-            <xs:element name="customConfiguration" minOccurs="0" maxOccurs="1" type="CustomConfiguration" />
+            <xs:element name="customDbObjects" minOccurs="0" maxOccurs="1" type="CustomDbObjects" />
             
             <xs:element name="scripts" minOccurs="0" maxOccurs="1" type="ScriptCollection">
               <xs:unique name="UK_ScriptName">
@@ -138,7 +84,6 @@
           </xs:sequence>
           <xs:attribute name="name" type="DatabaseObjectName" use="required" />
           <xs:attribute name="version" type="VersionString" />
-          <xs:attribute name="scriptWriter" type="xs:string" />
         </xs:complexType>
         
         <!-- Foreign keys for primary and foreign key column names -->
@@ -156,7 +101,6 @@
         </xs:keyref>
       </xs:element>
     </xs:sequence>
-    <xs:attribute name="scriptWriter" type="xs:string" />
   </xs:complexType>
 
   <xs:complexType name="ColumnCollection">
@@ -169,6 +113,9 @@
           <xs:attribute name="decimals" type="xs:nonNegativeInteger" />
           <xs:attribute name="nullable" type="xs:boolean" />
           <xs:attribute name="defaultValue" type="xs:string" />
+          <xs:attribute name="identity" type="xs:boolean" />
+          <xs:attribute name="seed" type="xs:long" />
+          <xs:attribute name="increment" type="xs:long" />
         </xs:complexType>
       </xs:element>
     </xs:sequence>
@@ -186,7 +133,6 @@
             </xs:element>
           </xs:sequence>
           <xs:attribute name="name" type="DatabaseObjectName" />
-          <xs:attribute name="scriptWriter" type="xs:string" />
         </xs:complexType>
         <xs:unique name="UK_PrimaryKeyColumnName">
           <xs:selector xpath="tns:keyColumn" />
@@ -230,7 +176,6 @@
           -->
           <xs:attribute name="name" type="DatabaseObjectName" use="required" />
           <xs:attribute name="referencedTable" type="DatabaseObjectName" use="required" />
-          <xs:attribute name="scriptWriter" type="xs:string" />
         </xs:complexType>
         <xs:unique name="UK_ForeignKeyColumnName">
           <xs:selector xpath="tns:keyColumn" />
@@ -238,7 +183,6 @@
         </xs:unique>
       </xs:element>
     </xs:sequence>
-    <xs:attribute name="scriptWriter" type="xs:string" />
   </xs:complexType>
   
   <xs:complexType name="StoredProcedureCollection">
@@ -256,11 +200,9 @@
           </xs:sequence>
           <xs:attribute name="name" type="DatabaseObjectName" use="required" />
           <xs:attribute name="version" type="VersionString" />
-          <xs:attribute name="scriptWriter" type="xs:string" />
         </xs:complexType>
       </xs:element>
     </xs:sequence>
-    <xs:attribute name="scriptWriter" type="xs:string" />
   </xs:complexType>
   
   <xs:complexType name="ParameterCollection">
@@ -277,7 +219,7 @@
     </xs:sequence>
   </xs:complexType>
 
-  <xs:complexType name="CustomConfiguration">
+  <xs:complexType name="CustomDbObjects">
     <xs:sequence>
       <xs:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax" />
     </xs:sequence>
@@ -307,7 +249,7 @@
           3) The first character must be an underscore or a letter in upper or lower case.
           4) Each character following the first may be an underscore, a number, or a letter in upper or lower case.
       -->
-      <xs:pattern value="^[a-zA-Z_][a-zA-Z0-9_]+$" />
+      <xs:pattern value="^[a-zA-Z_]([a-zA-Z0-9_]+)?$" />
       <xs:maxLength value="128" />
     </xs:restriction>
   </xs:simpleType>

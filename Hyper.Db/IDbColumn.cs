@@ -3,13 +3,8 @@
     /// <summary>
     /// Describes a class which represents a column for a database table.
     /// </summary>
-    public interface IDbColumnScriptSource
+    public interface IDbColumn : IDbObject
     {
-        /// <summary>
-        /// The name of the column.
-        /// </summary>
-        string Name { get; set; }
-
         /// <summary>
         /// The data type of the column. This property is a free-form string by design to provide the most flexibility across all database systems.
         /// </summary>

@@ -40,19 +40,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DbScriptSources\IDbColumnScriptSource.cs" />
-    <Compile Include="DbScriptSources\IDbForeignKeyScriptSource.cs" />
-    <Compile Include="DbScriptSources\IDbPrimaryKeyScriptSource.cs" />
-    <Compile Include="DbScriptSources\IDbTableScriptSource.cs" />
-    <Compile Include="DbScriptWriters\IDbForeignKeyScriptWriter.cs" />
-    <Compile Include="DbScriptWriters\IDbPrimaryKeyScriptWriter.cs" />
-    <Compile Include="DbScriptWriters\IDbScriptWriter.cs" />
-    <Compile Include="DbScriptWriters\IDbTableScriptWriter.cs" />
-    <Compile Include="IDbCustomConfiguration.cs" />
+    <Compile Include="Model\DbForeignKeyMapping.cs" />
+    <Compile Include="IDbColumn.cs" />
+    <Compile Include="IDbForeignKeyMapping.cs" />
+    <Compile Include="IDbForeignKey.cs" />
+    <Compile Include="IDbPrimaryKey.cs" />
+    <Compile Include="IDbTable.cs" />
+    <Compile Include="Model\DbColumn.cs" />
+    <Compile Include="Model\DbForeignKey.cs" />
+    <Compile Include="Model\DbPrimaryKey.cs" />
+    <Compile Include="Model\DbTable.cs" />
     <Compile Include="IDbObject.cs" />
     <Compile Include="IDbSchema.cs" />
-    <Compile Include="IDbSchemaConfiguration.cs" />
-    <Compile Include="IDbScriptProvider.cs" />
+    <Compile Include="IDbSchemaCollection.cs" />
+    <Compile Include="IDbSchemaProvider.cs" />
+    <Compile Include="Model\DbSchema.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

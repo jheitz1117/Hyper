@@ -40,13 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IDbScriptWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sql\SafeSqlScriptWriter.cs" />
     <Compile Include="Sql\SqlConstraintTypes.cs" />
-    <Compile Include="Sql\SqlForeignKeyScriptWriter.cs" />
-    <Compile Include="Sql\SqlPrimaryKeyScriptWriter.cs" />
-    <Compile Include="Sql\SqlScriptWriter.cs" />
-    <Compile Include="Sql\SqlStoredProcedureScriptWriter.cs" />
-    <Compile Include="Sql\SqlTableScriptWriter.cs" />
+    <Compile Include="Sql\SqlDefaults.cs" />
+    <Compile Include="Sql\DevelopmentSqlScriptWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyper.Db\Hyper.Db.csproj">

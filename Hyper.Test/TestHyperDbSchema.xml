@@ -3,28 +3,23 @@
   xmlns="http://www.hypersoa.net/HyperDbXmlSchema"
   xmlns:cs="http://www.test.com/TestCustomDbXmlSchema"
 >
-  <scriptWriters>
-    <add name="tableWriter" type="Hyper.Db.ScriptWriters.Sql.SqlTableScriptWriter, Hyper.Db.ScriptWriters" />
-    <add name="pkWriter"    type="Hyper.Db.ScriptWriters.Sql.SqlPrimaryKeyScriptWriter, Hyper.Db.ScriptWriters" />
-    <add name="fkWriter"    type="Hyper.Db.ScriptWriters.Sql.SqlForeignKeyScriptWriter, Hyper.Db.ScriptWriters" />
-  </scriptWriters>
-  
   <databaseSchemas>
-    <databaseSchema name="TestSchema" version="1.0.0.0">
-      <tables scriptWriter="tableWriter">
+    <databaseSchema name="Tenants" version="1.0.0.0">
+      <tables>
         <table name="Users" version="1.0.0.0">
           <columns>
             <column name="UserID"    type="bigint" nullable="false" />
             <column name="Username"  type="varchar" maxLength="50" nullable="true" />
-            <column name="Password"  type="varchar" maxLength="50" defaultValue="" />
-            <column name="FirstName" type="varchar" maxLength="20" defaultValue="     "/>
+            <column name="Password"  type="varchar" maxLength="50" defaultValue="''" />
+            <column name="FirstName" type="varchar" maxLength="20" defaultValue="'     '"/>
             <column name="LastName"  type="varchar" maxLength="20" defaultValue="033"/>
+            <column name="GuidIdTest" type="uniqueidentifier" defaultValue="NEWID()"/>
           </columns>
           <constraints>
-            <primaryKey name="PK_Users" scriptWriter="pkWriter">
+            <primaryKey name="PK_Users">
               <keyColumn name="UserID" />
             </primaryKey>
-            <foreignKeys scriptWriter="fkWriter">
+            <foreignKeys>
               <foreignKey name="FK_Users_Users" referencedTable="Users">
                 <keyColumn name="UserID" referencedColumn="UserID" />
               </foreignKey>
@@ -39,7 +34,7 @@
             <column name="Column4" type="nvarchar" maxLength="300" nullable="true" />
           </columns>
           <constraints>
-            <foreignKeys scriptWriter="fkWriter">
+            <foreignKeys>
               <foreignKey name="FK_Users_UserDetails" referencedTable="Users">
                 <keyColumn name="UserID" referencedColumn="UserID" />
               </foreignKey>
@@ -48,7 +43,7 @@
         </table>
         <table name="newTable">
           <columns>
-            <column name="rampit" type="bigint" />
+            <column name="rampit" type="bigint" identity="true" />
           </columns>
         </table>
       </tables>
@@ -56,7 +51,7 @@
         <storedProcedure name="MyStoredProcedure" version="1.0.0.0">
           <parameters>
             <parameter name="Param1" type="bigint" />
-            <parameter name="Param2" type="nvarchar" maxLength="30" defaultValue="" />
+            <parameter name="Param2" type="nvarchar" maxLength="30" defaultValue="''" />
             <parameter name="Param3" type="decimal" decimals="3" />
           </parameters>
           <body>
@@ -68,7 +63,7 @@
           <body></body>
         </storedProcedure>
       </storedProcedures>
-      <customConfiguration type="Hyper.Test.AwesomeObjectDbConfig, Hyper.Test">
+      <customDbObjects type="Hyper.Test.AwesomeObjectCollection, Hyper.Test">
         <!--
           In order to use this feature without annoying messages appearing in the error list, you must specify a second namespace in the root node above using some prefix,
           then use that prefix for every node inside of customDbObjects. So for example, we're already specifying xmlns="http://www.hyperdb.com/HyperDbXmlSchema", but we
@@ -86,7 +81,7 @@
           <cs:awesomeObject name="Rempartigan" property1="ZoomZoom" />
           <cs:awesomeObject name="FieldAgent" property1="Paperwork" />
         </cs:awesomeObjects>
-      </customConfiguration>
+      </customDbObjects>
       <scripts>
         <script name="InsertSomeData">
           <![CDATA[]]>
@@ -96,10 +91,22 @@
         </script>
       </scripts>
     </databaseSchema>
-    <databaseSchema name="TestSchema2" version="1.0.0.0">
-      
+    <databaseSchema name="CrmPlatform" version="1.0.0.0">
+      <tables>
+        <table name="TestGuidAsPk">
+          <columns>
+            <column name="TheId" type="uniqueidentifier" nullable="false" defaultValue="NEWID()"/>
+            <column name="TestCol" type="nvarchar" maxLength="40" nullable="true"/>
+          </columns>
+          <constraints>
+            <primaryKey>
+              <keyColumn name="TheId"/>
+            </primaryKey>
+          </constraints>
+        </table>
+      </tables>
     </databaseSchema>
-    <databaseSchema name="TestSchema3" version="">
+    <databaseSchema name="DataAnalytics" version="">
       <tables>
         <table name="Table11" version="1.0.0.0">
           <columns>

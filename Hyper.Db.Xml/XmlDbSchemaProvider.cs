@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
@@ -8,12 +7,12 @@ using System.Xml.Schema;
 namespace Hyper.Db.Xml
 {
     /// <summary>
-    /// Class responsible for validating database XML configuration files and translating them into SQL scripts.
+    /// Class responsible for validating XML files containing database schema configurations and providing the deserialized model.
     /// </summary>
-    public class HyperDbXmlScriptProvider : IDbScriptProvider
+    public class XmlDbSchemaProvider : IDbSchemaProvider
     {
         private XmlSchemaSet _dbXmlSchemaSet = new XmlSchemaSet();
-        private IDbSchemaConfiguration _dbConfig;
+        private IXmlDbSchemaCollection _dbConfig;
         private static readonly object Lock = new object();
 
         /// <summary>
@@ -29,7 +28,7 @@ namespace Hyper.Db.Xml
                     {
                         if (_hyperDbXmlSchema == null)
                         {
-                            var assembly = typeof(HyperDbXmlScriptProvider).Assembly;
+                            var assembly = typeof(XmlDbSchemaProvider).Assembly;
                             using (var xsdStream = assembly.GetManifestResourceStream("Hyper.Db.Xml.HyperDbXmlSchema.xsd"))
                             {
                                 if (xsdStream == null)
@@ -47,9 +46,9 @@ namespace Hyper.Db.Xml
         } private static XmlSchema _hyperDbXmlSchema;
 
         /// <summary>
-        /// Creates a new instance of <see cref="HyperDbXmlScriptProvider"/> using the default database XML schema
+        /// Creates a new instance of <see cref="XmlDbSchemaProvider"/> using the default database XML schema
         /// </summary>
-        public HyperDbXmlScriptProvider()
+        public XmlDbSchemaProvider()
         {
             // Make sure we always start with our HyperDbXmlSchema.xsd schema loaded up
             AddDbXmlSchema(HyperDbXmlSchema);
@@ -120,22 +119,22 @@ namespace Hyper.Db.Xml
         }
 
         /// <summary>
-        /// Loads the specified XML document and optionally validates it. Then the document is deserialized using the default <see cref="IDbSchemaConfiguration"/> object.
+        /// Loads the specified XML document and optionally validates it. Then the document is deserialized using the default <see cref="IDbSchemaCollection"/> object.
         /// </summary>
         /// <param name="dbXmlDocument"><see cref="XDocument"/> object containing the database schema to load.</param>
         /// <param name="validateSchema">Indicates whether or not to validate the dbXmlDocument parameter before attempting to deserialize it.</param>
         public void LoadDbXmlDocument(XDocument dbXmlDocument, bool validateSchema)
         {
-            LoadDbXmlDocument(dbXmlDocument, validateSchema, new HyperDbSchemaConfiguration(HyperDbXmlSchema.TargetNamespace));
+            LoadDbXmlDocument(dbXmlDocument, validateSchema, new XmlDbSchemaCollection(HyperDbXmlSchema.TargetNamespace));
         }
 
         /// <summary>
-        /// Loads the specified XML document and optionally validates it. Then the document is deserialized using the specified <see cref="IDbSchemaConfiguration"/> object.
+        /// Loads the specified XML document and optionally validates it. Then the document is deserialized using the specified <see cref="IXmlDbSchemaCollection"/> object.
         /// </summary>
         /// <param name="dbXmlDocument"><see cref="XDocument"/> object containing the database schema to load.</param>
         /// <param name="validateSchema">Indicates whether or not to validate the dbXmlDocument parameter before attempting to deserialize it.</param>
-        /// <param name="config"><see cref="IDbSchemaConfiguration"/> object to use for deserialization.</param>
-        public void LoadDbXmlDocument(XDocument dbXmlDocument, bool validateSchema, IDbSchemaConfiguration config)
+        /// <param name="config">The <see cref="IXmlDbSchemaCollection"/> object to use for deserialization.</param>
+        public void LoadDbXmlDocument(XDocument dbXmlDocument, bool validateSchema, IXmlDbSchemaCollection config)
         {
             if (dbXmlDocument == null)
                 throw new ArgumentNullException(nameof(dbXmlDocument));
@@ -156,8 +155,9 @@ namespace Hyper.Db.Xml
                 { throw new XmlSchemaValidationException(builder.ToString()); }
             }
 
+            config.Deserialize(dbXmlDocument);
+
             _dbConfig = config;
-            _dbConfig.Deserialize(dbXmlDocument);
         }
 
         /// <summary>
@@ -179,44 +179,9 @@ namespace Hyper.Db.Xml
             dbXmlDocument.Validate(_dbXmlSchemaSet, validationEventHandler, addSchemaInfo);
         }
 
-        /// <summary>
-        /// Executes the specified <see cref="Action"/> delegate for each script generated from the database schema file.
-        /// </summary>
-        /// <param name="dbSchemaName">The name of the database schema to use for updates.</param>
-        /// <param name="executeDelegate">The <see cref="Action"/> to execute for each script.</param>
-        public void ExecuteAllScripts(string dbSchemaName, Action<string> executeDelegate)
+        public IDbSchemaCollection GetDbSchemas()
         {
-            if (string.IsNullOrWhiteSpace((dbSchemaName)))
-                throw new ArgumentNullException(nameof(dbSchemaName));
-            if (executeDelegate == null)
-                throw new ArgumentNullException(nameof(executeDelegate));
-            if (_dbConfig == null)
-                throw new InvalidOperationException("No schemas have been loaded. No updates performed.");
-            if (!_dbConfig.ContainsSchema(dbSchemaName))
-                throw new ArgumentException("The database schema name '" + dbSchemaName + "' was not found in the " + typeof(IDbSchemaConfiguration).Name + ".");
-
-            // TODO: Provide feedback in terms of progress and error messages
-
-            var dbSchema = _dbConfig.GetSchema(dbSchemaName);
-
-            var builder = new StringBuilder();
-            foreach (var dbObject in dbSchema.GetDbObjects())
-            {
-                // Clear out our buffer before writing to it again
-                builder.Clear();
-
-                // Write out our safe update scripts for each of the database objects and run them individually against the database
-                using (var writer = new StringWriter(builder))
-                {
-                    dbObject.ScriptWriter.WriteDbScript(writer);
-                    writer.Flush();
-                }
-
-                // TODO: Should probably raise an event here instead of just executing a function
-                executeDelegate(builder.ToString());
-
-                // TODO: Should probably add code in here to check a cancellation token if possible. May need an additional overload that takes the token as a parameter
-            }
+            return _dbConfig;
         }
     }
 }

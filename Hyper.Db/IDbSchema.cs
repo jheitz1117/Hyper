@@ -13,9 +13,18 @@ namespace Hyper.Db
         string Name { get; set; }
 
         /// <summary>
-        /// Gets a list of <see cref="IDbObject"/> objects belonging to the database described by this <see cref="IDbSchema"/> object.
+        /// The tables contained in this <see cref="IDbSchema"/>
         /// </summary>
-        /// <returns></returns>
-        IEnumerable<IDbObject> GetDbObjects();
+        IEnumerable<IDbTable> Tables { get; }
+
+        /// <summary>
+        /// The primary keys contained in this <see cref="IDbSchema"/>
+        /// </summary>
+        IEnumerable<IDbPrimaryKey> PrimaryKeys { get; }
+
+        /// <summary>
+        /// The foreign keys contained in this <see cref="IDbSchema"/>
+        /// </summary>
+        IEnumerable<IDbForeignKey> ForeignKeys { get; }
     }
 }

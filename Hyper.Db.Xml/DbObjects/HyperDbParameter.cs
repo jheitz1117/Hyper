@@ -1,4 +1,4 @@
-﻿namespace Hyper.Db.Xml.ScriptSources
+﻿namespace Hyper.Db.Xml.DbObjects
 {
     internal class HyperDbParameter
     {

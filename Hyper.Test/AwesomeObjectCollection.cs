@@ -1,18 +1,18 @@
-﻿using System.IO;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using Hyper.Db;
+using Hyper.Db.Xml;
 
 namespace Hyper.Test
 {
-    public class AwesomeObjectDbConfig : IDbCustomConfiguration
+    public class AwesomeObjectCollection : IXmlDbObjectCollection
     {
         private readonly XNamespace _ns = "http://www.test.com/TestCustomDbXmlSchema";
         private readonly List<AwesomeObject> _awesomeObjects = new List<AwesomeObject>();
 
-        public void Deserialize(XElement parent, IDictionary<string, Type> scriptWriterTypes)
+        public void Deserialize(XElement parent)
         {
             _awesomeObjects.Clear();
 
@@ -26,11 +26,6 @@ namespace Hyper.Test
                 {
                     Name = GetRequiredAttribute(awesomeObjectElement, "name"),
                     Property1 = GetRequiredAttribute(awesomeObjectElement, "property1"),
-                };
-
-                awesomeObject.ScriptWriter = new AwesomeObjectWriter
-                {
-                    Source = awesomeObject
                 };
 
                 _awesomeObjects.Add(awesomeObject);
@@ -55,15 +50,35 @@ namespace Hyper.Test
     {
         public string Name { get; set; }
         public string Property1 { get; set; }
-        public IDbScriptWriter ScriptWriter { get; set; }
     }
 
-    public class AwesomeObjectWriter : IDbScriptWriter
+    public class AwesomeObjectScriptWriterDecorator : IDbScriptWriter
     {
-        public AwesomeObject Source { get; set; }
-        public void WriteDbScript(TextWriter writer)
+        private readonly IDbScriptWriter _underlyingWriter;
+
+        public AwesomeObjectScriptWriterDecorator(IDbScriptWriter underlyingWriter)
         {
-            writer.WriteLine("awesome object '{0}' has Property1 set to '{1}'!!!", Source.Name, Source.Property1);
+            _underlyingWriter = underlyingWriter;
+        }
+
+        public void WriteDbScript(TextWriter writer, IDbTable table)
+        {
+            _underlyingWriter.WriteDbScript(writer, table);
+        }
+
+        public void WriteDbScript(TextWriter writer, IDbPrimaryKey primaryKey)
+        {
+            _underlyingWriter.WriteDbScript(writer, primaryKey);
+        }
+
+        public void WriteDbScript(TextWriter writer, IDbForeignKey foreignKey)
+        {
+            _underlyingWriter.WriteDbScript(writer, foreignKey);
+        }
+
+        public void WriteDbScript(TextWriter writer, AwesomeObject source)
+        {
+            writer.WriteLine($"Awesome object '{source.Name}' has Property1 set to '{source.Property1}'!!!");
         }
     }
 }

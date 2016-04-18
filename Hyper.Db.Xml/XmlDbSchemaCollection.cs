@@ -4,25 +4,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using System.Xml.Schema;
-using Hyper.Db.Xml.ScriptSources;
-using Hyper.Db.Xml.ScriptWriters;
+using Hyper.Db.Model;
+using Hyper.Db.Xml.DbObjects;
 
 namespace Hyper.Db.Xml
 {
-    internal class HyperDbSchemaConfiguration : IDbSchemaConfiguration
+    internal class XmlDbSchemaCollection : IXmlDbSchemaCollection
     {
-        private readonly Type _defaultDbTableScriptWriterType = typeof(EmptyScriptWriter);
-        private readonly Type _defaultDbPrimaryKeyScriptWriterType = typeof(EmptyScriptWriter);
-        private readonly Type _defaultDbForeignKeyScriptWriterType = typeof(EmptyScriptWriter);
         private readonly XNamespace _hyperDbXmlNamespace;
         private readonly ConcurrentDictionary<string, IDbSchema> _dbSchemas = new ConcurrentDictionary<string, IDbSchema>();
-        private readonly ConcurrentDictionary<string, Type> _scriptWriterTypes = new ConcurrentDictionary<string, Type>();
+
+        #region Public Methods
 
         /// <summary>
-        /// Creates a new instance of <see cref="HyperDbSchemaConfiguration"/> with the specified <see cref="XNamespace"/> object.
+        /// Creates a new instance of <see cref="XmlDbSchemaCollection"/> with the specified <see cref="XNamespace"/> object.
         /// </summary>
         /// <param name="hyperDbXmlNamespace">The <see cref="XNamespace"/> object representing the default XML Schema for validation.</param>
-        public HyperDbSchemaConfiguration(XNamespace hyperDbXmlNamespace)
+        public XmlDbSchemaCollection(XNamespace hyperDbXmlNamespace)
         {
             _hyperDbXmlNamespace = hyperDbXmlNamespace;
         }
@@ -39,11 +37,6 @@ namespace Hyper.Db.Xml
                 throw new XmlSchemaValidationException("No root node exists.");
 
             _dbSchemas.Clear();
-            _scriptWriterTypes.Clear();
-
-            var scriptWriterParent = dbXmlDocument.Root.Element(_hyperDbXmlNamespace + "scriptWriters");
-            if (scriptWriterParent != null)
-                DeserializeScriptWriters(scriptWriterParent);
 
             var dbSchemaParent = dbXmlDocument.Root.Element(_hyperDbXmlNamespace + "databaseSchemas");
             if (dbSchemaParent != null)
@@ -51,14 +44,14 @@ namespace Hyper.Db.Xml
         }
 
         /// <summary>
-        /// Indicates whether this <see cref="IDbSchemaConfiguration"/> contains an instance of <see cref="IDbSchema"/> with the specified name.
+        /// Indicates whether this <see cref="IDbSchemaCollection"/> contains an instance of <see cref="IDbSchema"/> with the specified name.
         /// </summary>
         /// <param name="name">The name of the <see cref="IDbSchema"/> object to find.</param>
         /// <returns></returns>
         public bool ContainsSchema(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
-            { throw new ArgumentNullException("name"); }
+                throw new ArgumentNullException(nameof(name));
 
             return _dbSchemas.ContainsKey(name);
         }
@@ -71,15 +64,17 @@ namespace Hyper.Db.Xml
         public IDbSchema GetSchema(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
-            { throw new ArgumentNullException("name"); }
+                throw new ArgumentNullException(nameof(name));
 
             IDbSchema schema;
 
             if (!_dbSchemas.TryGetValue(name, out schema))
-            { throw new KeyNotFoundException("No " + typeof(IDbSchema).Name +  " with the name '" + name + "' was found in the configuration."); }
+                throw new KeyNotFoundException("No " + typeof(IDbSchema).Name + " with the name '" + name + "' was found in the configuration.");
 
             return schema;
         }
+
+        #endregion Public Methods
 
         #region Private Methods
 
@@ -159,24 +154,9 @@ namespace Hyper.Db.Xml
         {
             var targetType = typeof(T);
             if (targetType.IsInterface && !inputType.GetInterfaces().Contains(targetType))
-            { throw new HyperDbSchemaConfigurationException("Type '" + inputType.Name + "' must implement the '" + targetType.Name + "' interface."); }
+            { throw new XmlDbSchemaException("Type '" + inputType.Name + "' must implement the '" + targetType.Name + "' interface."); }
 
             return (T)Activator.CreateInstance(inputType);
-        }
-
-        /// <summary>
-        /// Deserializes any script writers defined in the specified <see cref="XContainer"/>.
-        /// </summary>
-        /// <param name="parent">The <see cref="XContainer"/> object containing the XML definitions for the script writers.</param>
-        private void DeserializeScriptWriters(XContainer parent)
-        {
-            foreach (var element in parent.Elements(_hyperDbXmlNamespace + "add"))
-            {
-                _scriptWriterTypes.TryAdd(
-                    GetRequiredAttribute(element, "name"),
-                    Type.GetType(GetRequiredAttribute(element, "type"), true) // Deliberately throw an exception if we can't load the type
-                );
-            }
         }
 
         /// <summary>
@@ -187,7 +167,7 @@ namespace Hyper.Db.Xml
         {
             foreach (var schemaElement in parent.Elements(_hyperDbXmlNamespace + "databaseSchema"))
             {
-                var dbSchema = new HyperDbSchema
+                var dbSchema = new XmlDbSchema
                 {
                     Name = GetRequiredAttribute(schemaElement, "name")
                 };
@@ -219,17 +199,15 @@ namespace Hyper.Db.Xml
         }
 
         /// <summary>
-        /// Deserializes any tables defined in the specified <see cref="XElement"/> object into the specified <see cref="HyperDbSchema"/> object.
+        /// Deserializes any tables defined in the specified <see cref="XElement"/> object into the specified <see cref="XmlDbSchema"/> object.
         /// </summary>
         /// <param name="parent">The <see cref="XElement"/> object containing the XML definitions for the tables.</param>
-        /// <param name="dbSchema">The <see cref="HyperDbSchema"/> object to receive the deserialized tables.</param>
-        private void DeserializeTables(XElement parent, HyperDbSchema dbSchema)
+        /// <param name="dbSchema">The <see cref="XmlDbSchema"/> object to receive the deserialized tables.</param>
+        private void DeserializeTables(XContainer parent, XmlDbSchema dbSchema)
         {
-            var defaultScriptWriterName = GetOptionalAttribute(parent, "scriptWriter", null);
-
             foreach (var tableElement in parent.Elements(_hyperDbXmlNamespace + "table"))
             {
-                var table = new HyperDbTable
+                var table = new XmlDbTable
                 {
                     Name = GetRequiredAttribute(tableElement, "name")
                 };
@@ -239,16 +217,6 @@ namespace Hyper.Db.Xml
                 if (Version.TryParse(versionString, out versionObject))
                     table.Version = versionObject;
 
-                var scriptWriterType = _defaultDbTableScriptWriterType;
-                var scriptWriterName = GetOptionalAttribute(tableElement, "scriptWriter", defaultScriptWriterName);
-                if (!string.IsNullOrWhiteSpace(scriptWriterName))
-                {
-                    if (_scriptWriterTypes.ContainsKey(scriptWriterName))
-                        scriptWriterType = _scriptWriterTypes[scriptWriterName];
-                    else
-                        throw new HyperDbSchemaConfigurationException("Invalid " + typeof(IDbTableScriptWriter).Name + " was specified for table " + table.Name + ".");
-                }
-
                 var columnCollectionElement = tableElement.Element(_hyperDbXmlNamespace + "columns");
                 if (columnCollectionElement != null)
                     DeserializeColumns(columnCollectionElement, table);
@@ -257,25 +225,20 @@ namespace Hyper.Db.Xml
                 if (constraintCollectionElement != null)
                     DeserializeConstraints(constraintCollectionElement, table);
 
-                // Finally fill in our custom writer objects
-                var scriptWriterObject = CreateInstanceAs<IDbTableScriptWriter>(scriptWriterType);
-                scriptWriterObject.Source = table;
-                table.ScriptWriter = scriptWriterObject;
-
-                dbSchema.Tables.Add(table);
+                dbSchema.AddTable(table);
             }
         }
 
         /// <summary>
-        /// Deserializes any tables defined in the specified <see cref="XContainer"/> object into the specified <see cref="HyperDbSchema"/> object.
+        /// Deserializes any tables defined in the specified <see cref="XContainer"/> object into the specified <see cref="XmlDbSchema"/> object.
         /// </summary>
         /// <param name="parent">The <see cref="XContainer"/> object containing the XML definitions for the columns.</param>
-        /// <param name="table">The <see cref="HyperDbTable"/> object to receive the deserialized columns.</param>
-        private void DeserializeColumns(XContainer parent, HyperDbTable table)
+        /// <param name="table">The <see cref="DbTable"/> object to receive the deserialized columns.</param>
+        private void DeserializeColumns(XContainer parent, DbTable table)
         {
             foreach (var columnElement in parent.Elements(_hyperDbXmlNamespace + "column"))
             {
-                table.Columns.Add(new HyperDbColumn()
+                table.Columns.Add(new DbColumn()
                 {
                     Name = GetRequiredAttribute(columnElement, "name"),
                     Type = GetRequiredAttribute(columnElement, "type"),
@@ -288,11 +251,11 @@ namespace Hyper.Db.Xml
         }
 
         /// <summary>
-        /// Deserializes any constraints defined in the specified <see cref="XContainer"/> object into the specified <see cref="HyperDbSchema"/> object.
+        /// Deserializes any constraints defined in the specified <see cref="XContainer"/> object into the specified <see cref="XmlDbSchema"/> object.
         /// </summary>
         /// <param name="parent">The <see cref="XContainer"/> object containing the XML definitions for the constraints.</param>
-        /// <param name="table">The <see cref="HyperDbTable"/> object to receive the deserialized constraints.</param>
-        private void DeserializeConstraints(XContainer parent, HyperDbTable table)
+        /// <param name="table">The <see cref="DbTable"/> object to receive the deserialized constraints.</param>
+        private void DeserializeConstraints(XContainer parent, DbTable table)
         {
             var primaryKeyElement = parent.Element(_hyperDbXmlNamespace + "primaryKey");
             if (primaryKeyElement != null)
@@ -304,25 +267,15 @@ namespace Hyper.Db.Xml
         }
 
         /// <summary>
-        /// Deserializes any primary key columns defined in the specified <see cref="XElement"/> object into the specified <see cref="HyperDbSchema"/> object.
+        /// Deserializes any primary key columns defined in the specified <see cref="XElement"/> object into the specified <see cref="XmlDbSchema"/> object.
         /// </summary>
         /// <param name="parent">The <see cref="XElement"/> object containing the XML definitions for the primary key columns.</param>
-        /// <param name="table">The <see cref="HyperDbTable"/> object to receive the deserialized primary key columns.</param>
-        private void DeserializePrimaryKey(XElement parent, HyperDbTable table)
+        /// <param name="table">The <see cref="DbTable"/> object to receive the deserialized primary key columns.</param>
+        private void DeserializePrimaryKey(XElement parent, DbTable table)
         {
-            var scriptWriterType = _defaultDbPrimaryKeyScriptWriterType;
-            var scriptWriterName = GetOptionalAttribute(parent, "scriptWriter", null);
-            if (!string.IsNullOrWhiteSpace(scriptWriterName))
+            table.PrimaryKey = new DbPrimaryKey
             {
-                if (_scriptWriterTypes.ContainsKey(scriptWriterName))
-                    scriptWriterType = _scriptWriterTypes[scriptWriterName];
-                else
-                    throw new HyperDbSchemaConfigurationException("Invalid " + typeof(IDbPrimaryKeyScriptWriter).Name +" was specified for table " + table.Name + ".");
-            }
-
-            table.PrimaryKey = new HyperDbPrimaryKey
-            {
-                PrimaryKeyName = GetOptionalAttribute(parent, "name", null),
+                Name = GetOptionalAttribute(parent, "name", null),
                 TableSource = table
             };
 
@@ -333,42 +286,25 @@ namespace Hyper.Db.Xml
                     GetRequiredAttribute(keyColumnElement, "name")
                 );
             }
-
-            // Fill in our script writer
-            var scriptWriterObject = CreateInstanceAs<IDbPrimaryKeyScriptWriter>(scriptWriterType);
-            scriptWriterObject.Source = table.PrimaryKey;
-            table.PrimaryKey.ScriptWriter = scriptWriterObject;
         }
 
         /// <summary>
-        /// Deserializes any foreign keys defined in the specified <see cref="XElement"/> object into the specified <see cref="HyperDbSchema"/> object.
+        /// Deserializes any foreign keys defined in the specified <see cref="XElement"/> object into the specified <see cref="XmlDbSchema"/> object.
         /// </summary>
         /// <param name="parent">The <see cref="XElement"/> object containing the XML definitions for the foreign keys.</param>
-        /// <param name="table">The <see cref="HyperDbTable"/> object to receive the deserialized foreign keys.</param>
-        private void DeserializeForeignKeys(XElement parent, HyperDbTable table)
+        /// <param name="table">The <see cref="DbTable"/> object to receive the deserialized foreign keys.</param>
+        private void DeserializeForeignKeys(XContainer parent, DbTable table)
         {
-            var defaultScriptWriterName = GetOptionalAttribute(parent, "scriptWriter", null);
-
             foreach (var foreignKeyElement in parent.Elements(_hyperDbXmlNamespace + "foreignKey"))
             {
-                var foreignKey = new HyperDbForeignKey
+                var foreignKey = new DbForeignKey
                 {
                     // Name attribute is required because multiple foreign keys with the same definition are allowed to exist in some (all?) databases.
                     // The only way to uniquely identify one is by name.
-                    ForeignKeyName = GetRequiredAttribute(foreignKeyElement, "name"), 
+                    Name = GetRequiredAttribute(foreignKeyElement, "name"), 
                     ReferencedTableName = GetRequiredAttribute(foreignKeyElement, "referencedTable"),
                     TableSource = table
                 };
-
-                var scriptWriterType = _defaultDbForeignKeyScriptWriterType;
-                var scriptWriterName = GetOptionalAttribute(foreignKeyElement, "scriptWriter", defaultScriptWriterName);
-                if (!string.IsNullOrWhiteSpace(scriptWriterName))
-                {
-                    if (_scriptWriterTypes.ContainsKey(scriptWriterName))
-                        scriptWriterType = _scriptWriterTypes[scriptWriterName];
-                    else
-                        throw new HyperDbSchemaConfigurationException("Invalid " + typeof(IDbForeignKeyScriptWriter).Name + " was specified for table " + table.Name + ".");
-                }
 
                 // Per our XML schema, if we have a foreignKey element, we will always have at least one keyColumn element
                 foreach (var keyColumnElement in foreignKeyElement.Elements(_hyperDbXmlNamespace + "keyColumn"))
@@ -382,46 +318,41 @@ namespace Hyper.Db.Xml
                     );
                 }
 
-                // Fill in our script writer
-                var scriptWriterObject = CreateInstanceAs<IDbForeignKeyScriptWriter>(scriptWriterType);
-                scriptWriterObject.Source = foreignKey;
-                foreignKey.ScriptWriter = scriptWriterObject;
-
                 table.ForeignKeys.Add(foreignKey);
             }
         }
 
         /// <summary>
-        /// Deserializes any custom database objects defined in the specified <see cref="XElement"/> object into the specified <see cref="HyperDbSchema"/> object.
+        /// Deserializes any custom database objects defined in the specified <see cref="XElement"/> object into the specified <see cref="XmlDbSchema"/> object.
         /// </summary>
         /// <param name="parent">The <see cref="XElement"/> object containing the XML definitions for the stored procedures.</param>
-        /// <param name="dbSchema">The <see cref="HyperDbSchema"/> object to receive the deserialized tables.</param>
-        private void DeserializeCustomDbObjects(XElement parent, HyperDbSchema dbSchema)
+        /// <param name="dbSchema">The <see cref="XmlDbSchema"/> object to receive the deserialized tables.</param>
+        private void DeserializeCustomDbObjects(XElement parent, XmlDbSchema dbSchema)
         {
             var customDbConfigType = Type.GetType(GetRequiredAttribute(parent, "type"), true); // Deliberately throw an exception if we can't load the type
-            var customDbConfigObject = CreateInstanceAs<IDbCustomConfiguration>(customDbConfigType);
+            var customDbConfigObject = CreateInstanceAs<IXmlDbObjectCollection>(customDbConfigType);
 
-            customDbConfigObject.Deserialize(parent, _scriptWriterTypes);
+            customDbConfigObject.Deserialize(parent);
 
-            dbSchema.DbCustomConfig = customDbConfigObject;
+            dbSchema.XmlDbObjects = customDbConfigObject;
         }
 
         /// <summary>
-        /// Deserializes any stored procedures defined in the specified <see cref="XContainer"/> object into the specified <see cref="HyperDbSchema"/> object.
+        /// Deserializes any stored procedures defined in the specified <see cref="XContainer"/> object into the specified <see cref="XmlDbSchema"/> object.
         /// </summary>
         /// <param name="parent">The <see cref="XContainer"/> object containing the XML definitions for the stored procedures.</param>
-        /// <param name="dbSchema">The <see cref="HyperDbSchema"/> object to receive the deserialized tables.</param>
-        private void DeserializeStoredProcedures(XContainer parent, HyperDbSchema dbSchema)
+        /// <param name="dbSchema">The <see cref="XmlDbSchema"/> object to receive the deserialized tables.</param>
+        private void DeserializeStoredProcedures(XContainer parent, XmlDbSchema dbSchema)
         {
             // TODO: Phase 2 item
         }
 
         /// <summary>
-        /// Deserializes any scripts defined in the specified <see cref="XContainer"/> object into the specified <see cref="HyperDbSchema"/> object.
+        /// Deserializes any scripts defined in the specified <see cref="XContainer"/> object into the specified <see cref="XmlDbSchema"/> object.
         /// </summary>
         /// <param name="parent">The <see cref="XContainer"/> object containing the XML definitions for the scripts.</param>
-        /// <param name="dbSchema">The <see cref="HyperDbSchema"/> object to receive the deserialized tables.</param>
-        private void DeserializeScripts(XContainer parent, HyperDbSchema dbSchema)
+        /// <param name="dbSchema">The <see cref="XmlDbSchema"/> object to receive the deserialized tables.</param>
+        private void DeserializeScripts(XContainer parent, XmlDbSchema dbSchema)
         {
             // TODO: Phase 2 item
         }

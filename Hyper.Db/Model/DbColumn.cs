@@ -1,6 +1,6 @@
-﻿namespace Hyper.Db.Xml.ScriptSources
+﻿namespace Hyper.Db.Model
 {
-    internal class HyperDbColumn : IDbColumnScriptSource
+    public class DbColumn : IDbColumn
     {
         public string Name { get; set; }
         public string Type { get; set; }

@@ -1,13 +1,13 @@
 ﻿namespace Hyper.Db
 {
     /// <summary>
-    /// Describes a class which represents a database object.
+    /// Describes a class which represents a generic database object.
     /// </summary>
     public interface IDbObject
     {
         /// <summary>
-        /// The <see cref="IDbScriptWriter" /> object responsible for writing SQL to create/update this <see cref="IDbObject"/> object.
+        /// The name of the database object.
         /// </summary>
-        IDbScriptWriter ScriptWriter { get; set; }
+        string Name { get; set; }
     }
 }
