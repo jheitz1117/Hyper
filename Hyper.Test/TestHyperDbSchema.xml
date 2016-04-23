@@ -8,11 +8,11 @@
       <tables>
         <table name="Users" version="1.0.0.0">
           <columns>
-            <column name="UserID"    type="bigint" nullable="false" />
-            <column name="Username"  type="varchar" maxLength="50" nullable="true" />
-            <column name="Password"  type="varchar" maxLength="50" defaultValue="''" />
-            <column name="FirstName" type="varchar" maxLength="20" defaultValue="'     '"/>
-            <column name="LastName"  type="varchar" maxLength="20" defaultValue="033"/>
+            <column name="UserID"     type="bigint" nullable="false" identity="true" />
+            <column name="Username"   type="varchar" maxLength="50" nullable="true" />
+            <column name="Password"   type="varchar" maxLength="50" defaultValue="''" />
+            <column name="FirstName"  type="varchar" maxLength="20" defaultValue="'     '"/>
+            <column name="LastName"   type="varchar" maxLength="20" defaultValue="033"/>
             <column name="GuidIdTest" type="uniqueidentifier" defaultValue="NEWID()"/>
           </columns>
           <constraints>

@@ -48,7 +48,6 @@
     <Compile Include="IXmlDbObjectCollection.cs" />
     <Compile Include="IXmlDbSchemaCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DbObjects\DbIdentityColumn.cs" />
     <Compile Include="DbObjects\HyperDbParameter.cs" />
     <Compile Include="DbObjects\HyperDbStoredProcedure.cs" />
   </ItemGroup>

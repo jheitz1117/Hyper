@@ -29,5 +29,20 @@
         /// Specifies the default value of the column.
         /// </summary>
         string DefaultValue { get; set; }
+
+        /// <summary>
+        /// Indicates that the column is an identity column.
+        /// </summary>
+        bool? IsIdentity { get; set; }
+
+        /// <summary>
+        /// Specifies the seed to use if the column is an identity column.
+        /// </summary>
+        long? Seed { get; set; }
+
+        /// <summary>
+        /// Specifies the increment to use if the column is an identity column.
+        /// </summary>
+        int? Increment { get; set; }
     }
 }

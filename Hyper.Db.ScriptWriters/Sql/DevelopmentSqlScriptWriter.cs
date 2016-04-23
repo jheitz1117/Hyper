@@ -1,4 +1,5 @@
-﻿using System.CodeDom.Compiler;
+﻿using System;
+using System.CodeDom.Compiler;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,10 +15,26 @@ namespace Hyper.Db.ScriptWriters.Sql
      * then simply proceed as above. This seems much easier than with tables.
      */
 
+
+    // TODO: When implementing the identity column, see comments below.
+    /*
+     * Our production writer should be just like our developer version except:
+     *  )   default constraints should never be dropped. Instead, if we would replace an existing default with something different, throw an exception
+     *  )   column types and nullability may need some protection: perhaps according to a setting, either allow or disallow column types to be changed.
+     *      -   The user just has to understand that if we allow column types to be changed, some data loss may occur, and/or some changes may throw an exception from SQL. These will have to be dealt with
+     *          on a case-by-case basis
+     *      -   On the other hand, if the types are not allowed to change automatically, then the system will always throw an exception when such a change might otherwise occur. This, at least, forces
+     *          manual data migrations and completely prevents data from accidentally being lost due to a type change.
+     *  )   identity column re-seeding should probably be allowed, since this can happen with no cost.        
+     */
     public class DevelopmentSqlScriptWriter : IDbScriptWriter
     {
         public void WriteDbScript(TextWriter writer, IDbTable table)
         {
+            // Check if we have multiple identity columns (this is DB-specific, so it is not part of the IDbSchema validation)
+            if (table.Columns.Count(c => c.IsIdentity ?? false) > 1)
+                throw new InvalidOperationException("Transact-SQL does not allow more than one identity column per table.");
+
             var iWriter = new IndentedTextWriter(writer, "    ");
 
             iWriter.WriteLine("set nocount on");
@@ -26,23 +43,63 @@ namespace Hyper.Db.ScriptWriters.Sql
             iWriter.WriteLine("begin");
             iWriter.WriteLine("    declare @DefaultConstraintName nvarchar(128)");
 
-            iWriter.Indent++;
-            foreach (var column in table.Columns)
+            // If I need to write an identity column, check if one already exists
+            var identityColumn = table.Columns.FirstOrDefault(c => c.IsIdentity ?? false);
+            if (identityColumn != null)
             {
-                iWriter.WriteLine($"if {GetColumnExistsCondition(table, column)}");
-                iWriter.WriteLine("begin");
-
                 iWriter.Indent++;
-                WriteDropDefaultScript(iWriter, table, column);
-                iWriter.Indent--;
-
+                iWriter.WriteLine("declare @IdentityColumnName nvarchar(128)");
+                iWriter.WriteLine("declare @IdentityColumnType nvarchar(128)");
                 iWriter.WriteLine();
-                iWriter.WriteLine($"    {GetAlterColumnStatement(table, column)}");
+                iWriter.WriteLine("select");
+                iWriter.WriteLine("    @IdentityColumnName = [COLUMN_NAME],");
+                iWriter.WriteLine("    @IdentityColumnType = [DATA_TYPE]");
+                iWriter.WriteLine("from [INFORMATION_SCHEMA].[COLUMNS]");
+                iWriter.WriteLine("where");
+                iWriter.WriteLine($"        [TABLE_SCHEMA] = '{SqlDefaults.DefaultSchemaName}'");
+                iWriter.WriteLine($"    and [TABLE_NAME] = '{table.Name}'");
+                iWriter.WriteLine("    and columnproperty(object_id([TABLE_NAME]), [COLUMN_NAME], 'IsIdentity') = 1");
+                iWriter.WriteLine();
+                iWriter.WriteLine("if @IdentityColumnName is null");
+                iWriter.WriteLine("begin");
+                iWriter.WriteLine($"    if {GetColumnExistsCondition(table, identityColumn)}");
+                iWriter.WriteLine("    begin");
+                iWriter.WriteLine("        raiserror('Cannot add the identity property to an existing column.', 16, 1)");
+                iWriter.WriteLine("    end");
                 iWriter.WriteLine("end");
                 iWriter.WriteLine("else");
                 iWriter.WriteLine("begin");
+                iWriter.WriteLine($"    if @IdentityColumnName <> '{identityColumn.Name}' or @IdentityColumnType <> '{identityColumn.Type}'");
+                iWriter.WriteLine("    begin");
+                iWriter.WriteLine("        raiserror('Cannot modify an existing identity column.', 16, 1)");
+                iWriter.WriteLine("    end");
+                iWriter.WriteLine("end");
+                iWriter.WriteLine();
+                iWriter.Indent--;
+            }
+
+            iWriter.Indent++;
+            foreach (var column in table.Columns)
+            {
+                // If the column doesn't exist, we always want to add it.
+                iWriter.WriteLine($"if not {GetColumnExistsCondition(table, column)}");
+                iWriter.WriteLine("begin");
                 iWriter.WriteLine($"    {GetAddColumnStatement(table, column)}");
                 iWriter.WriteLine("end");
+
+                // However, if the column does exist, we only want to alter it if it is NOT an identity column, since identity columns can't be safely changed after they've been created.
+                if (!(column.IsIdentity ?? false))
+                {
+                    iWriter.WriteLine("else");
+                    iWriter.WriteLine("begin");
+                    iWriter.Indent++;
+                    WriteDropDefaultScript(iWriter, table, column);
+                    iWriter.Indent--;
+                    iWriter.WriteLine();
+                    iWriter.WriteLine($"    {GetAlterColumnStatement(table, column)}");
+                    iWriter.WriteLine("end");
+                }
+                
                 iWriter.WriteLine();
 
                 // Notice that if you want the default value to be the empty string, you must explicitly indicate as much using empty single quotes (like you would in SQL)
@@ -61,7 +118,7 @@ namespace Hyper.Db.ScriptWriters.Sql
             iWriter.WriteLine(
                 string.Join(
                     "," + iWriter.NewLine + "        ",
-                    table.Columns.Select(c => GetColumnDefinitionString(c, true))
+                    table.Columns.Select(c => $"{GetColumnDefinitionString(c, true)} {GetIdentityDefinitionString(c)}")
                 )
             );
             iWriter.Indent--;
@@ -69,8 +126,8 @@ namespace Hyper.Db.ScriptWriters.Sql
             iWriter.Indent--;
 
             iWriter.WriteLine("end");
-
-            // TODO: Still need to add support for identity columns and GUID columns that auto-generate new GUIDs
+            iWriter.WriteLine();
+            iWriter.WriteLine("go");
         }
 
         public void WriteDbScript(TextWriter writer, IDbPrimaryKey primaryKey)
@@ -136,6 +193,8 @@ namespace Hyper.Db.ScriptWriters.Sql
             writer.WriteLine("        commit tran");
             writer.WriteLine("    end");
             writer.WriteLine("end");
+            writer.WriteLine();
+            writer.WriteLine("go");
         }
 
         public void WriteDbScript(TextWriter writer, IDbForeignKey foreignKey)
@@ -212,6 +271,8 @@ namespace Hyper.Db.ScriptWriters.Sql
             writer.WriteLine("        commit tran");
             writer.WriteLine("    end");
             writer.WriteLine("end");
+            writer.WriteLine();
+            writer.WriteLine("go");
         }
 
         #region Table
@@ -235,23 +296,38 @@ namespace Hyper.Db.ScriptWriters.Sql
                 builder.Append(")");
             }
 
-            if (column.IsNullable.HasValue)
+            if (column.IsIdentity ?? false)
             {
-                if (!column.IsNullable.Value)
-                    builder.Append(" not");
+                if (column.IsNullable.HasValue && column.IsNullable.Value)
+                    throw new InvalidOperationException("An identity column cannot be nullable.");
+                if (column.DefaultValue != null)
+                    throw new InvalidOperationException("An identity column cannot have a default value.");
+            }
+            else
+            {
+                if (column.IsNullable.HasValue)
+                {
+                    if (!column.IsNullable.Value)
+                        builder.Append(" not");
 
-                builder.Append(" null");
+                    builder.Append(" null");
+                }
+
+                // Deliberately NOT checking for string.IsNullOrWhiteSpace() because:
+                //     if the attribute is absent, the DefaultValue property will be null
+                //     if the attribute is present and empty, the DefaultValue property will be the empty string, which is different than null. In this case, the default is simply
+                //         the empty string
+                //     Otherwise, if the attribute is present and populated, just use the specified value for the default
+                if (column.DefaultValue != null && isTableCreation)
+                    builder.Append($" default ({column.DefaultValue})");
             }
 
-            // Deliberately NOT checking for string.IsNullOrWhiteSpace() because:
-            //     if the attribute is absent, the DefaultValue property will be null
-            //     if the attribute is present and empty, the DefaultValue property will be the empty string, which is different than null. In this case, the default is simply
-            //         the empty string
-            //     Otherwise, if the attribute is present and populated, just use the specified value for the default
-            if (column.DefaultValue != null && isTableCreation)
-                builder.Append($" default ({column.DefaultValue})");
-
             return builder.ToString();
+        }
+
+        private static string GetIdentityDefinitionString(IDbColumn column)
+        {
+            return (column.IsIdentity ?? false) ? $"identity({column.Seed ?? 1},{column.Increment ?? 1})" : "";
         }
 
         private static string GetTableExistsCondition(IDbTable table)
@@ -266,7 +342,7 @@ namespace Hyper.Db.ScriptWriters.Sql
 
         private static string GetAddColumnStatement(IDbTable table, IDbColumn column)
         {
-            return $"alter table [{SqlDefaults.DefaultSchemaName}].[{table.Name}] add {GetColumnDefinitionString(column)}";
+            return $"alter table [{SqlDefaults.DefaultSchemaName}].[{table.Name}] add {GetColumnDefinitionString(column)} {GetIdentityDefinitionString(column)}";
         }
 
         private static string GetAlterColumnStatement(IDbTable table, IDbColumn column)

@@ -95,7 +95,7 @@ namespace Hyper.Db.Xml
         }
 
         /// <summary>
-        /// Gets the value of the specified attribute from the specified <see cref="XElement"/> object as an Int32. If the attribute doesn't exist, the specified default value is returned instead.
+        /// Gets the value of the specified attribute from the specified <see cref="XElement"/> object as a 32-bit <see cref="int"/>. If the attribute doesn't exist, the specified default value is returned instead.
         /// </summary>
         /// <param name="parent">The <see cref="XElement"/> object containing the specified attribute.</param>
         /// <param name="attributeName">The name of the attribute whose value to retrieve.</param>
@@ -109,9 +109,22 @@ namespace Hyper.Db.Xml
         }
 
         /// <summary>
-        /// Gets the value of the specified attribute from the specified <see cref="XElement"/> object as a boolean.
-        /// If the attribute doesn't exist, the specified default value is returned instead. The values "true"
-        /// and "false" as well as the values "0" and "1" are considered valid values.
+        /// Gets the value of the specified attribute from the specified <see cref="XElement"/> object as a 64-bit <see cref="long"/>. If the attribute doesn't exist, the specified default value is returned instead.
+        /// </summary>
+        /// <param name="parent">The <see cref="XElement"/> object containing the specified attribute.</param>
+        /// <param name="attributeName">The name of the attribute whose value to retrieve.</param>
+        /// <param name="defaultValue">The value to return if the specified attribute does not exist.</param>
+        /// <returns></returns>
+        private static long? GetOptionalAttributeInt64(XElement parent, string attributeName, long? defaultValue)
+        {
+            long value;
+            var valueString = GetOptionalAttribute(parent, attributeName, null);
+            return long.TryParse(valueString, out value) ? value : defaultValue;
+        }
+
+        /// <summary>
+        /// Gets the value of the specified attribute from the specified <see cref="XElement"/> object as a <see cref="bool"/>. If the attribute doesn't exist, the specified default value is returned instead.
+        /// The values "true" and "false" as well as the values "0" and "1" are considered valid values.
         /// </summary>
         /// <param name="parent">The <see cref="XElement"/> object containing the specified attribute.</param>
         /// <param name="attributeName">The name of the attribute whose value to retrieve.</param>
@@ -138,7 +151,7 @@ namespace Hyper.Db.Xml
         private static string GetRequiredAttribute(XElement parent, string attributeName)
         {
             if (parent.Attribute(attributeName) == null)
-            { throw new XmlSchemaValidationException("Attribute '" + attributeName + "' is required on element '" + parent.Name + "'."); }
+                throw new XmlSchemaValidationException("Attribute '" + attributeName + "' is required on element '" + parent.Name + "'.");
 
             return parent.Attribute(attributeName).Value;
         }
@@ -154,7 +167,7 @@ namespace Hyper.Db.Xml
         {
             var targetType = typeof(T);
             if (targetType.IsInterface && !inputType.GetInterfaces().Contains(targetType))
-            { throw new XmlDbSchemaException("Type '" + inputType.Name + "' must implement the '" + targetType.Name + "' interface."); }
+                throw new XmlDbSchemaException($"Type '{inputType.Name}' must implement the '{targetType.Name}' interface.");
 
             return (T)Activator.CreateInstance(inputType);
         }
@@ -238,15 +251,20 @@ namespace Hyper.Db.Xml
         {
             foreach (var columnElement in parent.Elements(_hyperDbXmlNamespace + "column"))
             {
-                table.Columns.Add(new DbColumn()
-                {
-                    Name = GetRequiredAttribute(columnElement, "name"),
-                    Type = GetRequiredAttribute(columnElement, "type"),
-                    MaxLength = GetOptionalAttributeInt32(columnElement, "maxLength", null),
-                    Decimals = GetOptionalAttributeInt32(columnElement, "decimals", null),
-                    IsNullable = GetOptionalAttributeBoolean(columnElement, "nullable", null),
-                    DefaultValue = GetOptionalAttribute(columnElement, "defaultValue", null)
-                });
+                table.Columns.Add(
+                    new DbColumn
+                    {
+                        Name = GetRequiredAttribute(columnElement, "name"),
+                        Type = GetRequiredAttribute(columnElement, "type"),
+                        MaxLength = GetOptionalAttributeInt32(columnElement, "maxLength", null),
+                        Decimals = GetOptionalAttributeInt32(columnElement, "decimals", null),
+                        IsNullable = GetOptionalAttributeBoolean(columnElement, "nullable", null),
+                        DefaultValue = GetOptionalAttribute(columnElement, "defaultValue", null),
+                        IsIdentity = GetOptionalAttributeBoolean(columnElement, "identity", null),
+                        Seed = GetOptionalAttributeInt64(columnElement, "seed", null),
+                        Increment = GetOptionalAttributeInt32(columnElement, "increment", null)
+                    }
+                );
             }
         }
 
