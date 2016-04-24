@@ -101,6 +101,10 @@
       <Project>{43F73423-A2DD-4D58-B680-C64DFB948E78}</Project>
       <Name>Hyper.NodeServices.UnitTesting.Contracts</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NodeModuleTest.Contracts\NodeModuleTest.Contracts.csproj">
+      <Project>{478A21BE-DC06-49B9-B542-CB33DA128040}</Project>
+      <Name>NodeModuleTest.Contracts</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -40,8 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandModules\ComplexCommandRequest.cs" />
-    <Compile Include="CommandModules\ComplexCommandResponse.cs" />
+    <Compile Include="ComplexCommand\ComplexCommandRequest.cs" />
+    <Compile Include="ComplexCommand\ComplexCommandResponse.cs" />
+    <Compile Include="DbUpdate\DbUpdateRequest.cs" />
+    <Compile Include="DbUpdate\DbUpdateResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

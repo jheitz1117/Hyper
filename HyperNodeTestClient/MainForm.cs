@@ -11,6 +11,7 @@ using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Contracts.Extensibility.Serializers;
 using Hyper.NodeServices.SystemCommands.Contracts;
 using Hyper.NodeServices.UnitTesting.Contracts.CommandModules;
+using NodeModuleTest.Contracts.DbUpdate;
 
 namespace HyperNodeTestClient
 {
@@ -568,5 +569,30 @@ namespace HyperNodeTestClient
         }
 
         #endregion Private Methods
+
+        private void cmdDbUpdate_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var serializer = new NetDataContractCommandSerializer<DbUpdateRequest, DbUpdateResponse>();
+                var msg = new HyperNodeMessageRequest(ClientAgentName)
+                {
+                    CommandName = "DbUpdate",
+                    CommandRequestString = serializer.Serialize(new DbUpdateRequest()),
+                    ProcessOptionFlags = MessageProcessOptionFlags.RunConcurrently | MessageProcessOptionFlags.ReturnTaskTrace
+                };
+
+                using (var client = new HyperNodeClient("Alice"))
+                {
+                    var response = client.ProcessMessage(msg);
+
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
     }
 }

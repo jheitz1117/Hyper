@@ -126,8 +126,6 @@ namespace Hyper.Db.ScriptWriters.Sql
             iWriter.Indent--;
 
             iWriter.WriteLine("end");
-            iWriter.WriteLine();
-            iWriter.WriteLine("go");
         }
 
         public void WriteDbScript(TextWriter writer, IDbPrimaryKey primaryKey)
@@ -193,8 +191,6 @@ namespace Hyper.Db.ScriptWriters.Sql
             writer.WriteLine("        commit tran");
             writer.WriteLine("    end");
             writer.WriteLine("end");
-            writer.WriteLine();
-            writer.WriteLine("go");
         }
 
         public void WriteDbScript(TextWriter writer, IDbForeignKey foreignKey)
@@ -271,8 +267,6 @@ namespace Hyper.Db.ScriptWriters.Sql
             writer.WriteLine("        commit tran");
             writer.WriteLine("    end");
             writer.WriteLine("end");
-            writer.WriteLine();
-            writer.WriteLine("go");
         }
 
         #region Table

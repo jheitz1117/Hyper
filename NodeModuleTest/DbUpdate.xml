@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<databaseSchemaConfiguration
+  xmlns="http://www.hypersoa.net/HyperDbXmlSchema"
+  xmlns:cs="http://www.test.com/TestCustomDbXmlSchema"
+>
+  <databaseSchemas>
+    <databaseSchema name="HyperGateway">
+      <tables>
+        <table name="Databases">
+          <columns>
+            <column name="DatabaseId" type="int" identity="true" />
+            <column name="DatabaseServerId" type="int" nullable="false" />
+            <column name="DatabaseName" type="nvarchar" maxLength="50" nullable="false" />
+            <column name="UserName" type="nvarchar" maxLength="50" nullable="false" />
+            <column name="Password" type="nvarchar" maxLength="50" nullable="false" />
+          </columns>
+          <constraints>
+            <primaryKey name="PK_Databases">
+              <keyColumn name="DatabaseId"/>
+            </primaryKey>
+            <foreignKeys>
+              <foreignKey name="FK_Databases_DatabaseServers" referencedTable="DatabaseServers">
+                <keyColumn name="DatabaseServerId" referencedColumn="DatabaseServerId"/>
+              </foreignKey>
+            </foreignKeys>
+          </constraints>
+        </table>
+        <table name="DatabaseServers">
+          <columns>
+            <column name="DatabaseServerId" type="int" identity="true" />
+            <column name="ServerName" type="nvarchar" maxLength="50" />
+            <column name="InstanceName" type="nvarchar" maxLength="50" />
+          </columns>
+          <constraints>
+            <primaryKey name="PK_DatabaseServers">
+              <keyColumn name="DatabaseServerId" />
+            </primaryKey>
+          </constraints>
+        </table>
+        <table name="DatabaseUpdateNodes">
+          <columns>
+            <column name="HyperNodeId" type="int" nullable="false" />
+            <column name="DatabaseId" type="int" nullable="false" />
+            <column name="DatabaseSchemaName" type="nvarchar" maxLength="50" nullable="false" />
+          </columns>
+          <constraints>
+            <foreignKeys>
+              <foreignKey name="FK_DatabaseUpdateNodes_HyperNodes" referencedTable="HyperNodes">
+                <keyColumn name="HyperNodeId" referencedColumn="HyperNodeId" />
+              </foreignKey>
+              <foreignKey name="FK_DatabaseUpdateNodes_Databases" referencedTable="Databases">
+                <keyColumn name="DatabaseId" referencedColumn="DatabaseId" />
+              </foreignKey>
+            </foreignKeys>
+          </constraints>
+        </table>
+        <table name="HyperNodes">
+          <columns>
+            <column name="HyperNodeId" type="int" identity="true" />
+            <column name="HyperNodeMachineName" type="nvarchar" maxLength="50" nullable="false" />
+            <column name="HyperNodeName" type="nvarchar" maxLength="50" nullable="false" />
+          </columns>
+          <constraints>
+            <primaryKey name="PK_HyperNodes">
+              <keyColumn name="HyperNodeId"/>
+            </primaryKey>
+          </constraints>
+        </table>
+      </tables>
+    </databaseSchema>
+    <databaseSchema name="HyperSOA">
+      
+    </databaseSchema>
+    <databaseSchema name="GiftRegistry">
+
+    </databaseSchema>
+    <databaseSchema name="SpeechData">
+
+    </databaseSchema>
+  </databaseSchemas>
+</databaseSchemaConfiguration>

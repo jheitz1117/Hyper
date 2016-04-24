@@ -361,18 +361,21 @@ namespace Hyper.Test
             foreach (var table in dbSchema.Tables)
             {
                 Trace.WriteLine(GetSql(w => scriptWriter.WriteDbScript(w, table)));
+                Trace.WriteLine("GO");
             }
 
             // Now primary keys
             foreach (var primaryKey in dbSchema.PrimaryKeys)
             {
                 Trace.WriteLine(GetSql(w => scriptWriter.WriteDbScript(w, primaryKey)));
+                Trace.WriteLine("GO");
             }
 
             // Now foreign keys
             foreach (var foreignKey in dbSchema.ForeignKeys)
             {
                 Trace.WriteLine(GetSql(w => scriptWriter.WriteDbScript(w, foreignKey)));
+                Trace.WriteLine("GO");
             }
 
             // TODO: Write stored procedures
@@ -390,6 +393,7 @@ namespace Hyper.Test
                     if (awesomeObject != null)
                     {
                         Trace.WriteLine(GetSql(w => customWriter.WriteDbScript(w, awesomeObject)));
+                        Trace.WriteLine("GO");
                     }
                 }
             }

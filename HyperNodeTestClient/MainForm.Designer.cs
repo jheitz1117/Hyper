@@ -77,6 +77,7 @@ namespace HyperNodeTestClient
             this.lblRecipient = new System.Windows.Forms.Label();
             this.cboHyperNodeNames = new System.Windows.Forms.ComboBox();
             this.btnRefreshCommandList = new System.Windows.Forms.Button();
+            this.cmdDbUpdate = new System.Windows.Forms.Button();
             this.grpBobActivityItems.SuspendLayout();
             this.grpBobResponseSummary.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.spcHyperNodeActivity)).BeginInit();
@@ -579,6 +580,7 @@ namespace HyperNodeTestClient
             // 
             // pnlLeft
             // 
+            this.pnlLeft.Controls.Add(this.cmdDbUpdate);
             this.pnlLeft.Controls.Add(this.lblRecipient);
             this.pnlLeft.Controls.Add(this.cboHyperNodeNames);
             this.pnlLeft.Controls.Add(this.btnRefreshCommandList);
@@ -626,6 +628,16 @@ namespace HyperNodeTestClient
             this.btnRefreshCommandList.Text = "Refresh";
             this.btnRefreshCommandList.UseVisualStyleBackColor = true;
             this.btnRefreshCommandList.Click += new System.EventHandler(this.btnRefreshCommandList_Click);
+            // 
+            // cmdDbUpdate
+            // 
+            this.cmdDbUpdate.Location = new System.Drawing.Point(124, 212);
+            this.cmdDbUpdate.Name = "cmdDbUpdate";
+            this.cmdDbUpdate.Size = new System.Drawing.Size(149, 51);
+            this.cmdDbUpdate.TabIndex = 25;
+            this.cmdDbUpdate.Text = "Run DB Update";
+            this.cmdDbUpdate.UseVisualStyleBackColor = true;
+            this.cmdDbUpdate.Click += new System.EventHandler(this.cmdDbUpdate_Click);
             // 
             // MainForm
             // 
@@ -725,6 +737,7 @@ namespace HyperNodeTestClient
         private ComboBox cboHyperNodeNames;
         private Button btnAliceCancelCurrentTask;
         private Button btnBobCancelCurrentTask;
+        private Button cmdDbUpdate;
     }
 }
 
