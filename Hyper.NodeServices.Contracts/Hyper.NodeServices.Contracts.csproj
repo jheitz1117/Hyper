@@ -51,11 +51,7 @@
     <Compile Include="HyperNodeClient.cs" />
     <Compile Include="HyperNodeMessageRequest.cs" />
     <Compile Include="HyperNodeMessageResponse.cs" />
-    <Compile Include="HyperNodePath.cs" />
-    <Compile Include="HyperNodeVertex.cs" />
     <Compile Include="IHyperNodeService.cs" />
-    <Compile Include="IPath.cs" />
-    <Compile Include="IVertex.cs" />
     <Compile Include="MessageProcessOptionFlags.cs" />
     <Compile Include="MessageProcessStatusFlags.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

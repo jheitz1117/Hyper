@@ -46,7 +46,6 @@
     <Compile Include="SystemCommandName.cs" />
     <Compile Include="SystemCommands\ActivityMonitorStatus.cs" />
     <Compile Include="SystemCommands\CommandStatus.cs" />
-    <Compile Include="SystemCommands\DiscoverResponse.cs" />
     <Compile Include="SystemCommands\EnableActivityMonitorRequest.cs" />
     <Compile Include="SystemCommands\EnableCommandModuleRequest.cs" />
     <Compile Include="SystemCommands\EnableDiagnosticsRequest.cs" />

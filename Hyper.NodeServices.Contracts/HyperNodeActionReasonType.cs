@@ -21,28 +21,10 @@ namespace Hyper.NodeServices.Contracts
         Custom = 1,
 
         /// <summary>
-        /// Indicates that the message expired before it could be processed by the receiving <see cref="IHyperNodeService"/>.
+        /// Indicates that the message was valid and this <see cref="IHyperNodeService"/> is ready to process it.
         /// </summary>
         [EnumMember]
-        MessageExpired = 2,
-
-        /// <summary>
-        /// Indicates that the receiving <see cref="IHyperNodeService"/> had already seen the message.
-        /// </summary>
-        [EnumMember]
-        PreviouslySeen = 3,
-
-        /// <summary>
-        /// Indicates that the receiving <see cref="IHyperNodeService"/> was not an intended recipient.
-        /// </summary>
-        [EnumMember]
-        UnintendedRecipient = 4,
-
-        /// <summary>
-        /// Indicates that the receiving <see cref="IHyperNodeService"/> was an intended recipient.
-        /// </summary>
-        [EnumMember]
-        IntendedRecipient = 5,
+        ValidMessage = 5,
 
         /// <summary>
         /// Indicates that the receiving <see cref="IHyperNodeService"/> generated a task ID for a task that was already running.

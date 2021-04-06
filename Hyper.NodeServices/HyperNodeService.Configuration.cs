@@ -112,12 +112,6 @@ namespace Hyper.NodeServices
                 },
                 new CommandModuleConfiguration
                 {
-                    CommandName = SystemCommandName.Discover,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(DiscoverCommand)
-                },
-                new CommandModuleConfiguration
-                {
                     CommandName = SystemCommandName.Echo,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(EchoCommand)

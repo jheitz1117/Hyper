@@ -48,14 +48,6 @@ namespace Hyper.NodeServices.Contracts
         IReadOnlyList<HyperNodeActivityItem> TaskTrace { get; }
 
         /// <summary>
-        /// Contains a list of <see cref="HyperNodeMessageResponse"/> objects returned by child nodes up until the point at which this
-        /// <see cref="HyperNodeMessageResponse"/> was returned. If the <see cref="MessageProcessOptionFlags.RunConcurrently"/> option
-        /// flag was specified in the <see cref="HyperNodeMessageRequest"/>, the list will likely be incomplete because the main thread
-        /// could have completed before the <see cref="HyperNodeMessageRequest"/> could be forwarded to all child nodes.
-        /// </summary>
-        IReadOnlyDictionary<string, IReadOnlyHyperNodeResponseInfo> ChildResponses { get; }
-
-        /// <summary>
         /// Contains the response string from the command that was executed.
         /// </summary>
         string CommandResponseString { get; }

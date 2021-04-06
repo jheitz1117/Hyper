@@ -4,11 +4,11 @@ using Hyper.NodeServices.Extensibility.EventTracking;
 
 namespace Hyper.NodeServices.EventTracking
 {
-    internal sealed class MessageSeenEventArgs : HyperNodeEventArgs, IMessageSeenEventArgs
+    internal sealed class TaskStartedEventArgs : HyperNodeEventArgs, ITaskStartedEventArgs
     {
         private readonly Action _cancelTaskAction;
 
-        public MessageSeenEventArgs(ITaskActivityTracker activity, ITaskEventContext taskContext, Action cancelTaskAction)
+        public TaskStartedEventArgs(ITaskActivityTracker activity, ITaskEventContext taskContext, Action cancelTaskAction)
             :base(activity, taskContext)
         {
             _cancelTaskAction = cancelTaskAction;

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace Hyper.NodeServices.Contracts
 {
@@ -10,38 +8,11 @@ namespace Hyper.NodeServices.Contracts
     [DataContract]
     public class HyperNodeMessageRequest
     {
-        private readonly TimeSpan _defaultMessageLifeSpan = TimeSpan.FromMinutes(1);
-        private readonly TimeSpan _defaultForwardingTimeout = TimeSpan.FromSeconds(5);
-
         /// <summary>
         /// The name of the agent that created this <see cref="HyperNodeMessageRequest"/>.
         /// </summary>
         [DataMember]
         public string CreatedByAgentName { get; set; }
-
-        /// <summary>
-        /// The date and time this <see cref="HyperNodeMessageRequest"/> was created.
-        /// </summary>
-        [DataMember]
-        public DateTime CreationDateTime { get; set; }
-
-        /// <summary>
-        /// Specifies how long this <see cref="HyperNodeMessageRequest"/> should live before it expires.
-        /// </summary>
-        [DataMember]
-        public TimeSpan MessageLifeSpan { get; set; }
-
-        /// <summary>
-        /// A list of <see cref="IHyperNodeService"/> names to which this <see cref="HyperNodeMessageRequest"/> is intended.
-        /// </summary>
-        [DataMember]
-        public List<string> IntendedRecipientNodeNames { get; set; }
-
-        /// <summary>
-        /// A list of <see cref="IHyperNodeService"/> names which have already seen this <see cref="HyperNodeMessageRequest"/>.
-        /// </summary>
-        [DataMember]
-        public List<string> SeenByNodeNames { get; set; }
 
         /// <summary>
         /// The name of the command to execute.
@@ -54,18 +25,6 @@ namespace Hyper.NodeServices.Contracts
         /// </summary>
         [DataMember]
         public string CommandRequestString { get; set; }
-
-        /// <summary>
-        /// Contains the network path this <see cref="HyperNodeMessageRequest"/> should follow in order to arrive at all of the intended recipients.
-        /// </summary>
-        [DataMember]
-        public HyperNodePath ForwardingPath { get; set; }
-
-        /// <summary>
-        /// The amount of time to wait before any <see cref="IHyperNodeService"/> gives up on receiving a response from a child node.
-        /// </summary>
-        [DataMember]
-        public TimeSpan ForwardingTimeout { get; set; }
 
         /// <summary>
         /// A bitwise combination of <see cref="MessageProcessOptionFlags"/> values indicating how this <see cref="HyperNodeMessageRequest"/> should be processed.
@@ -89,22 +48,9 @@ namespace Hyper.NodeServices.Contracts
         public bool CacheTaskProgress => IsProcessOptionSet(MessageProcessOptionFlags.CacheTaskProgress);
 
         /// <summary>
-        /// Calculates date and time at which this <see cref="HyperNodeMessageRequest"/> expires.
-        /// </summary>
-        public DateTime ExpirationDateTime => CreationDateTime + MessageLifeSpan;
-
-        /// <summary>
         /// Initializes an instance of <see cref="HyperNodeMessageRequest"/>.
         /// </summary>
-        public HyperNodeMessageRequest()
-        {
-            CreationDateTime = DateTime.Now;
-            MessageLifeSpan = _defaultMessageLifeSpan;
-            ForwardingTimeout = _defaultForwardingTimeout;
-            IntendedRecipientNodeNames = new List<string>();
-            SeenByNodeNames = new List<string>();
-            ForwardingPath = new HyperNodePath();
-        }
+        public HyperNodeMessageRequest() { }
 
         /// <summary>
         /// Initializes an instance of <see cref="HyperNodeMessageRequest"/> using the specified agent.

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Hyper.NodeServices.Contracts;
+﻿using Hyper.NodeServices.Contracts;
 
 namespace Hyper.NodeServices.Extensibility
 {
@@ -18,21 +16,6 @@ namespace Hyper.NodeServices.Extensibility
         /// The name of the agent that created the <see cref="HyperNodeMessageRequest"/>.
         /// </summary>
         string CreatedByAgentName { get; }
-
-        /// <summary>
-        /// The date and time at which the <see cref="HyperNodeMessageRequest"/> was created.
-        /// </summary>
-        DateTime CreationDateTime { get; }
-
-        /// <summary>
-        /// The list of <see cref="IHyperNodeService"/> instances to which the <see cref="HyperNodeMessageRequest"/> was intended to be sent.
-        /// </summary>
-        IReadOnlyList<string> IntendedRecipientNodeNames { get; }
-
-        /// <summary>
-        /// The list of <see cref="IHyperNodeService"/> instances that have already seen the <see cref="HyperNodeMessageRequest"/>.
-        /// </summary>
-        IReadOnlyList<string> SeenByNodeNames { get; }
 
         /// <summary>
         /// The processing flags specified in the <see cref="IHyperNodeService"/>.

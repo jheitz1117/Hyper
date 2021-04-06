@@ -11,13 +11,6 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
     public static class SystemCommandName
     {
         /// <summary>
-        /// Retrieves the names of all <see cref="IHyperNodeService"/> instances that are descendants of the intended recipient.
-        /// <see cref="ICommandRequest"/> type: No request type is required for this command module.
-        /// <see cref="ICommandResponse"/> type: A <see cref="DiscoverResponse"/> containing the descendants of the intended recipient.
-        /// </summary>
-        public const string Discover                      = "Discover";
-
-        /// <summary>
         /// Retrieves cached task progress information for the task with the ID specified in the command request string.
         /// <see cref="ICommandRequest"/> type: A <see cref="CommandRequestString"/> containing the ID of the task for which to retrieve cached progress info.
         /// <see cref="ICommandResponse"/> type: A <see cref="GetCachedTaskProgressInfoResponse"/> containing the cached task progress info if the cache is enabled. Otherwise, returns a warning indicating that the cache is disabled.
@@ -98,7 +91,6 @@ namespace Hyper.NodeServices.SystemCommands.Contracts
 
         private static readonly string[] SystemCommands =
         {
-            Discover,
             GetCachedTaskProgressInfo,
             GetChildNodes,
             GetNodeStatus,

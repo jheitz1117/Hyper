@@ -24,25 +24,11 @@ namespace NodeModuleTest.EventHandlers
             }
         }
 
-        public override void OnMessageSeen(IMessageSeenEventArgs args)
+        public override void OnTaskStarted(ITaskStartedEventArgs args)
         {
             if (args.TaskContext.CommandName == "TestLongRunningCommand")
             {
                 //args.CancelTask();
-            }
-        }
-
-        public override void OnTaskStarted(IHyperNodeEventArgs args)
-        {
-            
-        }
-
-        public override void OnForwardingMessage(IForwardingMessageEventArgs args)
-        {
-            if (args.RecipientNodeName == "Bob")
-            {
-                //args.Activity.Track("Skipping bob");
-                //args.SkipRecipient();
             }
         }
     }

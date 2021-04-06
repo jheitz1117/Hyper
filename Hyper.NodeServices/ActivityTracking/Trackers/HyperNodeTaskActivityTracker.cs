@@ -31,23 +31,7 @@ namespace Hyper.NodeServices.ActivityTracking.Trackers
             try
             {
                 _eventHandler.OnTaskStarted(
-                    new HyperNodeEventArgs(this, _taskContext)
-                );
-            }
-            catch (Exception ex)
-            {
-                TrackException(ex);
-            }
-        }
-
-        public void TrackMessageIgnored(string reason)
-        {
-            Track("Message ignored.", reason);
-
-            try
-            {
-                _eventHandler.OnMessageIgnored(
-                    new MessageIgnoredEventArgs(this, _taskContext, reason)
+                    new TaskStartedEventArgs(this, _taskContext, _cancelTaskAction)
                 );
             }
             catch (Exception ex)
@@ -64,74 +48,6 @@ namespace Hyper.NodeServices.ActivityTracking.Trackers
             {
                 _eventHandler.OnMessageProcessed(
                     new HyperNodeEventArgs(this, _taskContext)
-                );
-            }
-            catch (Exception ex)
-            {
-                TrackException(ex);
-            }
-        }
-
-        public void TrackForwardingMessage(string recipient, Action skipRecipientAction)
-        {
-            Track($"Forwarding message to HyperNode '{recipient}'.");
-
-            try
-            {
-                _eventHandler.OnForwardingMessage(
-                    new ForwardingMessageEventArgs(
-                        this,
-                        _taskContext,
-                        recipient,
-                        _cancelTaskAction,
-                        skipRecipientAction
-                    )
-                );
-            }
-            catch (Exception ex)
-            {
-                TrackException(ex);
-            }
-        }
-
-        public void TrackMessageSeen()
-        {
-            Track("Message seen.");
-
-            try
-            {
-                _eventHandler.OnMessageSeen(
-                    new MessageSeenEventArgs(this, _taskContext, _cancelTaskAction)
-                );
-            }
-            catch (Exception ex)
-            {
-                TrackException(ex);
-            }
-        }
-
-        public void TrackHyperNodeResponded(string childHyperNodeName, HyperNodeMessageResponse response)
-        {
-            Track(
-                $"Response received from HyperNode '{childHyperNodeName}'.",
-                string.Join(
-                    Environment.NewLine,
-                    $"{nameof(response.NodeAction)}:         {response.NodeAction}",
-                    $"{nameof(response.NodeActionReason)}:   {response.NodeActionReason}",
-                    $"{nameof(response.ProcessStatusFlags)}: {response.ProcessStatusFlags}"
-                ),
-                response
-            );
-
-            try
-            {
-                _eventHandler.OnHyperNodeResponded(
-                    new HyperNodeRespondedEventArgs(
-                        this,
-                        _taskContext,
-                        childHyperNodeName,
-                        new ReadOnlyHyperNodeResponseInfo(response)
-                    )
                 );
             }
             catch (Exception ex)
