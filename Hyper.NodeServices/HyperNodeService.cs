@@ -481,15 +481,15 @@ namespace Hyper.NodeServices
                     systemActivityMonitors.Add(_taskProgressCacheMonitor);
 
                 /*****************************************************************************************************************
-                 * If we want a task trace returned, that's fine, but the task trace in the real-time response would only ever contain events recorded during the current
-                 * call to ProcessMessage() as opposed to the entire lifetime of a task in general. This is because a task can be spawned in a child thread and can outlive
-                 * the original call to ProcessMessage(). This is the whole reason why we have a TaskProgressCacheMonitor that is in charge of collecting trace information
-                 * for tasks that run concurrently. It should be noted that if the client elects to use caching AND return a task trace, then the events recorded in the
-                 * real-time task trace and those recorded in the cache will likely overlap for events which fired before ProcessMessage() returned. However, any events that
-                 * fired after ProcessMessage() returned would only be recorded in the cache. This may result in a task trace that looks incomplete since the "processing
-                 * complete" message would not have occurred before the method returned.
+                 * If a task trace was requested, we're only going to honor the request if the task runs synchronously. In the first
+                 * place, the response task trace will be incomplete for concurrent tasks anyway, but I eventually learned that
+                 * this response task trace monitor can enter into a race condition against the serializer when the response is
+                 * returned. Effectively, if the task trace enumeration is modified (by this monitor) while it is being serialized
+                 * (which is very possible), then the serializer throws an exception which shows up as an obscure communication
+                 * exception from the client's point of view. This was very hard to track down, requiring use of WCF's advanced
+                 * tracing tools.
                  *****************************************************************************************************************/
-                if (currentTaskInfo.Message.ReturnTaskTrace)
+                if (currentTaskInfo.Message.ReturnTaskTrace && !currentTaskInfo.Message.RunConcurrently)
                     systemActivityMonitors.Add(new ResponseTaskTraceMonitor(currentTaskInfo.Response));
 
                 /*****************************************************************************************************************
