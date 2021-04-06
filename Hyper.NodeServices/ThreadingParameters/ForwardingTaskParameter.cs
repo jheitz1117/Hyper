@@ -1,4 +1,4 @@
-﻿namespace Hyper.NodeServices
+﻿namespace Hyper.NodeServices.ThreadingParameters
 {
     internal class ForwardingTaskParameter
     {

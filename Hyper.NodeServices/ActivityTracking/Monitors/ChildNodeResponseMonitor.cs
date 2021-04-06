@@ -2,7 +2,7 @@
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 
-namespace Hyper.NodeServices.ActivityTracking
+namespace Hyper.NodeServices.ActivityTracking.Monitors
 {
     internal sealed class ChildNodeResponseMonitor : HyperNodeServiceActivityMonitor
     {
@@ -25,15 +25,13 @@ namespace Hyper.NodeServices.ActivityTracking
             // but we also want to make sure it came from a child node instead of this node. To do this, we can
             // check the RespondingNodeName of the response and see if the response came from a node other than
             // this one.
-            var response = activity.EventData as HyperNodeMessageResponse;
-            return response != null && response.RespondingNodeName != activity.Agent;
+            return activity.EventData is HyperNodeMessageResponse response && response.RespondingNodeName != activity.Agent;
         }
 
         public override void OnTrack(IHyperNodeActivityEventItem activity)
         {
             // Check if we've received a HyperNodeMessageResponse in the data property.
-            var response = activity.EventData as HyperNodeMessageResponse;
-            if (response != null)
+            if (activity.EventData is HyperNodeMessageResponse response)
                 _target.ChildResponses.TryAdd(response.RespondingNodeName, response);
         }
 

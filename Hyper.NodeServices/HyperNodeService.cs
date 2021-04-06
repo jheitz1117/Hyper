@@ -11,17 +11,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Hyper.ActivityTracking;
 using Hyper.NodeServices.ActivityTracking;
+using Hyper.NodeServices.ActivityTracking.Monitors;
 using Hyper.NodeServices.ActivityTracking.Trackers;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.Configuration;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
 using Hyper.NodeServices.Contracts.Extensibility.Serializers;
+using Hyper.NodeServices.EventTracking;
+using Hyper.NodeServices.Exceptions;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
 using Hyper.NodeServices.Extensibility.Configuration;
 using Hyper.NodeServices.Extensibility.EventTracking;
+using Hyper.NodeServices.ThreadingParameters;
 
 // TODO: (Phase 2 - see comments below) ClearActivityCache 
 /*************************************************************************************************************************************
@@ -109,14 +113,14 @@ namespace Hyper.NodeServices
 
         internal bool EnableTaskProgressCache
         {
-            get { return _taskProgressCacheMonitor.Enabled; }
-            set { _taskProgressCacheMonitor.Enabled = value; }
+            get => _taskProgressCacheMonitor.Enabled;
+            set => _taskProgressCacheMonitor.Enabled = value;
         }
 
         internal TimeSpan TaskProgressCacheDuration
         {
-            get { return _taskProgressCacheMonitor.CacheDuration; }
-            set { _taskProgressCacheMonitor.CacheDuration = value; }
+            get => _taskProgressCacheMonitor.CacheDuration;
+            set => _taskProgressCacheMonitor.CacheDuration = value;
         }
 
         private ITaskIdProvider TaskIdProvider { get; set; }
@@ -246,7 +250,7 @@ namespace Hyper.NodeServices
                         currentTaskInfo.Token.ThrowIfCancellationRequested();
 
                         // Check if this message has a list of intended recipients, and if this node was one of them.
-                        // An empty recipients list means means the message is indended for all nodes in the forwarding path.
+                        // An empty recipients list means means the message is intended for all nodes in the forwarding path.
                         if (message.IntendedRecipientNodeNames.Any() && !message.IntendedRecipientNodeNames.Contains(HyperNodeName))
                         {
                             // This node was not an intended recipient, so ignore the message, but still forward it if possible.
@@ -360,7 +364,7 @@ namespace Hyper.NodeServices
         /// <summary>
         /// Adds the specified <see cref="Type"/> as an enabled command module with the specified command name. Command modules
         /// added using this method do not have <see cref="ICommandRequestSerializer"/> or <see cref="ICommandResponseSerializer"/>
-        /// imlementations defined.
+        /// implementations defined.
         /// </summary>
         /// <param name="commandName">The name of the command.</param>
         /// <param name="commandModuleType">The <see cref="Type"/> of the command module.</param>
@@ -523,7 +527,7 @@ namespace Hyper.NodeServices
                  * for tasks that run concurrently. It should be noted that if the client elects to use caching AND return a task trace, then the events recorded in the
                  * real-time task trace and those recorded in the cache will likely overlap for events which fired before ProcessMessage() returned. However, any events that
                  * fired after ProcessMessage() returned would only be recorded in the cache. This may result in a task trace that looks incomplete since the "processing
-                 * complete" message would not have occured before the method returned.
+                 * complete" message would not have occurred before the method returned.
                  *****************************************************************************************************************/
                 if (currentTaskInfo.Message.ReturnTaskTrace)
                     systemActivityMonitors.Add(new ResponseTaskTraceMonitor(currentTaskInfo.Response));
@@ -541,7 +545,7 @@ namespace Hyper.NodeServices
                  * This response collector monitor's job is to collect response objects for child nodes to which the message is forwarded and add them to the target
                  * response object. Responses compiled this way have a tree-like structure in which child node responses are referenced by their node name.
                  * 
-                 * For synchronous operations, this results in a real-time response that contains all of the response information for this node and its decendants.
+                 * For synchronous operations, this results in a real-time response that contains all of the response information for this node and its descendants.
                  * 
                  * For asynchronous operations, the real-time response contains the task ID for the main thread executed on this node. The cached response for that
                  * real-time task ID contains the task IDs of the main threads executed on the child nodes. The cached responses for those task IDs contain the
@@ -838,7 +842,7 @@ namespace Hyper.NodeServices
                     }
 
                     // Track any HyperNodes that didn't return before the forwarding timeout
-                    foreach (var forwardingArgs in forwardingTasks.Where(t => !t.IsCompleted).Select(t => t.AsyncState as ForwardingTaskParameter))
+                    foreach (var forwardingArgs in forwardingTasks.Where(t => !t.IsCompleted).Select(t => (ForwardingTaskParameter)t.AsyncState))
                     {
                         taskInfo.Activity.Track(
                             $"HyperNode '{forwardingArgs.RemoteNodeName}' timed out at {taskInfo.Message.ForwardingTimeout}.",
@@ -897,9 +901,8 @@ namespace Hyper.NodeServices
         {
             ICommandResponse commandResponse;
 
-            CommandModuleConfiguration commandModuleConfig;
             if (_commandModuleConfigurations.ContainsKey(args.Message.CommandName) &&
-                _commandModuleConfigurations.TryGetValue(args.Message.CommandName, out commandModuleConfig) &&
+                _commandModuleConfigurations.TryGetValue(args.Message.CommandName, out var commandModuleConfig) &&
                 commandModuleConfig.Enabled)
             {
                 // Create our command module instance
@@ -1001,15 +1004,16 @@ namespace Hyper.NodeServices
         private void TaskCleanUp(string taskId)
         {
             // Remove our task info and dispose of it
-            HyperNodeTaskInfo taskInfo;
-            if (_liveTasks.TryRemove(taskId, out taskInfo))
+            if (_liveTasks.TryRemove(taskId, out var taskInfo))
                 taskInfo?.Dispose();
         }
 
         private IEnumerable<Task> GetChildTasks()
         {
             return _liveTasks.Keys.Select(
-                taskId => _liveTasks[taskId].WhenChildTasks()
+                taskId => _liveTasks.TryGetValue(taskId, out var task)
+                    ? task.WhenChildTasks()
+                    : Task.CompletedTask
             );
         }
 

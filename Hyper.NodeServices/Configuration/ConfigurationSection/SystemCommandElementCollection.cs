@@ -3,13 +3,13 @@ using System.Configuration;
 using System.Linq;
 using Hyper.NodeServices.Extensibility.Configuration;
 
-namespace Hyper.NodeServices.Configuration
+namespace Hyper.NodeServices.Configuration.ConfigurationSection
 {
     internal sealed class SystemCommandElementCollection : ConfigurationElementCollection, ISystemCommandConfigurationCollection
     {
         public SystemCommandElement this[int index]
         {
-            get { return BaseGet(index) as SystemCommandElement; }
+            get => BaseGet(index) as SystemCommandElement;
             set
             {
                 if (BaseGet(index) != null)
@@ -20,7 +20,7 @@ namespace Hyper.NodeServices.Configuration
 
         public new SystemCommandElement this[string name]
         {
-            get { return BaseGet(name) as SystemCommandElement; }
+            get => BaseGet(name) as SystemCommandElement;
             set
             {
                 if (BaseGet(name) != null)
@@ -47,8 +47,8 @@ namespace Hyper.NodeServices.Configuration
         [ConfigurationProperty("enabled", IsRequired = false)]
         public bool Enabled
         {
-            get { return (bool)base["enabled"]; }
-            set { base["enabled"] = value; }
+            get => (bool)base["enabled"];
+            set => base["enabled"] = value;
         }
 
         public ISystemCommandConfiguration GetByCommandName(string commandName)

@@ -5,6 +5,7 @@ using System.Text;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
+using Hyper.NodeServices.Exceptions;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;

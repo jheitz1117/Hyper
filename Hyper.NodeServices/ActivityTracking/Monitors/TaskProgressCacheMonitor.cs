@@ -4,7 +4,7 @@ using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.SystemCommands.Contracts;
 
-namespace Hyper.NodeServices.ActivityTracking
+namespace Hyper.NodeServices.ActivityTracking.Monitors
 {
     /// <summary>
     /// Collects <see cref="HyperNodeTaskProgressInfo"/> objects based on task ID.
@@ -17,8 +17,8 @@ namespace Hyper.NodeServices.ActivityTracking
 
         public TimeSpan CacheDuration
         {
-            get { return CachePolicy.SlidingExpiration; }
-            set { CachePolicy.SlidingExpiration = value; }
+            get => CachePolicy.SlidingExpiration;
+            set => CachePolicy.SlidingExpiration = value;
         }
 
         public TaskProgressCacheMonitor()
@@ -55,8 +55,7 @@ namespace Hyper.NodeServices.ActivityTracking
             }
 
             // Check if we were given a response to cache
-            var response = activity.EventData as HyperNodeMessageResponse;
-            if (response != null)
+            if (activity.EventData is HyperNodeMessageResponse response)
             {
                 /* If the response belongs to this node, then this is a completion event and we're done. We just set our response property to the completed response object we received.
                  * We should only ever get one response object from this node.*/
@@ -124,7 +123,7 @@ namespace Hyper.NodeServices.ActivityTracking
         /// For new inserts, this old value is considered to be null, so you get back a null value instead of the value you tried to insert as you might have expected. This wrapper
         /// accounts for that small caveat by utilizing .NET's <see cref="Lazy&lt;T&gt;"/> class.
         /// 
-        /// This wrapper method was taken from Adam Anderson's blog at http://blog.falafel.com/working-system-runtime-caching-memorycache/.
+        /// This wrapper method was taken from a blog at https://medium.com/falafel-software/working-with-system-runtime-caching-memorycache-9f8548172ccd.
         /// </summary>
         /// <typeparam name="T">Type of object being stored in the <see cref="MemoryCache"/></typeparam>
         /// <param name="key">A unique identifier for the cache entry to add or get.</param>
@@ -150,8 +149,7 @@ namespace Hyper.NodeServices.ActivityTracking
         {
             if (disposing)
             {
-                if (Cache != null)
-                    Cache.Dispose();
+                Cache?.Dispose();
             }
         }
 

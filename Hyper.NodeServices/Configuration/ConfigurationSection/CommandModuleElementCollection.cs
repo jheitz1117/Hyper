@@ -3,13 +3,13 @@ using System.Configuration;
 using System.Linq;
 using Hyper.NodeServices.Extensibility.Configuration;
 
-namespace Hyper.NodeServices.Configuration
+namespace Hyper.NodeServices.Configuration.ConfigurationSection
 {
     internal sealed class CommandModuleElementCollection : ConfigurationElementCollection, ICommandModuleConfigurationCollection
     {
         public CommandModuleElement this[int index]
         {
-            get { return BaseGet(index) as CommandModuleElement; }
+            get => BaseGet(index) as CommandModuleElement;
             set
             {
                 if (BaseGet(index) != null)
@@ -20,7 +20,7 @@ namespace Hyper.NodeServices.Configuration
 
         public new CommandModuleElement this[string name]
         {
-            get { return BaseGet(name) as CommandModuleElement; }
+            get => BaseGet(name) as CommandModuleElement;
             set
             {
                 if (BaseGet(name) != null)
@@ -47,15 +47,15 @@ namespace Hyper.NodeServices.Configuration
         [ConfigurationProperty("requestSerializer", IsRequired = false)]
         public string RequestSerializerType
         {
-            get { return (string)base["requestSerializer"]; }
-            set { base["requestSerializer"] = value; }
+            get => (string)base["requestSerializer"];
+            set => base["requestSerializer"] = value;
         }
 
         [ConfigurationProperty("responseSerializer", IsRequired = false)]
         public string ResponseSerializerType
         {
-            get { return (string)base["responseSerializer"]; }
-            set { base["responseSerializer"] = value; }
+            get => (string)base["responseSerializer"];
+            set => base["responseSerializer"] = value;
         }
     }
 }

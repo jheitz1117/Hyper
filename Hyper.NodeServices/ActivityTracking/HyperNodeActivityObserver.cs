@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using Hyper.NodeServices.Contracts;
+using Hyper.NodeServices.Exceptions;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 
 namespace Hyper.NodeServices.ActivityTracking
@@ -64,8 +65,7 @@ namespace Hyper.NodeServices.ActivityTracking
                 _subscription?.Dispose();
 
                 // Second, schedule the disposal of the scheduler itself if applicable
-                var disposableScheduler = _scheduler as IDisposable;
-                if (disposableScheduler != null)
+                if (_scheduler is IDisposable disposableScheduler)
                     _scheduler.Schedule(() => disposableScheduler.Dispose());
 
                 // Tattle to everyone else and alert the other observers of what the original problem was

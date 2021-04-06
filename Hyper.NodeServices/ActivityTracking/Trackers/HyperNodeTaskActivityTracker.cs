@@ -5,7 +5,7 @@ using Hyper.NodeServices.EventTracking;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.EventTracking;
 
-namespace Hyper.NodeServices.ActivityTracking
+namespace Hyper.NodeServices.ActivityTracking.Trackers
 {
     internal sealed class HyperNodeTaskActivityTracker : HyperActivityTracker, ITaskActivityTracker
     {

@@ -1,8 +1,8 @@
 ﻿using System;
-using Hyper.NodeServices.EventTracking;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
+using Hyper.NodeServices.Extensibility.EventTracking;
 
-namespace Hyper.NodeServices.Extensibility.EventTracking
+namespace Hyper.NodeServices.EventTracking
 {
     internal sealed class MessageReceivedEventArgs : HyperNodeEventArgs, IMessageReceivedEventArgs
     {
