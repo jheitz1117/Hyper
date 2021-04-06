@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Hyper.NodeServices.Contracts</RootNamespace>
     <AssemblyName>Hyper.NodeServices.Contracts</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -50,11 +51,7 @@
     <Compile Include="HyperNodeClient.cs" />
     <Compile Include="HyperNodeMessageRequest.cs" />
     <Compile Include="HyperNodeMessageResponse.cs" />
-    <Compile Include="HyperNodePath.cs" />
-    <Compile Include="HyperNodeVertex.cs" />
     <Compile Include="IHyperNodeService.cs" />
-    <Compile Include="IPath.cs" />
-    <Compile Include="IVertex.cs" />
     <Compile Include="MessageProcessOptionFlags.cs" />
     <Compile Include="MessageProcessStatusFlags.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

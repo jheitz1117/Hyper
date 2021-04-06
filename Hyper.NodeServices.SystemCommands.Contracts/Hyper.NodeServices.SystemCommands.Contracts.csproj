@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Hyper.NodeServices.SystemCommands.Contracts</RootNamespace>
     <AssemblyName>Hyper.NodeServices.SystemCommands.Contracts</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -45,7 +46,6 @@
     <Compile Include="SystemCommandName.cs" />
     <Compile Include="SystemCommands\ActivityMonitorStatus.cs" />
     <Compile Include="SystemCommands\CommandStatus.cs" />
-    <Compile Include="SystemCommands\DiscoverResponse.cs" />
     <Compile Include="SystemCommands\EnableActivityMonitorRequest.cs" />
     <Compile Include="SystemCommands\EnableCommandModuleRequest.cs" />
     <Compile Include="SystemCommands\EnableDiagnosticsRequest.cs" />

@@ -3,13 +3,13 @@ using System.Configuration;
 using System.Linq;
 using Hyper.NodeServices.Extensibility.Configuration;
 
-namespace Hyper.NodeServices.Configuration
+namespace Hyper.NodeServices.Configuration.ConfigurationSection
 {
     internal sealed class ActivityMonitorElementCollection : ConfigurationElementCollection, IActivityMonitorConfigurationCollection
     {
         public ActivityMonitorElement this[int index]
         {
-            get { return BaseGet(index) as ActivityMonitorElement; }
+            get => BaseGet(index) as ActivityMonitorElement;
             set
             {
                 if (BaseGet(index) != null)
@@ -20,7 +20,7 @@ namespace Hyper.NodeServices.Configuration
 
         public new ActivityMonitorElement this[string name]
         {
-            get { return BaseGet(name) as ActivityMonitorElement; }
+            get => BaseGet(name) as ActivityMonitorElement;
             set
             {
                 if (BaseGet(name) != null)

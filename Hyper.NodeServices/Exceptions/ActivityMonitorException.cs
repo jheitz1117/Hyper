@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Hyper.NodeServices
+namespace Hyper.NodeServices.Exceptions
 {
     [Serializable]
     internal class ActivityMonitorException : Exception

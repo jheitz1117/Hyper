@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
@@ -58,15 +57,6 @@ namespace Hyper.NodeServices.Contracts
         public List<HyperNodeActivityItem> TaskTrace { get; set; }
 
         /// <summary>
-        /// Contains a list of <see cref="HyperNodeMessageResponse"/> objects returned by child nodes up until the point at which this
-        /// <see cref="HyperNodeMessageResponse"/> was returned. If the <see cref="MessageProcessOptionFlags.RunConcurrently"/> option
-        /// flag was specified in the <see cref="HyperNodeMessageRequest"/>, the list will likely be incomplete because the main thread
-        /// could have completed before the <see cref="HyperNodeMessageRequest"/> could be forwarded to all child nodes.
-        /// </summary>
-        [DataMember]
-        public ConcurrentDictionary<string, HyperNodeMessageResponse> ChildResponses { get; set; }
-
-        /// <summary>
         /// Contains the response string from the command that was executed.
         /// </summary>
         [DataMember]
@@ -78,7 +68,6 @@ namespace Hyper.NodeServices.Contracts
         public HyperNodeMessageResponse()
         {
             TaskTrace = new List<HyperNodeActivityItem>();
-            ChildResponses = new ConcurrentDictionary<string, HyperNodeMessageResponse>();
         }
 
         /// <summary>

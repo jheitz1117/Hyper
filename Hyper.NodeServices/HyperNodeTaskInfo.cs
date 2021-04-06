@@ -7,6 +7,7 @@ using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Hyper.NodeServices.ActivityTracking;
+using Hyper.NodeServices.ActivityTracking.Trackers;
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.EventTracking;
@@ -29,8 +30,8 @@ namespace Hyper.NodeServices
 
         public string TaskId
         {
-            get { return Response.TaskId; }
-            set { Response.TaskId = value; }
+            get => Response.TaskId;
+            set => Response.TaskId = value;
         }
 
         public CancellationToken Token => _taskTokenSource.Token;

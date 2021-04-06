@@ -5,6 +5,7 @@ using System.Text;
 using Hyper.NodeServices.CommandModules;
 using Hyper.NodeServices.CommandModules.SystemCommands;
 using Hyper.NodeServices.Contracts.Extensibility.CommandModules;
+using Hyper.NodeServices.Exceptions;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 using Hyper.NodeServices.Extensibility.CommandModules;
@@ -108,12 +109,6 @@ namespace Hyper.NodeServices
                     CommandName = SystemCommandName.GetChildNodes,
                     Enabled = actualDefaultEnabled,
                     CommandModuleType = typeof(GetChildNodesCommand)
-                },
-                new CommandModuleConfiguration
-                {
-                    CommandName = SystemCommandName.Discover,
-                    Enabled = actualDefaultEnabled,
-                    CommandModuleType = typeof(DiscoverCommand)
                 },
                 new CommandModuleConfiguration
                 {

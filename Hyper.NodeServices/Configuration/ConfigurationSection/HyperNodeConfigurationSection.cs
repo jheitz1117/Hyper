@@ -1,9 +1,9 @@
 ﻿using System.Configuration;
 using Hyper.NodeServices.Extensibility.Configuration;
 
-namespace Hyper.NodeServices.Configuration
+namespace Hyper.NodeServices.Configuration.ConfigurationSection
 {
-    internal sealed class HyperNodeConfigurationSection : ConfigurationSection, IHyperNodeConfiguration
+    internal sealed class HyperNodeConfigurationSection : System.Configuration.ConfigurationSection, IHyperNodeConfiguration
     {
         /// <summary>
         /// Specifies the name of the <see cref="HyperNodeService"/>. This attribute is required.
@@ -11,8 +11,8 @@ namespace Hyper.NodeServices.Configuration
         [ConfigurationProperty("name", IsRequired = true)]
         public string HyperNodeName
         {
-            get { return (string)this["name"]; }
-            set { this["name"] = value; }
+            get => (string)this["name"];
+            set => this["name"] = value;
         }
 
         /// <summary>
@@ -21,8 +21,8 @@ namespace Hyper.NodeServices.Configuration
         [ConfigurationProperty("enableTaskProgressCache", DefaultValue = HyperNodeService.DefaultTaskProgressCacheEnabled, IsRequired = false)]
         public bool? EnableTaskProgressCache
         {
-            get { return (bool)this["enableTaskProgressCache"]; }
-            set { this["enableTaskProgressCache"] = value; }
+            get => (bool)this["enableTaskProgressCache"];
+            set => this["enableTaskProgressCache"] = value;
         }
 
         /// <summary>
@@ -31,8 +31,8 @@ namespace Hyper.NodeServices.Configuration
         [ConfigurationProperty("enableDiagnostics", DefaultValue = HyperNodeService.DefaultDiagnosticsEnabled, IsRequired = false)]
         public bool? EnableDiagnostics
         {
-            get { return (bool)this["enableDiagnostics"]; }
-            set { this["enableDiagnostics"] = value; }
+            get => (bool)this["enableDiagnostics"];
+            set => this["enableDiagnostics"] = value;
         }
 
         /// <summary>
@@ -41,8 +41,8 @@ namespace Hyper.NodeServices.Configuration
         [ConfigurationProperty("taskProgressCacheDuration", DefaultValue = HyperNodeService.DefaultProgressCacheDurationMinutes, IsRequired = false)]
         public int? TaskProgressCacheDurationMinutes
         {
-            get { return (int)this["taskProgressCacheDuration"]; }
-            set { this["taskProgressCacheDuration"] = value; }
+            get => (int)this["taskProgressCacheDuration"];
+            set => this["taskProgressCacheDuration"] = value;
         }
 
         /// <summary>
@@ -51,22 +51,22 @@ namespace Hyper.NodeServices.Configuration
         [ConfigurationProperty("maxConcurrentTasks", DefaultValue = HyperNodeService.DefaultMaxConcurrentTasks, IsRequired = false)]
         public int? MaxConcurrentTasks
         {
-            get { return (int)this["maxConcurrentTasks"]; }
-            set { this["maxConcurrentTasks"] = value; }
+            get => (int)this["maxConcurrentTasks"];
+            set => this["maxConcurrentTasks"] = value;
         }
 
         [ConfigurationProperty("taskIdProviderType", IsRequired = false)]
         public string TaskIdProviderType
         {
-            get { return (string)this["taskIdProviderType"]; }
-            set { this["taskIdProviderType"] = value; }
+            get => (string)this["taskIdProviderType"];
+            set => this["taskIdProviderType"] = value;
         }
 
         [ConfigurationProperty("hyperNodeEventHandlerType", IsRequired = false)]
         public string HyperNodeEventHandlerType
         {
-            get { return (string)this["hyperNodeEventHandlerType"]; }
-            set { this["hyperNodeEventHandlerType"] = value; }
+            get => (string)this["hyperNodeEventHandlerType"];
+            set => this["hyperNodeEventHandlerType"] = value;
         }
 
         /// <summary>

@@ -43,7 +43,6 @@ namespace HyperNodeTestClient
             this.tvwRealTimeTaskTrace = new System.Windows.Forms.TreeView();
             this.lstAliceResponseSummary = new System.Windows.Forms.ListBox();
             this.lstBobResponseSummary = new System.Windows.Forms.ListBox();
-            this.btnDiscover = new System.Windows.Forms.Button();
             this.cboCommandNames = new System.Windows.Forms.ComboBox();
             this.lblCommandName = new System.Windows.Forms.Label();
             this.grpBobActivityItems = new System.Windows.Forms.GroupBox();
@@ -226,16 +225,6 @@ namespace HyperNodeTestClient
             this.lstBobResponseSummary.Name = "lstBobResponseSummary";
             this.lstBobResponseSummary.Size = new System.Drawing.Size(331, 316);
             this.lstBobResponseSummary.TabIndex = 17;
-            // 
-            // btnDiscover
-            // 
-            this.btnDiscover.Location = new System.Drawing.Point(291, 3);
-            this.btnDiscover.Name = "btnDiscover";
-            this.btnDiscover.Size = new System.Drawing.Size(75, 23);
-            this.btnDiscover.TabIndex = 19;
-            this.btnDiscover.Text = "Discover";
-            this.btnDiscover.UseVisualStyleBackColor = true;
-            this.btnDiscover.Click += new System.EventHandler(this.btnDiscover_Click);
             // 
             // cboCommandNames
             // 
@@ -588,7 +577,6 @@ namespace HyperNodeTestClient
             this.pnlLeft.Controls.Add(this.lblRealTimeResponse);
             this.pnlLeft.Controls.Add(this.cboCommandNames);
             this.pnlLeft.Controls.Add(this.chkReturnTaskTrace);
-            this.pnlLeft.Controls.Add(this.btnDiscover);
             this.pnlLeft.Controls.Add(this.chkRunConcurrently);
             this.pnlLeft.Controls.Add(this.tvwRealTimeTaskTrace);
             this.pnlLeft.Controls.Add(this.chkCacheProgressInfo);
@@ -691,7 +679,6 @@ namespace HyperNodeTestClient
         private System.Windows.Forms.TreeView tvwRealTimeTaskTrace;
         private ListBox lstAliceResponseSummary;
         private ListBox lstBobResponseSummary;
-        private Button btnDiscover;
         private ComboBox cboCommandNames;
         private Label lblCommandName;
         private GroupBox grpBobResponseSummary;

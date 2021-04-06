@@ -2,7 +2,7 @@
 using Hyper.NodeServices.Contracts;
 using Hyper.NodeServices.Extensibility.ActivityTracking;
 
-namespace Hyper.NodeServices.ActivityTracking
+namespace Hyper.NodeServices.ActivityTracking.Monitors
 {
     internal sealed class ResponseTaskTraceMonitor : HyperNodeServiceActivityMonitor
     {

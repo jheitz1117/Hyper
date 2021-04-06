@@ -18,7 +18,6 @@ namespace Hyper.NodeServices
         public HyperNodeActionReasonType NodeActionReason { get; }
         public MessageProcessStatusFlags ProcessStatusFlags { get; }
         public IReadOnlyList<HyperNodeActivityItem> TaskTrace { get; }
-        public IReadOnlyDictionary<string, IReadOnlyHyperNodeResponseInfo> ChildResponses { get; }
         public string CommandResponseString { get; }
 
         public ReadOnlyHyperNodeResponseInfo(HyperNodeMessageResponse response)
@@ -34,14 +33,6 @@ namespace Hyper.NodeServices
                 response.TaskTrace.Select(
                     t => new HyperNodeActivityItem(t)
                 ).ToList()
-            );
-            ChildResponses = new ReadOnlyDictionary<string, IReadOnlyHyperNodeResponseInfo>(
-                response.ChildResponses.Select(
-                    kvp => new KeyValuePair<string, IReadOnlyHyperNodeResponseInfo>(
-                        kvp.Key,
-                        new ReadOnlyHyperNodeResponseInfo(kvp.Value)
-                    )
-                ).ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
             );
         }
     }
