@@ -11,7 +11,7 @@
   <!-- insert updated config if it doesn't exist -->
   <configSections xdt:Locator="XPath(/configuration/configSections[last()])">
     <sectionGroup name="hyperSoa" xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)">
-      <section name="hyperNode" type="Hyper.NodeServices.Configuration.HyperNodeConfigurationSection, Hyper.NodeServices" xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)" />
+      <section name="hyperNode" type="Hyper.NodeServices.Configuration.ConfigurationSections.HyperNodeConfigurationSection, Hyper.NodeServices" xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)" />
     </sectionGroup>
   </configSections>
   
