@@ -76,8 +76,8 @@
     <Compile Include="CommandModules\SystemCommands\GetNodeStatusCommand.cs" />
     <Compile Include="CommandModules\SystemCommands\SetTaskProgressCacheDurationCommand.cs" />
     <Compile Include="Configuration\HyperNodeSectionConfigurationProvider.cs" />
-    <Compile Include="Configuration\ConfigurationSection\SystemCommandElement.cs" />
-    <Compile Include="Configuration\ConfigurationSection\SystemCommandElementCollection.cs" />
+    <Compile Include="Configuration\ConfigurationSections\SystemCommandElement.cs" />
+    <Compile Include="Configuration\ConfigurationSections\SystemCommandElementCollection.cs" />
     <Compile Include="EventTracking\HyperNodeEventArgs.cs" />
     <Compile Include="EventTracking\TaskCompletedEventArgs.cs" />
     <Compile Include="EventTracking\MessageReceivedEventArgs.cs" />
@@ -90,11 +90,11 @@
     <Compile Include="ActivityTracking\Monitors\TaskProgressCacheMonitor.cs" />
     <Compile Include="ActivityTracking\Monitors\ResponseTaskTraceMonitor.cs" />
     <Compile Include="CommandModules\CommandExecutionContext.cs" />
-    <Compile Include="Configuration\ConfigurationSection\ActivityMonitorElement.cs" />
-    <Compile Include="Configuration\ConfigurationSection\ActivityMonitorElementCollection.cs" />
-    <Compile Include="Configuration\ConfigurationSection\CommandModuleElement.cs" />
-    <Compile Include="Configuration\ConfigurationSection\CommandModuleElementCollection.cs" />
-    <Compile Include="Configuration\ConfigurationSection\HyperNodeConfigurationSection.cs" />
+    <Compile Include="Configuration\ConfigurationSections\ActivityMonitorElement.cs" />
+    <Compile Include="Configuration\ConfigurationSections\ActivityMonitorElementCollection.cs" />
+    <Compile Include="Configuration\ConfigurationSections\CommandModuleElement.cs" />
+    <Compile Include="Configuration\ConfigurationSections\CommandModuleElementCollection.cs" />
+    <Compile Include="Configuration\ConfigurationSections\HyperNodeConfigurationSection.cs" />
     <Compile Include="Exceptions\DuplicateActivityMonitorException.cs" />
     <Compile Include="Exceptions\DuplicateCommandException.cs">
       <SubType>Code</SubType>

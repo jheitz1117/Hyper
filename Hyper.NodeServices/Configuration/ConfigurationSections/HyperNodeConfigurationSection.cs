@@ -1,9 +1,9 @@
 ﻿using System.Configuration;
 using Hyper.NodeServices.Extensibility.Configuration;
 
-namespace Hyper.NodeServices.Configuration.ConfigurationSection
+namespace Hyper.NodeServices.Configuration.ConfigurationSections
 {
-    internal sealed class HyperNodeConfigurationSection : System.Configuration.ConfigurationSection, IHyperNodeConfiguration
+    internal sealed class HyperNodeConfigurationSection : ConfigurationSection, IHyperNodeConfiguration
     {
         /// <summary>
         /// Specifies the name of the <see cref="HyperNodeService"/>. This attribute is required.

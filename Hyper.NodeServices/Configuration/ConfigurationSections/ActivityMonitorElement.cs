@@ -1,7 +1,7 @@
 ﻿using System.Configuration;
 using Hyper.NodeServices.Extensibility.Configuration;
 
-namespace Hyper.NodeServices.Configuration.ConfigurationSection
+namespace Hyper.NodeServices.Configuration.ConfigurationSections
 {
     internal sealed class ActivityMonitorElement : ConfigurationElement, IActivityMonitorConfiguration
     {
