@@ -5,12 +5,14 @@
     <version>$version$</version>
     <title>$title$</title>
     <authors>$author$</authors>
-    <owners>$author$</owners>
-    <licenseUrl>http://opensource.org/licenses/GPL-3.0</licenseUrl>
+    <license type="expression">GPL-3.0-or-later</license>
     <projectUrl>https://github.com/jheitz1117/Hyper</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
     <copyright>$copyright$</copyright>
+	<dependencies>
+		<group targetFramework=".NETFramework4.7.2" />
+	</dependencies>
   </metadata>
   <files>
     <file src="bin\$configuration$\$id$.xml" target="lib" />
