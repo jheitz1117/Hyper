@@ -3,7 +3,7 @@ using System.Configuration;
 using System.Linq;
 using Hyper.NodeServices.Extensibility.Configuration;
 
-namespace Hyper.NodeServices.Configuration.ConfigurationSection
+namespace Hyper.NodeServices.Configuration.ConfigurationSections
 {
     internal sealed class ActivityMonitorElementCollection : ConfigurationElementCollection, IActivityMonitorConfigurationCollection
     {

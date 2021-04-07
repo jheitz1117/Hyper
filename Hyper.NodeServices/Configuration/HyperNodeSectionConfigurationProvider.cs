@@ -1,5 +1,5 @@
 ﻿using System.Configuration;
-using Hyper.NodeServices.Configuration.ConfigurationSection;
+using Hyper.NodeServices.Configuration.ConfigurationSections;
 using Hyper.NodeServices.Extensibility;
 using Hyper.NodeServices.Extensibility.Configuration;
 
