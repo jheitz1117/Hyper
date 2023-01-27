@@ -237,7 +237,8 @@ namespace Hyper.NodeServices
             foreach (var commandModuleConfig in config.CommandModules)
             {
                 var commandModuleType = Type.GetType(commandModuleConfig.CommandModuleType, true);
-                if (commandModuleType.GetInterfaces().Contains(typeof(ICommandModule)))
+                if (commandModuleType.GetInterfaces().Contains(typeof(ICommandModule)) ||
+                    commandModuleType.GetInterfaces().Contains(typeof(IAwaitableCommandModule)))
                 {
                     Type commandRequestSerializerType = null;
                     Type commandResponseSerializerType = null;

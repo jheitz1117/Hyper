@@ -14,11 +14,8 @@ namespace Hyper.NodeServices.Extensibility.ActivityTracking
         /// </summary>
         public string Name
         {
-            get { return _name; }
-            set
-            {
-                _name = string.IsNullOrWhiteSpace(value) ? Guid.NewGuid().ToString() : value;
-            }
+            get => _name;
+            set => _name = string.IsNullOrWhiteSpace(value) ? Guid.NewGuid().ToString() : value;
         } private string _name = Guid.NewGuid().ToString();
 
         /// <summary>

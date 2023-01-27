@@ -1,4 +1,5 @@
 ﻿using System.ServiceModel;
+using System.Threading.Tasks;
 
 namespace Hyper.NodeServices.Contracts
 {
@@ -14,6 +15,6 @@ namespace Hyper.NodeServices.Contracts
         /// <param name="message">The <see cref="HyperNodeMessageRequest"/> object to process.</param>
         /// <returns></returns>
         [OperationContract]
-        HyperNodeMessageResponse ProcessMessage(HyperNodeMessageRequest message);
+        Task<HyperNodeMessageResponse> ProcessMessageAsync(HyperNodeMessageRequest message);
     }
 }

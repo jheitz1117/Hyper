@@ -24,7 +24,7 @@ namespace Hyper.IO
         }
 
         /// <summary>
-        /// Returns an instance of <see cref="IStringTransform"/> that transforms hexidecimal strings.
+        /// Returns an instance of <see cref="IStringTransform"/> that transforms hexadecimal strings.
         /// </summary>
         /// <returns></returns>
         public static IStringTransform GetHexTransform()

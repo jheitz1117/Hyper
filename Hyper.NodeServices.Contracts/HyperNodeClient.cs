@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.ServiceModel;
+using System.Threading.Tasks;
 
 namespace Hyper.NodeServices.Contracts
 {
@@ -39,7 +40,17 @@ namespace Hyper.NodeServices.Contracts
         /// <returns></returns>
         public HyperNodeMessageResponse ProcessMessage(HyperNodeMessageRequest message)
         {
-            return _channel.ProcessMessage(message);
+            return _channel.ProcessMessageAsync(message).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Processes and/or forwards the specified message.
+        /// </summary>
+        /// <param name="message">The <see cref="HyperNodeMessageRequest"/> object to process.</param>
+        /// <returns></returns>
+        public async Task<HyperNodeMessageResponse> ProcessMessageAsync(HyperNodeMessageRequest message)
+        {
+            return await _channel.ProcessMessageAsync(message);
         }
 
         /// <summary>

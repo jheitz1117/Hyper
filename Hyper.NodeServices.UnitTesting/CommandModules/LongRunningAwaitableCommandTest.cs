@@ -11,9 +11,9 @@ using Hyper.NodeServices.UnitTesting.Contracts.CommandModules;
 namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
 {
     /// <summary>
-    /// Unit test for long-running command modules.
+    /// Unit test for long-running awaitable command modules.
     /// </summary>
-    public class LongRunningCommandTest : ICommandModule
+    public class LongRunningAwaitableCommandTest : IAwaitableCommandModule
     {
         private static readonly TimeSpan DefaultTotalRunTime = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan DefaultMinimumSleepInterval = TimeSpan.FromSeconds(1);
@@ -24,7 +24,7 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
         /// </summary>
         /// <param name="context">The <see cref="ICommandExecutionContext"/> to use to run this command module.</param>
         /// <returns></returns>
-        public ICommandResponse Execute(ICommandExecutionContext context)
+        public async Task<ICommandResponse> Execute(ICommandExecutionContext context)
         {
             // This technique allows us to optionally take a command request. If they just want to run the default settings, they can just pass an empty string and we'll supply the default values.
             if (!(context.Request is CommandRequestString stringRequest))
@@ -66,13 +66,7 @@ namespace Hyper.NodeServices.CommandModules.UnitTestingCommands
 
                 try
                 {
-                    Task.WaitAll(
-                        new []
-                        {
-                            Task.Delay(sleepMilliseconds, context.Token)
-                        },
-                        context.Token
-                    );
+                    await Task.Delay(sleepMilliseconds, context.Token);
 
                     // Avoid reporting more than 100% or reporting 100% multiple times
                     if (stopwatch.ElapsedMilliseconds < totalRunTime.TotalMilliseconds)
