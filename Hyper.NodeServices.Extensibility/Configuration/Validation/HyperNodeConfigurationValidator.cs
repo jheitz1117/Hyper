@@ -7,7 +7,7 @@ using Hyper.NodeServices.Extensibility.EventTracking;
 using Hyper.NodeServices.SystemCommands.Contracts;
 
 // Keep in mind now that we're going to have two levels of validation (XSD and manual validation), we'll have to keep them in sync.
-// The reason we can't simplify this is because of intellisense: We can't elliminate XSD because then we lose intellisense in the
+// The reason we can't simplify this is because of intellisense: We can't eliminate XSD because then we lose intellisense in the
 // app.config. However, we can't eliminate validation in this provider class because we would lose support for the default values.
 
 // To clarify about the default values, the default values used to be supplied by the configuration element classes that integrate
@@ -184,7 +184,11 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             }
             else
             {
-                ValidateTypeImplementsInterface(config.CommandModuleType, typeof(ICommandModule));
+                ValidateTypeImplementsAnyInterface(
+                    config.CommandModuleType,
+                    typeof(ICommandModule),
+                    typeof(IAwaitableCommandModule)
+                );
             }
 
             // RequestSerializerType property is not required, but if it is specified, it must implement the correct interface
@@ -204,14 +208,33 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             if (!requiredInterface.IsInterface)
                 throw new ArgumentException("Type must be an interface.", nameof(requiredInterface));
 
-            Type targetType;
-            ValidateTypeString(targetTypeString, out targetType);
+            ValidateTypeString(targetTypeString, out var targetType);
 
             if (targetType != null && !targetType.GetInterfaces().Contains(requiredInterface))
             {
                 RaiseValidationEvent(
                     new HyperNodeConfigurationException(
                         $"The type '{targetType.FullName}' must implement {requiredInterface.FullName}."
+                    )
+                );
+            }
+        }
+
+        private void ValidateTypeImplementsAnyInterface(string targetTypeString, params Type[] acceptedInterfaces)
+        {
+            if (acceptedInterfaces == null)
+                throw new ArgumentNullException(nameof(acceptedInterfaces));
+
+            if (!acceptedInterfaces.All(t => t.IsInterface))
+                throw new ArgumentException("Every Type must be an interface.", nameof(acceptedInterfaces));
+
+            ValidateTypeString(targetTypeString, out var targetType);
+
+            if (targetType != null && !targetType.GetInterfaces().Intersect(acceptedInterfaces).Any())
+            {
+                RaiseValidationEvent(
+                    new HyperNodeConfigurationException(
+                        $"The type '{targetType.FullName}' must implement one of the following interfaces: {string.Join(", ", acceptedInterfaces.Select(t => t.FullName))}."
                     )
                 );
             }
@@ -225,8 +248,7 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Validation
             if (!requiredBaseType.IsClass)
                 throw new ArgumentException("Type must be a class; that is, not a value type or interface.", nameof(requiredBaseType));
 
-            Type targetType;
-            ValidateTypeString(targetTypeString, out targetType);
+            ValidateTypeString(targetTypeString, out var targetType);
 
             if (targetType != null && !targetType.IsSubclassOf(requiredBaseType))
             {

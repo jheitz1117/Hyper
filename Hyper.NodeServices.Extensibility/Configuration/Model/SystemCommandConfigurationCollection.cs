@@ -20,8 +20,8 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         /// <returns></returns>
         public SystemCommandConfiguration this[string name]
         {
-            get { return _systemCommands[name]; }
-            set { _systemCommands[name] = value; }
+            get => _systemCommands[name];
+            set => _systemCommands[name] = value;
         }
 
         /// <summary>

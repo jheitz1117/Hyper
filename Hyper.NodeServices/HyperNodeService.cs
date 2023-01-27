@@ -148,7 +148,7 @@ namespace Hyper.NodeServices
         /// </summary>
         /// <param name="message">The <see cref="HyperNodeMessageRequest"/> object to process.</param>
         /// <returns></returns>
-        public HyperNodeMessageResponse ProcessMessage(HyperNodeMessageRequest message)
+        public async Task<HyperNodeMessageResponse> ProcessMessageAsync(HyperNodeMessageRequest message)
         {
             var response = new HyperNodeMessageResponse(HyperNodeName)
             {
@@ -232,12 +232,12 @@ namespace Hyper.NodeServices
                     currentTaskInfo.Activity.Track("Attempting to process message...");
 
                     // Define the method in a safe way (i.e. with a try/catch around it)
-                    var processMessageInternalSafe = new Action<HyperNodeTaskInfo>(
-                        args =>
+                    var processMessageInternalSafe = new Func<HyperNodeTaskInfo, Task>(
+                        async args =>
                         {
                             try
                             {
-                                ProcessMessageInternal(args);
+                                await ProcessMessageInternal(args).ConfigureAwait(false);
                             }
                             catch (Exception ex)
                             {
@@ -261,22 +261,22 @@ namespace Hyper.NodeServices
                     if (message.RunConcurrently)
                     {
                         currentTaskInfo.AddChildTask(
-                            Task.Factory.StartNew(
-                                args => processMessageInternalSafe(args as HyperNodeTaskInfo),
-                                currentTaskInfo,
+                            Task.Run(
+                                async () => await processMessageInternalSafe(currentTaskInfo).ConfigureAwait(false),
                                 currentTaskInfo.Token
                             )
                         );
                     }
                     else
                     {
-                        processMessageInternalSafe(currentTaskInfo);
+                        await processMessageInternalSafe(currentTaskInfo).ConfigureAwait(false);
                     }
 
                     // Now that we have all of our tasks doing stuff, we need to make sure we clean up after ourselves.
                     if (message.RunConcurrently)
                     {
                         // If we're running concurrently, we want to return immediately and allow the clean up to occur as a continuation after the tasks are finished.
+                        // IMPORTANT: We're deliberately not using await here because we *want* to return asap because the user requested the command be run concurrently.
                         currentTaskInfo.WhenChildTasks().ContinueWith(t => TaskCleanUp(currentTaskInfo.TaskId));
                     }
                     else
@@ -649,7 +649,7 @@ namespace Hyper.NodeServices
             return rejectionReason;
         }
 
-        private void ProcessMessageInternal(HyperNodeTaskInfo args)
+        private async Task ProcessMessageInternal(HyperNodeTaskInfo args)
         {
             ICommandResponse commandResponse;
 
@@ -658,19 +658,15 @@ namespace Hyper.NodeServices
                 commandModuleConfig.Enabled)
             {
                 // Create our command module instance
-                var commandModule = (ICommandModule)Activator.CreateInstance(commandModuleConfig.CommandModuleType);
+                var commandInstance = Activator.CreateInstance(commandModuleConfig.CommandModuleType);
 
                 ICommandRequestSerializer requestSerializer = null;
                 ICommandResponseSerializer responseSerializer = null;
 
-                // Check if our command module is able to create request and/or response serializers
-                var requestSerializerFactory = commandModule as ICommandRequestSerializerFactory;
-                var responseSerializerFactory = commandModule as ICommandResponseSerializerFactory;
-
                 // Use the factories to create serializers, if applicable
-                if (requestSerializerFactory != null)
+                if (commandInstance is ICommandRequestSerializerFactory requestSerializerFactory)
                     requestSerializer = requestSerializerFactory.Create();
-                if (responseSerializerFactory != null)
+                if (commandInstance is ICommandResponseSerializerFactory responseSerializerFactory)
                     responseSerializer = responseSerializerFactory.Create();
 
                 // Allow the command module factory-created serializers to take precedence over the configured serializers
@@ -707,7 +703,10 @@ namespace Hyper.NodeServices
                     };
 
                     // Execute the command
-                    commandResponse = commandModule.Execute(context);
+                    if (commandInstance is IAwaitableCommandModule awaitableCommand)
+                        commandResponse = await awaitableCommand.Execute(context).ConfigureAwait(false);
+                    else
+                        commandResponse = ((ICommandModule)commandInstance).Execute(context);
 
                     // Serialize the response to send back
                     args.Response.CommandResponseString = responseSerializer.Serialize(commandResponse);
@@ -715,7 +714,7 @@ namespace Hyper.NodeServices
                 finally
                 {
                     // Check if our module is disposable and take care of it appropriately
-                    (commandModule as IDisposable)?.Dispose();
+                    (commandInstance as IDisposable)?.Dispose();
                 }
             }
             else

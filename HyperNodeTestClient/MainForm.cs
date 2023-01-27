@@ -31,7 +31,7 @@ namespace HyperNodeTestClient
 
         #region Events
 
-        private void btnRefreshCommandList_Click(object sender, EventArgs e)
+        private async void btnRefreshCommandList_Click(object sender, EventArgs e)
         {
             try
             {
@@ -45,7 +45,7 @@ namespace HyperNodeTestClient
 
                 using (var client = new HyperNodeClient("Alice"))
                 {
-                    var response = client.ProcessMessage(msg);
+                    var response = await client.ProcessMessageAsync(msg);
 
                     // TODO: Recursively find the response we're actually interested in
 
