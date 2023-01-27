@@ -21,8 +21,8 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         /// <returns></returns>
         public CommandModuleConfiguration this[string commandName]
         {
-            get { return _commandModules[commandName]; }
-            set { _commandModules[commandName] = value; }
+            get => _commandModules[commandName];
+            set => _commandModules[commandName] = value;
         }
 
         /// <summary>

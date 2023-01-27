@@ -91,9 +91,9 @@ namespace Hyper.NodeServices
         /// Creates a task that will complete when all of the child tasks have completed.
         /// </summary>
         /// <returns></returns>
-        public Task WhenChildTasks()
+        public async Task WhenChildTasks()
         {
-            return Task.WhenAll(_childTasks);
+            await Task.WhenAll(_childTasks).ConfigureAwait(false);
         }
 
         /// <summary>

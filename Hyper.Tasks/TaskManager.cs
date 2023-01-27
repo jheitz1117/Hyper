@@ -8,19 +8,16 @@ namespace Hyper.Tasks
     public class TaskManager
     {
         private readonly List<Task> _tasks = new List<Task>();
-        readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        bool _isRunning;
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private bool _isRunning;
 
         /// <summary>
         /// List of tasks to manage in this instance of TaskManager
         /// </summary>
         public List<IManagedTask> ManagedTasks
         {
-            get { return _managedTasks; }
-            set
-            {
-                _managedTasks = value ?? new List<IManagedTask>();
-            }
+            get => _managedTasks;
+            set => _managedTasks = value ?? new List<IManagedTask>();
         } private List<IManagedTask> _managedTasks = new List<IManagedTask>();
 
         /// <summary>
@@ -39,15 +36,14 @@ namespace Hyper.Tasks
 
             foreach (var task in ManagedTasks)
             {
-                var loopingTask = task as LoopingManagedTaskBase;
-                if (loopingTask != null)
+                if (task is LoopingManagedTaskBase loopingTask)
                     StartNewLoopingTask(loopingTask.ExecuteTask, loopingTask.Delay, loopingTask.ExceptionHandler);
                 else
                     StartNewTask(task.ExecuteTask, task.ExceptionHandler);
             }
 
             // Wait for all the tasks to complete
-            await Task.WhenAll(_tasks);
+            await Task.WhenAll(_tasks).ConfigureAwait(false);
 
             // Reset
             _isRunning = false;
@@ -74,7 +70,7 @@ namespace Hyper.Tasks
         /// <summary>
         /// Sends the stop signal for all of the managed tasks to halt their execution and blocks the calling thread until the tasks complete.
         /// </summary>
-        /// <param name="timeout">A System.TimeSpan that represents the number of milliseconds to wait, or a System.TimeSpan that reprsents -1 milliseconds to wait indefinitely.</param>
+        /// <param name="timeout">A System.TimeSpan that represents the number of milliseconds to wait, or a System.TimeSpan that represents -1 milliseconds to wait indefinitely.</param>
         public void BlockingStop(TimeSpan timeout)
         {
             Stop();
@@ -101,7 +97,7 @@ namespace Hyper.Tasks
             if (taskMethod == null) { throw new ArgumentNullException(nameof(taskMethod)); }
 
             _tasks.Add(
-                Task.Factory.StartNew(
+                Task.Run(
                     () =>
                     {
                         try
@@ -126,11 +122,10 @@ namespace Hyper.Tasks
         private void StartNewLoopingTask(Action<CancellationToken> taskMethod, TimeSpan delay, IManagedTaskExceptionHandler exceptionHandler)
         {
             if (taskMethod == null) { throw new ArgumentNullException(nameof(taskMethod)); }
-            if (delay == null) { throw new ArgumentNullException(nameof(delay)); }
             if (delay.CompareTo(TimeSpan.Zero) == delay.CompareTo(TimeSpan.MaxValue)) { throw new ArgumentOutOfRangeException(nameof(delay)); }
 
             _tasks.Add(
-                Task.Factory.StartNew(
+                Task.Run(
                     async () =>
                     {
                         while (!_cancellationTokenSource.Token.IsCancellationRequested)
@@ -144,7 +139,7 @@ namespace Hyper.Tasks
                                 exceptionHandler?.HandleException(ex);
                             }
 
-                            await Task.Delay(delay, _cancellationTokenSource.Token);
+                            await Task.Delay(delay, _cancellationTokenSource.Token).ConfigureAwait(false);
                         }
                     }
                 )

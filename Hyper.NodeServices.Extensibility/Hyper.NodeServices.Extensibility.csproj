@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandModules\IAwaitableCommandModule.cs" />
     <Compile Include="Configuration\ICommandModuleConfiguration.cs" />
     <Compile Include="Configuration\ISystemCommandConfiguration.cs" />
     <Compile Include="Configuration\ICommandModuleConfigurationCollection.cs" />

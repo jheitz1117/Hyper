@@ -25,7 +25,7 @@ namespace Hyper.WcfHosting
         public ServiceEndpointCollection Endpoints => _host?.Description?.Endpoints;
 
         /// <summary>
-        /// Indiciates whether the internal <see cref="ServiceHost"/> has been created and is in the <see cref="CommunicationState.Opened"/> state.
+        /// Indicates whether the internal <see cref="ServiceHost"/> has been created and is in the <see cref="CommunicationState.Opened"/> state.
         /// </summary>
         public bool IsRunning => _host != null && _host.State == CommunicationState.Opened;
 
@@ -79,19 +79,10 @@ namespace Hyper.WcfHosting
                            IServiceHostExceptionHandler communicationExceptionHandler,
                            IServiceHostExceptionHandler genericExceptionHandler)
         {
-            if (hostFactory == null)
-                throw new ArgumentNullException(nameof(hostFactory));
-            if (timeoutExceptionHandler == null)
-                throw new ArgumentNullException(nameof(timeoutExceptionHandler));
-            if (communicationExceptionHandler == null)
-                throw new ArgumentNullException(nameof(communicationExceptionHandler));
-            if (genericExceptionHandler == null)
-                throw new ArgumentNullException(nameof(genericExceptionHandler));
-
-            _hostFactory = hostFactory;
-            _timeoutExceptionHandler = timeoutExceptionHandler;
-            _communicationExceptionHandler = communicationExceptionHandler;
-            _genericExceptionHandler = genericExceptionHandler;
+            _hostFactory = hostFactory ?? throw new ArgumentNullException(nameof(hostFactory));
+            _timeoutExceptionHandler = timeoutExceptionHandler ?? throw new ArgumentNullException(nameof(timeoutExceptionHandler));
+            _communicationExceptionHandler = communicationExceptionHandler ?? throw new ArgumentNullException(nameof(communicationExceptionHandler));
+            _genericExceptionHandler = genericExceptionHandler ?? throw new ArgumentNullException(nameof(genericExceptionHandler));
 
             // By default, this property is true, making the container a one stop shop for ServiceHost management. Users can turn the feature off if they have to though.
             DisposeServiceOnStop = true;

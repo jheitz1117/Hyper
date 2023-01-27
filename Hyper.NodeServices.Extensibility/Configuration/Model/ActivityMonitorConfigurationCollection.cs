@@ -20,8 +20,8 @@ namespace Hyper.NodeServices.Extensibility.Configuration.Model
         /// <returns></returns>
         public ActivityMonitorConfiguration this[string monitorName]
         {
-            get { return _activityMonitors[monitorName]; }
-            set { _activityMonitors[monitorName] = value; }
+            get => _activityMonitors[monitorName];
+            set => _activityMonitors[monitorName] = value;
         }
 
         /// <summary>

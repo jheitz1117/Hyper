@@ -122,7 +122,7 @@ namespace Hyper.WcfHosting
                     registration.Dispose();
                 }
 
-                // Now finally dipose our token source
+                // Now finally dispose our token source
                 _tokenSource.Dispose();
             }
             finally
